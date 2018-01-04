@@ -35,17 +35,13 @@ namespace Graphics
 
 		StartProfile;
 
-		auto res = CreateDeviceResources();
-		PASS_IF_ERROR(res);
+		PASS_IF_ERROR(CreateDeviceResources());
 
-		res = CreateSwapChain(windowHandle, fullscreen, borderless, bufferCount);
-		PASS_IF_ERROR(res);
+		PASS_IF_ERROR(CreateSwapChain(windowHandle, fullscreen, borderless, bufferCount));
 
-		res = CreateBackBufferRTV();
-		PASS_IF_ERROR(res);
+		PASS_IF_ERROR(CreateBackBufferRTV());
 
-		res = CreateDepthStencil();
-		PASS_IF_ERROR(res);
+		PASS_IF_ERROR(CreateDepthStencil());
 
 		SetViewport();
 		CreateBlendState();

@@ -16,6 +16,7 @@ namespace Graphics
 	GRAPHICS_ERROR Renderer_DX11::Initialize()
 	{
 		StartProfile;
+
 		if (initiated)
 			RETURN_ERROR_C("Renderer has already been initiated");
 		PASS_IF_ERROR(device.Init((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));

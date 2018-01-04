@@ -1,6 +1,7 @@
 #ifndef _GRAPHICS_RENDERER_DX11_H_
 #define _GRAPHICS_RENDERER_DX11_H_
 #include <Graphics\Renderer_Interface.h>
+#include <Graphics\PipelineHandler_Interface.h>
 #include "DeviceHandler.h"
 #include <thread>
 namespace Graphics

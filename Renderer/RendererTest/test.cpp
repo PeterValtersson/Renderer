@@ -1,8 +1,6 @@
-#include "stdafx.h"
-#include "CppUnitTest.h"
+#include "pch.h"
 #include <Windows.h>
 #include "../Include/Graphics/Renderer_Interface.h"
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include <thread>
 using namespace std::chrono_literals;
@@ -65,7 +63,7 @@ void InitWindow(HWND& _hWnd)
 	RegisterClassEx(&wc);
 	RECT rc = { 0, 0, (LONG)windowWidth, (LONG)windowHeight };
 
-	
+
 	// Create the window with the Window settings and get the handle to it.
 	_hWnd = CreateWindowEx(
 		WS_EX_APPWINDOW,
@@ -88,56 +86,17 @@ void InitWindow(HWND& _hWnd)
 }
 
 
+TEST(Renderer, Create) {
+	HWND w;
+	InitWindow(w);
+	auto r = CreateRenderer(Renderer_Backend::DIRECTX11, { w });
+	auto re = Renderer_Initialize_C(r);
+	EXPECT_EQ(re.errornr, 0);
 
-namespace UnitTest1
-{		
-	TEST_CLASS(UnitTest1)
-	{
-	public:
-		
-		TEST_METHOD(TestMethod1)
-		{
-			HWND hwnd;
-			InitWindow(hwnd);
-			auto r = CreateRenderer(Renderer_Backend::DIRECTX11, { hwnd });
-			auto res = Renderer_Initialize_C(r);
-			Assert::AreEqual(0, res.errornr);
-			res = Renderer_Start_C(r);
-			Assert::AreEqual(0, res.errornr);
-			MSG msg;
-			for( int i = 0; i< 300; i++)
-			{
-				
-				// Handle the windows messages.
-				while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-				{
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
-				}
-			
-			
-			}
-			Renderer_Pause_C(r);
-			res = Renderer_UpdateSettings_C(r, { hwnd });
-			Assert::AreEqual(0, res.errornr);
-			res = Renderer_Start_C(r);
-			Assert::AreEqual(0, res.errornr);
-				for (int i = 0; i< 300; i++)
-				{
+	re = Renderer_Start_C(r);
+	EXPECT_EQ(re.errornr, 0);
+	std::this_thread::sleep_for(1s);
 
-					// Handle the windows messages.
-					while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-					{
-						TranslateMessage(&msg);
-						DispatchMessage(&msg);
-					}
-					std::this_thread::sleep_for(10ms);
 
-				}
-		
-			Renderer_Shutdown_C(r);
-		}
-
-	};
+	Renderer_Shutdown_C(r);
 }
-

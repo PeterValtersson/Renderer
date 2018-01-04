@@ -2,7 +2,7 @@
 #define _GRAPHICS_RENDERER_INTERFACE_H_
 #include "../DLLExport.h"
 #include "../GRAPHICS_ERROR.h"
-#include <Graphics\PipelineHandler_Interface.h>
+#include "PipelineHandler_Interface.h"
 #include <stdint.h>
 
 namespace Graphics
