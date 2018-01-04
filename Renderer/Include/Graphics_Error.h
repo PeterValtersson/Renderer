@@ -15,11 +15,6 @@ namespace Graphics
 		int32_t errornr;
 		const char* file;
 		int32_t line;
-		/*Graphics_Error(const char* error, int32_t errornr, const char* file, int line)
-			: errorMSG(error), errornr(errornr), file(file), line(line)
-		{
-
-		}*/
 	};
 }
 #endif

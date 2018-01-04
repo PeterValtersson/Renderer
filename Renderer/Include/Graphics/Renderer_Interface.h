@@ -24,7 +24,7 @@ namespace Graphics
 		WindowState windowState = WindowState::WINDOWED;
 		uint32_t bufferCount = 2;
 		Resolution resolution = { 1280, 720 };
-		uint8_t vsync;
+		uint8_t vsync = 1Ui8;
 	};
 	class Renderer_Interface
 	{

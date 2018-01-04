@@ -31,6 +31,7 @@ namespace Graphics
 			myThread.join();
 		}
 		device.Shutdown();
+		initiated = false;
 	}
 	void Renderer_DX11::Pause()
 	{
