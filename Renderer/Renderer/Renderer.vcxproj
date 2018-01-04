@@ -142,13 +142,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DeviceHandler.cpp" />
     <ClCompile Include="Renderer_DX11.cpp" />
     <ClCompile Include="Renderer_Interface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\DLLExport.h" />
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h" />
+    <ClInclude Include="..\Include\Graphics_Error.h" />
+    <ClInclude Include="DeviceHandler.h" />
     <ClInclude Include="Renderer_DX11.h" />
+    <ClInclude Include="Safe_Release.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

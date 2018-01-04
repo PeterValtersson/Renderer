@@ -16,13 +16,27 @@
     <ClCompile Include="Renderer_Interface.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer_DX11.cpp" />
+    <ClCompile Include="Renderer_DX11.cpp">
+      <Filter>DX11Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="DeviceHandler.cpp">
+      <Filter>DX11Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h">
       <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\DLLExport.h" />
-    <ClInclude Include="Renderer_DX11.h" />
+    <ClInclude Include="Renderer_DX11.h">
+      <Filter>DX11Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceHandler.h">
+      <Filter>DX11Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Graphics_Error.h" />
+    <ClInclude Include="Safe_Release.h">
+      <Filter>DX11Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
