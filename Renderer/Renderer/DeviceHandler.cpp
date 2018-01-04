@@ -81,7 +81,7 @@ namespace Graphics
 	void DeviceHandler::Shutdown() {
 
 		StartProfile;
-		Safe_Release(gBBSRV);
+	/*	Safe_Release(gBBSRV);
 		Safe_Release(gBackBuffer);
 		Safe_Release(gBackbufferRTV);
 		Safe_Release(pDSState);
@@ -94,7 +94,7 @@ namespace Graphics
 		Safe_Release(gSwapChain);
 		Safe_Release(gSecDeviceContext);
 		Safe_Release(gDeviceContext);
-		Safe_Release(gDevice);
+		Safe_Release(gDevice);*/
 	}
 
 	Graphics_Error DeviceHandler::CreateDeviceResources() {

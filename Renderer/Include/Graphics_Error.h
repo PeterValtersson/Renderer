@@ -1,6 +1,6 @@
 #ifndef _GRAPHICS_GRAPHICS_ERROR_H_
 #define _GRAPHICS_GRAPHICS_ERROR_H_
-#include <CompileTimeString.h>
+
 #include <stdint.h>
 #define RETURN_ERROR(msg, nr) return Graphics::Graphics_Error{msg, nr, __FILE__, __LINE__}
 #define RETURN_ERROR_C(msg) return Graphics::Graphics_Error{msg, -__COUNTER__, __FILE__, __LINE__}
