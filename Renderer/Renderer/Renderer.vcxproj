@@ -147,14 +147,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DeviceHandler.cpp" />
+    <ClCompile Include="PipelineHandler.cpp" />
     <ClCompile Include="Renderer_DX11.cpp" />
     <ClCompile Include="Renderer_Interface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\DLLExport.h" />
+    <ClInclude Include="..\Include\Graphics\Pipeline.h" />
+    <ClInclude Include="..\Include\Graphics\PipelineHandler_Interface.h" />
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h" />
     <ClInclude Include="..\Include\Graphics_Error.h" />
     <ClInclude Include="DeviceHandler.h" />
+    <ClInclude Include="PipelineHandler.h" />
     <ClInclude Include="Renderer_DX11.h" />
     <ClInclude Include="Safe_Release.h" />
   </ItemGroup>

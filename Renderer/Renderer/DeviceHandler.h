@@ -5,7 +5,7 @@
 #include <d3dcompiler.h>	// We also need the D3DCompiler header to compile shaders
 #include <DirectXMath.h>
 #include <Windows.h>
-#include <Graphics_Error.h>
+#include <GRAPHICS_ERROR.h>
 
 namespace Graphics {
 
@@ -23,7 +23,7 @@ namespace Graphics {
 		* @retval return_value_n Returns a HRESULT indicating if the DirectX core was successfully created or not
 		* @endcode
 		*/
-		Graphics_Error Init(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
+		GRAPHICS_ERROR Init(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
 
 		/**
 		* @brief Shutdown releases the DirectX components
@@ -32,16 +32,16 @@ namespace Graphics {
 		*/
 		void Shutdown();
 
-		Graphics_Error CreateDeviceResources();
+		GRAPHICS_ERROR CreateDeviceResources();
 
 
-		Graphics_Error CreateSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
+		GRAPHICS_ERROR CreateSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
 
 
-		Graphics_Error CreateBackBufferRTV();
+		GRAPHICS_ERROR CreateBackBufferRTV();
 
 
-		Graphics_Error CreateDepthStencil();
+		GRAPHICS_ERROR CreateDepthStencil();
 
 		/**
 		* @brief SetViewport initializes the default viewport
@@ -62,13 +62,13 @@ namespace Graphics {
 		* @param[in] windowHandle A window handle.
 		* @endcode
 		*/
-		Graphics_Error ResizeSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
+		GRAPHICS_ERROR ResizeSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
 
 		/**
 		* @brief Creates a blend state
 		* @endcode
 		*/
-		Graphics_Error CreateBlendState();
+		GRAPHICS_ERROR CreateBlendState();
 
 		inline ID3D11Device*           GetDevice() { return gDevice; };
 		inline ID3D11DeviceContext*    GetDeviceContext() { return gDeviceContext; };

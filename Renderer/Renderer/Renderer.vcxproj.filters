@@ -22,6 +22,7 @@
     <ClCompile Include="DeviceHandler.cpp">
       <Filter>DX11Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="PipelineHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h">
@@ -37,6 +38,13 @@
     <ClInclude Include="..\Include\Graphics_Error.h" />
     <ClInclude Include="Safe_Release.h">
       <Filter>DX11Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Graphics\PipelineHandler_Interface.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineHandler.h" />
+    <ClInclude Include="..\Include\Graphics\Pipeline.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

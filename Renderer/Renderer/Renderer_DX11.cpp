@@ -13,7 +13,7 @@ namespace Graphics
 	Renderer_DX11::~Renderer_DX11()
 	{
 	}
-	Graphics_Error Renderer_DX11::Initialize()
+	GRAPHICS_ERROR Renderer_DX11::Initialize()
 	{
 		StartProfile;
 		if (initiated)
@@ -53,7 +53,7 @@ namespace Graphics
 		}
 		at = ++at % 5;
 	}
-	Graphics_Error Renderer_DX11::Start()
+	GRAPHICS_ERROR Renderer_DX11::Start()
 	{
 		StartProfile;
 		if (running)
@@ -64,7 +64,7 @@ namespace Graphics
 		myThread = std::thread(&Renderer_DX11::Run, this);
 		RETURN_SUCCESS;
 	}
-	Graphics_Error Renderer_DX11::UpdateSettings(const RendererInitializationInfo & ii)
+	GRAPHICS_ERROR Renderer_DX11::UpdateSettings(const RendererInitializationInfo & ii)
 	{
 		StartProfile;
 		//if (settings.windowHandle != ii.windowHandle)
@@ -77,6 +77,10 @@ namespace Graphics
 	const RendererInitializationInfo & Renderer_DX11::GetSettings() const
 	{
 		return settings;
+	}
+	PipelineHandler_Interface * Renderer_DX11::GetPipelineHandler() const
+	{
+		return nullptr;
 	}
 	void Renderer_DX11::Run()
 	{

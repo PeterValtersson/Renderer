@@ -1,8 +1,8 @@
 #ifndef _GRAPHICS_RENDERER_INTERFACE_H_
 #define _GRAPHICS_RENDERER_INTERFACE_H_
 #include "../DLLExport.h"
-#include "../Graphics_Error.h"
-
+#include "../GRAPHICS_ERROR.h"
+#include <Graphics\PipelineHandler_Interface.h>
 #include <stdint.h>
 
 namespace Graphics
@@ -31,14 +31,16 @@ namespace Graphics
 	public:
 		virtual ~Renderer_Interface() {};
 
-		virtual Graphics_Error Initialize() = 0;
+		virtual GRAPHICS_ERROR Initialize() = 0;
 		virtual void Shutdown() = 0;
 
 		virtual void Pause() = 0;
-		virtual Graphics_Error Start() = 0;
+		virtual GRAPHICS_ERROR Start() = 0;
 
-		virtual Graphics_Error UpdateSettings(const RendererInitializationInfo& ii) = 0;
+		virtual GRAPHICS_ERROR UpdateSettings(const RendererInitializationInfo& ii) = 0;
 		virtual const RendererInitializationInfo& GetSettings()const = 0;
+
+		virtual PipelineHandler_Interface* GetPipelineHandler()const = 0;
 	protected:
 		Renderer_Interface() {};
 	};

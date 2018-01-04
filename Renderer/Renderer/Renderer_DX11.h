@@ -11,15 +11,16 @@ namespace Graphics
 		Renderer_DX11(const RendererInitializationInfo & ii);
 		~Renderer_DX11();
 
-		Graphics_Error Initialize() override;
+		GRAPHICS_ERROR Initialize() override;
 		void Shutdown()  override;
 
 		void Pause()  override;
-		Graphics_Error Start()  override;
+		GRAPHICS_ERROR Start()  override;
 
-		Graphics_Error UpdateSettings(const RendererInitializationInfo& ii)  override;
+		GRAPHICS_ERROR UpdateSettings(const RendererInitializationInfo& ii)  override;
 		const RendererInitializationInfo& GetSettings()const  override;
 
+		PipelineHandler_Interface* GetPipelineHandler()const override;
 	private:
 		RendererInitializationInfo settings;
 		DeviceHandler device;

@@ -31,7 +31,7 @@ namespace Graphics
 
 	}
 
-	Graphics_Error DeviceHandler::Init(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount) {
+	GRAPHICS_ERROR DeviceHandler::Init(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount) {
 
 		StartProfile;
 
@@ -81,7 +81,7 @@ namespace Graphics
 	void DeviceHandler::Shutdown() {
 
 		StartProfile;
-	/*	Safe_Release(gBBSRV);
+		Safe_Release(gBBSRV);
 		Safe_Release(gBackBuffer);
 		Safe_Release(gBackbufferRTV);
 		Safe_Release(pDSState);
@@ -94,10 +94,10 @@ namespace Graphics
 		Safe_Release(gSwapChain);
 		Safe_Release(gSecDeviceContext);
 		Safe_Release(gDeviceContext);
-		Safe_Release(gDevice);*/
+		Safe_Release(gDevice);
 	}
 
-	Graphics_Error DeviceHandler::CreateDeviceResources() {
+	GRAPHICS_ERROR DeviceHandler::CreateDeviceResources() {
 
 		StartProfile;
 
@@ -137,7 +137,7 @@ namespace Graphics
 		RETURN_SUCCESS;
 	}
 
-	Graphics_Error DeviceHandler::CreateSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount) {
+	GRAPHICS_ERROR DeviceHandler::CreateSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount) {
 
 		StartProfile;
 
@@ -173,7 +173,7 @@ namespace Graphics
 		RETURN_SUCCESS;
 	}
 
-	Graphics_Error DeviceHandler::CreateBackBufferRTV() {
+	GRAPHICS_ERROR DeviceHandler::CreateBackBufferRTV() {
 
 		StartProfile;
 
@@ -196,7 +196,7 @@ namespace Graphics
 		RETURN_SUCCESS;
 	}
 
-	Graphics_Error DeviceHandler::CreateDepthStencil() {
+	GRAPHICS_ERROR DeviceHandler::CreateDepthStencil() {
 
 		StartProfile;
 
@@ -290,7 +290,7 @@ namespace Graphics
 		return gSwapChain->Present(vsync, 0);
 	}
 
-	Graphics_Error DeviceHandler::ResizeSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount)
+	GRAPHICS_ERROR DeviceHandler::ResizeSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount)
 	{
 		StartProfile;
 		Safe_Release(gDepthStencilSRV);
@@ -309,7 +309,7 @@ namespace Graphics
 		RETURN_SUCCESS;
 	}
 
-	Graphics_Error DeviceHandler::CreateBlendState()
+	GRAPHICS_ERROR DeviceHandler::CreateBlendState()
 	{
 		StartProfile;
 		// Transparency off
