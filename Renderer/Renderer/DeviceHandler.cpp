@@ -4,12 +4,6 @@
 
 #pragma comment(lib, "d3d11.lib")
 
-#ifdef _DEBUG
-#pragma comment(lib, "UtilzD.lib")
-#else
-#pragma comment(lib, "Utilz.lib")
-#endif
-
 using namespace DirectX;
 namespace Graphics
 {
@@ -377,6 +371,8 @@ namespace Graphics
 
 		hr = gDevice->CreateBlendState(&blendTransStateDesc, &blendTransState);
 		RETURN_IF_ERROR(hr, "Could not create blend state");
+
+		RETURN_SUCCESS;
 	}
 
 	ID3D11Texture2D* DeviceHandler::GetBackBufferTexture()

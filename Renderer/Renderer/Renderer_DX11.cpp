@@ -20,6 +20,7 @@ namespace Graphics
 	}
 	void Renderer_DX11::Shutdown()
 	{
+		device.Shutdown();
 	}
 	void Renderer_DX11::Pause()
 	{
@@ -30,6 +31,8 @@ namespace Graphics
 	}
 	Graphics_Error Renderer_DX11::UpdateSettings(const RendererInitializationInfo & ii)
 	{
+		PASS_IF_ERROR(device.ResizeSwapChain((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));
+
 		RETURN_SUCCESS;
 	}
 	const RendererInitializationInfo & Renderer_DX11::GetSettings() const
