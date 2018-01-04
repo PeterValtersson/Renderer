@@ -8,16 +8,21 @@
     <Filter Include="Renderer">
       <UniqueIdentifier>{a0fc85be-b21e-4833-a7e8-4ef011b0766d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DX11Renderer">
+      <UniqueIdentifier>{c6005818-76a3-4c44-95ef-4d65dc994d6d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Renderer_Interface.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer_DX11.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h">
       <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\DLLExport.h" />
+    <ClInclude Include="Renderer_DX11.h" />
   </ItemGroup>
 </Project>
