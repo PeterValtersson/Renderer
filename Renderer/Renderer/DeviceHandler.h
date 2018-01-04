@@ -55,7 +55,7 @@ namespace Graphics {
 		* @brief Present displays the rendered image to the user
 		* @endcode
 		*/
-		HRESULT Present();
+		HRESULT Present(UINT vsync);
 
 		/**
 		* @brief Resizes the swapchain

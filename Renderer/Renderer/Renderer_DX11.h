@@ -2,6 +2,7 @@
 #define _GRAPHICS_RENDERER_DX11_H_
 #include <Graphics\Renderer_Interface.h>
 #include "DeviceHandler.h"
+#include <thread>
 namespace Graphics
 {
 	class Renderer_DX11 : public Renderer_Interface
@@ -22,6 +23,16 @@ namespace Graphics
 	private:
 		RendererInitializationInfo settings;
 		DeviceHandler device;
+		std::thread myThread;
+		bool running;
+		bool initiated;
+
+
+		void Run();
+		void ResolveJobs();
+		void BeginFrame();
+		void Frame();
+		void EndFrame();
 	};
 }
 #endif

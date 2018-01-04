@@ -271,7 +271,7 @@ namespace Graphics
 	}
 
 	void DeviceHandler::SetViewport() {
-
+		StartProfile;
 		ZeroMemory(&gViewportDefault, sizeof(D3D11_VIEWPORT));
 		gViewportDefault.TopLeftX = 0.0f;
 		gViewportDefault.TopLeftY = 0.0f;
@@ -285,13 +285,14 @@ namespace Graphics
 
 
 
-	HRESULT DeviceHandler::Present() {
+	HRESULT DeviceHandler::Present(UINT vsync) {
 
-		return gSwapChain->Present(0, 0);
+		return gSwapChain->Present(vsync, 0);
 	}
 
 	Graphics_Error DeviceHandler::ResizeSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount)
 	{
+		StartProfile;
 		Safe_Release(gDepthStencilSRV);
 		Safe_Release(gDepthStencilView);
 		Safe_Release(pDSState);
@@ -310,6 +311,7 @@ namespace Graphics
 
 	Graphics_Error DeviceHandler::CreateBlendState()
 	{
+		StartProfile;
 		// Transparency off
 		D3D11_RENDER_TARGET_BLEND_DESC rendTarBlendState[8];
 		for (auto& rtbs : rendTarBlendState)
