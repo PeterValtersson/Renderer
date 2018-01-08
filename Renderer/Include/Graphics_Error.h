@@ -4,11 +4,11 @@
 #include <stdint.h>
 
 
-#define RETURN_ERROR(msg, nr) return (Graphics::_lastError = Graphics::Graphics_Error{msg, nr, __FILE__, __LINE__})
-#define RETURN_ERROR_C(msg) return (Graphics::_lastError = Graphics::Graphics_Error{msg, -(__COUNTER__+1), __FILE__, __LINE__})
-#define RETURN_IF_ERROR(result, msg) if((result) < 0) return (Graphics::_lastError = Graphics::Graphics_Error{msg, result, __FILE__, __LINE__})
-#define PASS_IF_ERROR(x) if(x.errornr < 0) return x
-#define RETURN_SUCCESS return (Graphics::_lastError = Graphics::Graphics_Error{nullptr, 0, nullptr, 0})
+#define RETURN_GRAPHICS_ERROR(msg, nr) return (Graphics::_lastError = Graphics::Graphics_Error{msg, nr, __FILE__, __LINE__})
+#define RETURN_GRAPHICS_ERROR_C(msg) return (Graphics::_lastError = Graphics::Graphics_Error{msg, -(__COUNTER__+1), __FILE__, __LINE__})
+#define RETURN_IF_GRAPHICS_ERROR(result, msg) if((result) < 0) return (Graphics::_lastError = Graphics::Graphics_Error{msg, result, __FILE__, __LINE__})
+#define PASS_IF_GRAPHICS_ERROR(x) if(x.errornr < 0) return x
+#define RETURN_GRAPHICS_SUCCESS return (Graphics::_lastError = Graphics::Graphics_Error{nullptr, 0, nullptr, 0})
 #define GRAPHICS_ERROR const Graphics::Graphics_Error&
 namespace Graphics
 {

@@ -18,10 +18,10 @@ namespace Graphics
 		StartProfile;
 
 		if (initiated)
-			RETURN_ERROR_C("Renderer has already been initiated");
-		PASS_IF_ERROR(device.Init((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));
+			RETURN_GRAPHICS_ERROR_C("Renderer has already been initiated");
+		PASS_IF_GRAPHICS_ERROR(device.Init((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));
 		initiated = true;
-		RETURN_SUCCESS;
+		RETURN_GRAPHICS_SUCCESS;
 	}
 	void Renderer_DX11::Shutdown()
 	{
@@ -58,22 +58,22 @@ namespace Graphics
 	{
 		StartProfile;
 		if (running)
-			RETURN_ERROR_C("Renderer already running");
+			RETURN_GRAPHICS_ERROR_C("Renderer already running");
 		if (!initiated)
-			RETURN_ERROR_C("Renderer must be initiated first");
+			RETURN_GRAPHICS_ERROR_C("Renderer must be initiated first");
 		running = true;
 		myThread = std::thread(&Renderer_DX11::Run, this);
-		RETURN_SUCCESS;
+		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR Renderer_DX11::UpdateSettings(const RendererInitializationInfo & ii)
 	{
 		StartProfile;
 		//if (settings.windowHandle != ii.windowHandle)
-		//	RETURN_ERROR_C("Handle not the same");
+		//	RETURN_GRAPHICS_ERROR_C("Handle not the same");
 		settings = ii;
-		PASS_IF_ERROR(device.ResizeSwapChain((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));
+		PASS_IF_GRAPHICS_ERROR(device.ResizeSwapChain((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));
 
-		RETURN_SUCCESS;
+		RETURN_GRAPHICS_SUCCESS;
 	}
 	const RendererInitializationInfo & Renderer_DX11::GetSettings() const
 	{
