@@ -22,7 +22,12 @@
     <ClCompile Include="DeviceHandler.cpp">
       <Filter>DX11Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="PipelineHandler.cpp" />
+    <ClCompile Include="PipelineHandler.cpp">
+      <Filter>DX11Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineAssigner.cpp">
+      <Filter>DX11Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h">
@@ -42,9 +47,20 @@
     <ClInclude Include="..\Include\Graphics\PipelineHandler_Interface.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="PipelineHandler.h" />
     <ClInclude Include="..\Include\Graphics\Pipeline.h">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineHandler.h">
+      <Filter>DX11Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineAssigner.h">
+      <Filter>DX11Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Graphics\RenderJob.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="CircularFIFO.h">
+      <Filter>DX11Renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

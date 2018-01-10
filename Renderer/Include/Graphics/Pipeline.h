@@ -2,9 +2,33 @@
 #define SE_GRAPHICS_PIPELINE_H_
 #include <cstdint>
 #include <GUID.h>
+#include <type_traits>
+#include <functional>
+
+#ifndef ENUM_FLAG_OPERATOR
+#define ENUM_FLAG_OPERATOR(T,X) inline T operator X (T lhs, T rhs) { return (T) (static_cast<std::underlying_type_t <T>>(lhs) X static_cast<std::underlying_type_t <T>>(rhs)); } 
+#endif
+#ifndef ENUM_FLAG_OPERATOR2
+#define ENUM_FLAG_OPERATOR2(T,X) inline void operator X= (T& lhs, T rhs) { lhs = (T)(static_cast<std::underlying_type_t <T>>(lhs) X static_cast<std::underlying_type_t <T>>(rhs)); } 
+#endif
+#ifndef ENUM_FLAGS
+#define ENUM_FLAGS(T) \
+inline T operator ~ (T t) { return (T) (~static_cast<std::underlying_type_t <T>>(t)); } \
+inline bool operator & (T lhs, T rhs) { return (static_cast<std::underlying_type_t <T>>(lhs) & static_cast<std::underlying_type_t <T>>(rhs));  } \
+ENUM_FLAG_OPERATOR2(T,|) \
+ENUM_FLAG_OPERATOR2(T,&) \
+ENUM_FLAG_OPERATOR(T,|) \
+ENUM_FLAG_OPERATOR(T,^)
+#endif
 
 namespace Graphics
 {
+	static const Utilz::GUID Default_RenderTarget("Backbuffer");
+	static const Utilz::GUID Default_DepthStencil("BackbufferDepthStencil");
+	static const Utilz::GUID Default_VertexShader_FullscreenQUAD("FullscreenQUADVS");
+	static const Utilz::GUID Default_PixelShader_POS_TEXTURE_MULTICHANNGEL("MultichannelPixelShader");
+	static const Utilz::GUID Default_PixelShader_POS_TEXTURE_SingleCHANNGEL("SinglechannelPixelShader");
+
 	enum class CullMode
 	{
 		CULL_FRONT,
@@ -53,13 +77,13 @@ namespace Graphics
 
 	struct BlendState
 	{
-		bool enable;
-		BlendOperation blendOperation;
-		BlendOperation blendOperationAlpha;
-		Blend srcBlend;
-		Blend dstBlend;
-		Blend srcBlendAlpha;
-		Blend dstBlendAlpha;
+		bool enable = false;
+		BlendOperation blendOperation = BlendOperation::ADD;
+		BlendOperation blendOperationAlpha = BlendOperation::ADD;
+		Blend srcBlend = Blend::SRC_ALPHA;
+		Blend dstBlend = Blend::DEST_ALPHA;
+		Blend srcBlendAlpha = Blend::SRC_ALPHA;
+		Blend dstBlendAlpha = Blend::DEST_ALPHA;
 	};
 
 	enum class ComparisonOperation
@@ -74,9 +98,16 @@ namespace Graphics
 
 	struct DepthStencilState
 	{
-		bool enableDepth;
-		bool writeDepth;
-		ComparisonOperation comparisonOperation;
+		bool enableDepth = true;
+		bool writeDepth = true;
+		ComparisonOperation comparisonOperation = ComparisonOperation::LESS;
+	};
+	struct DepthStencilView
+	{
+		uint32_t width = -1;
+		uint32_t height = -1;
+		bool bindAsTexture = false;
+		bool cube = false;
 	};
 	enum class AddressingMode
 	{
@@ -107,22 +138,21 @@ namespace Graphics
 
 	struct RenderTarget
 	{
-		bool bindAsShaderResource;
-		bool bindAsUnorderedAccess;
-		int width;
-		int height;
-		float clearColor[4] = { 0.0f,0.0f,0.0f,0.0f };
-		TextureFormat format;
+		bool bindAsShaderResource = false;
+		bool bindAsUnorderedAccess = false;
+		uint32_t width = - 1;
+		uint32_t height = -1;
+		float clearColor[4] = { 0.0f,0.0f,0.0f,1.0f };
+		TextureFormat format = TextureFormat::R32G32B32A32_FLOAT;
 
 	};
 	struct UnorderedAccessView
 	{
-		bool bindAsShaderResource;
-		bool bindAsUnorderedAccess;
-		int width;
-		int height;
-		float clearColor[4];
-		TextureFormat format;
+		bool bindAsShaderResource = false;
+		uint32_t width = -1;
+		uint32_t height = -1;
+		float clearColor[4] = { 0.0f,0.0f,0.0f,0.0f };
+		TextureFormat format = TextureFormat::R8G8B8A8_UNORM;
 	};
 	enum class PrimitiveTopology : uint8_t
 	{
@@ -134,6 +164,7 @@ namespace Graphics
 	};
 	enum class BufferFlags
 	{
+		NONE		= 0 << 0,
 		BIND_VERTEX = 1 << 0,
 		BIND_INDEX = 1 << 1,
 		BIND_CONSTANT = 1 << 2,
@@ -144,11 +175,20 @@ namespace Graphics
 		DYNAMIC = 1 << 8,
 		IMMUTABLE = 1 << 9
 	};
+	struct Buffer
+	{
+		void* data = nullptr;
+		size_t elementCount = 0;
+		size_t elementStride = 0;
+		size_t maxElements = 0;
+		BufferFlags flags = BufferFlags::NONE;
+	};
+
 	struct InputAssemblerStage
 	{
 		Utilz::GUID vertexBuffer;
 		Utilz::GUID indexBuffer;
-		PrimitiveTopology topology;
+		PrimitiveTopology topology = PrimitiveTopology::TRIANGLE_LIST;
 		Utilz::GUID inputLayout;
 
 		Utilz::GUID GetID()const
@@ -166,13 +206,23 @@ namespace Graphics
 		}
 	};
 
+	enum class ShaderType
+	{
+		VERTEX,
+		HULL,
+		DOMAIN_,
+		GEOMETRY,
+		GEOMETRY_STREAM_OUT,
+		PIXEL,
+		COMPUTE
+	};
 
 	struct ShaderStage
 	{
 		static const size_t maxTextures = 4;
 		static const size_t maxSamplers = 2;
 		static const size_t maxUAVs = 4;
-		Utilz::GUID shader = Utilz::GUID();
+		Utilz::GUID shader;
 		Utilz::GUID textures[maxTextures];
 		Utilz::GUID textureBindings[maxTextures];
 		Utilz::GUID samplers[maxSamplers];
@@ -217,12 +267,12 @@ namespace Graphics
 	};
 	struct Viewport
 	{
-		float width;
-		float height;
-		float maxDepth;
-		float minDepth;
-		float topLeftX;
-		float topLeftY;
+		float width = 0.0f;
+		float height = 0.0f;
+		float maxDepth = 0.0f;
+		float minDepth = 0.0f;
+		float topLeftX = 0.0f;
+		float topLeftY = 0.0f;
 	};
 
 	struct RasterizerStage
@@ -236,33 +286,78 @@ namespace Graphics
 		}
 	};
 
-	struct Pipeline
+	struct Pipeline_Mutable
 	{
-		InputAssemblerStage IAStage;
-		ShaderStage	VSStage;
-		ShaderStage	GSStage;
-		StreamOutStage		SOStage;
-		RasterizerStage		RStage;
-		ShaderStage	PSStage;
-		OutputMergerStage	OMStage;
+		InputAssemblerStage &IAStage;
+		ShaderStage			&VSStage;
+		ShaderStage			&GSStage;
+		StreamOutStage		&SOStage;
+		RasterizerStage		&RStage;
+		ShaderStage			&PSStage;
+		OutputMergerStage	&OMStage;
 
-		ShaderStage CSStage;
+		ShaderStage			&CSStage;
+	};
+
+	class Pipeline
+	{
+		InputAssemblerStage IAStage_;
+		ShaderStage	VSStage_;
+		ShaderStage	GSStage_;
+		StreamOutStage		SOStage_;
+		RasterizerStage		RStage_;
+		ShaderStage	PSStage_;
+		OutputMergerStage	OMStage_;
+
+		ShaderStage CSStage_;
 
 		Utilz::GUID id;
-		void SetID()
-		{
-			id = IAStage.GetID() + VSStage.GetID() +
-				GSStage.GetID() + SOStage.GetID() +
-				RStage.GetID() + PSStage.GetID() +
-				OMStage.GetID() + CSStage.GetID();
+	
+	public:
+		inline const InputAssemblerStage&			IAStage()const {
+			return IAStage_;
 		}
-		bool operator==(const Pipeline& other)const
+		inline const ShaderStage			&VSStage()const {
+			return VSStage_;
+		}
+		inline const ShaderStage			&GSStage()const {
+			return GSStage_;
+		}
+		inline const StreamOutStage		&SOStage()const {
+			return SOStage_;
+		}
+		inline const RasterizerStage		&RStage()const {
+			return RStage_;
+		}
+		inline const ShaderStage			&PSStage()const {
+			return PSStage_;
+		}
+		inline const OutputMergerStage	&OMStage()const {
+			return OMStage_;
+		}
+		inline const ShaderStage& CSStage()const
+		{
+			return CSStage_;
+		}
+		inline const Utilz::GUID ID()const
+		{
+			return id;
+		}
+
+		inline bool operator==(const Pipeline& other)const
 		{
 			return this->id == other.id;
 		}
 
-
+		void Edit(const std::function<void(Pipeline_Mutable)>& callback)
+		{
+			callback({IAStage_, VSStage_ ,GSStage_, SOStage_ , RStage_, PSStage_ ,OMStage_,CSStage_ });
+			id = IAStage_.GetID() + VSStage_.GetID() +
+				GSStage_.GetID() + SOStage_.GetID() +
+				RStage_.GetID() + PSStage_.GetID() +
+				OMStage_.GetID() + CSStage_.GetID();
+		}
 	};
 }
-
+ENUM_FLAGS(Graphics::BufferFlags);
 #endif

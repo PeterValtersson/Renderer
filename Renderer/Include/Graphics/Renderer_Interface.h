@@ -4,6 +4,7 @@
 #include "../GRAPHICS_ERROR.h"
 #include "PipelineHandler_Interface.h"
 #include <stdint.h>
+#include "RenderJob.h"
 
 namespace Graphics
 {
@@ -40,7 +41,15 @@ namespace Graphics
 		virtual GRAPHICS_ERROR UpdateSettings(const RendererInitializationInfo& ii) = 0;
 		virtual const RendererInitializationInfo& GetSettings()const = 0;
 
-		virtual PipelineHandler_Interface* GetPipelineHandler()const = 0;
+		virtual PipelineHandler_Interface* GetPipelineHandler() = 0;
+
+		virtual GRAPHICS_ERROR AddRenderJob(Utilz::GUID id, const RenderJob& job, RenderGroup renderGroup) = 0;
+		// Will use the id of the pipeline
+		virtual GRAPHICS_ERROR AddRenderJob(const RenderJob& job, RenderGroup renderGroup) = 0;
+		virtual void RemoveRenderJob(Utilz::GUID id, RenderGroup renderGroup) = 0;
+		virtual void RemoveRenderJob(Utilz::GUID id) = 0;
+		virtual uint32_t GetNumberOfRenderJobs()const = 0;
+		virtual uint8_t IsRenderJobRegistered(Utilz::GUID id)const = 0;
 	protected:
 		Renderer_Interface() {};
 	};

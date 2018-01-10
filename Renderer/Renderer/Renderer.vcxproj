@@ -104,6 +104,7 @@
       <ConformanceMode>true</ConformanceMode>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);DLL_EXPORT_GRAPHICS</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -113,6 +114,7 @@
       <ConformanceMode>true</ConformanceMode>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);DLL_EXPORT_GRAPHICS</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -124,6 +126,7 @@
       <ConformanceMode>true</ConformanceMode>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);DLL_EXPORT_GRAPHICS</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -139,6 +142,7 @@
       <ConformanceMode>true</ConformanceMode>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);DLL_EXPORT_GRAPHICS</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -147,6 +151,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DeviceHandler.cpp" />
+    <ClCompile Include="PipelineAssigner.cpp" />
     <ClCompile Include="PipelineHandler.cpp" />
     <ClCompile Include="Renderer_DX11.cpp" />
     <ClCompile Include="Renderer_Interface.cpp" />
@@ -156,8 +161,11 @@
     <ClInclude Include="..\Include\Graphics\Pipeline.h" />
     <ClInclude Include="..\Include\Graphics\PipelineHandler_Interface.h" />
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h" />
+    <ClInclude Include="..\Include\Graphics\RenderJob.h" />
     <ClInclude Include="..\Include\Graphics_Error.h" />
+    <ClInclude Include="CircularFIFO.h" />
     <ClInclude Include="DeviceHandler.h" />
+    <ClInclude Include="PipelineAssigner.h" />
     <ClInclude Include="PipelineHandler.h" />
     <ClInclude Include="Renderer_DX11.h" />
     <ClInclude Include="Safe_Release.h" />

@@ -86,7 +86,7 @@ void InitWindow(HWND& _hWnd)
 }
 
 
-TEST(Renderer, Create) {
+TEST(RendererTest, Create) {
 	HWND w;
 	InitWindow(w);
 	auto r = CreateRenderer(Renderer_Backend::DIRECTX11, { w });
@@ -95,6 +95,9 @@ TEST(Renderer, Create) {
 
 	re = Renderer_Start_C(r);
 	EXPECT_EQ(re.errornr, 0);
+
+	r->GetPipelineHandler()->CreateBuffer(123, {});
+
 	std::this_thread::sleep_for(1s);
 
 
