@@ -131,7 +131,7 @@ namespace Graphics
 
 		if (auto index = renderJobInfoClientSide.FindRenderJob(id, renderGroup); index.has_value())
 		{
-			uint32_t last = renderJobInfoClientSide.GetIDs(renderGroup).size() - 1;
+			uint32_t last = uint32_t(renderJobInfoClientSide.GetIDs(renderGroup).size()) - 1;
 			renderJobInfoClientSide.GetIDs(renderGroup)[*index] = renderJobInfoClientSide.GetIDs(renderGroup)[last];
 			renderJobInfoClientSide.GetIDs(renderGroup).pop_back();
 
@@ -146,7 +146,7 @@ namespace Graphics
 		{
 			if (auto index = renderJobInfoClientSide.FindRenderJob(id, RenderGroup(i)); index.has_value())
 			{
-				uint32_t last = renderJobInfoClientSide.renderGroupsWithID[i].size() - 1;
+				uint32_t last = uint32_t(renderJobInfoClientSide.renderGroupsWithID[i].size()) - 1;
 				renderJobInfoClientSide.renderGroupsWithID[i][*index] = renderJobInfoClientSide.renderGroupsWithID[i][last];
 				renderJobInfoClientSide.renderGroupsWithID[i].pop_back();
 
@@ -209,7 +209,7 @@ namespace Graphics
 				auto& job = jobsToRemove.top();
 				if (auto index = renderJobInfoRenderSide.FindRenderJob(job.id, job.group); index.has_value())
 				{
-					uint32_t last = renderJobInfoRenderSide.GetIDs(job.group).size() - 1;
+					uint32_t last = uint32_t(renderJobInfoRenderSide.GetIDs(job.group).size()) - 1;
 					renderJobInfoRenderSide.GetIDs(job.group)[*index] = renderJobInfoRenderSide.GetIDs(job.group)[last];
 					renderJobInfoRenderSide.GetJobs(job.group)[*index] = renderJobInfoRenderSide.GetJobs(job.group)[last];
 
@@ -238,12 +238,6 @@ namespace Graphics
 	void Renderer_DX11::BeginFrame()
 	{
 		StartProfile;
-		// clear the back buffer
-	
-	
-		ID3D11RenderTargetView* views[] = { device->GetRTV() };
-		device->GetDeviceContext()->OMSetRenderTargets(1, views, device->GetDepthStencil());
-
 
 		// Clear the primary render target view using the specified color
 		device->GetDeviceContext()->ClearRenderTargetView(device->GetRTV(), clearColor[at]);

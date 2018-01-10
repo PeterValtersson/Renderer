@@ -83,3 +83,4 @@ namespace Utilz
 		std::atomic<size_t> tail;
 	};
 }
+#endif

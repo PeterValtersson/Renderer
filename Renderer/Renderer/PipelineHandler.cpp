@@ -1,5 +1,5 @@
 #include "PipelineHandler.h"
-
+#define INSERT_TYPE_R(type, id, ...) objects_RenderSide[type][id] = type##_ {__VA_ARGS__}
 namespace Graphics
 {
 	PipelineHandler::PipelineHandler()
@@ -16,27 +16,30 @@ namespace Graphics
 		this->device = device;
 		this->context = context;
 
-		pipelineObjects.renderTargetViews[Default_RenderTarget] = { backbuffer,{ 0.0f, 0.0f,1.0f,0.0f } };
-		pipelineObjects.depthStencilViews[Default_DepthStencil] = dsv;
-		
-		//Create nullptrs for IDs that are not assigned;
-		pipelineObjects.vertexBuffers[Utilz::GUID()].buffer = nullptr;
-		pipelineObjects.vertexBuffers[Utilz::GUID()].stride = 0;
-		pipelineObjects.indexBuffers[Utilz::GUID()].buffer = nullptr;
-		pipelineObjects.indexBuffers[Utilz::GUID()].stride = 0;
-		pipelineObjects.inputLayouts[Utilz::GUID()] = nullptr;
-		pipelineObjects.vertexShaders[Utilz::GUID()] = { nullptr };
-		pipelineObjects.geometryShaders[Utilz::GUID()] = { nullptr };
-		pipelineObjects.pixelShaders[Utilz::GUID()] = { nullptr };
-		pipelineObjects.computeShaders[Utilz::GUID()] = { nullptr };
-		pipelineObjects.constantBuffers[Utilz::GUID()] = nullptr;
-		pipelineObjects.shaderResourceViews[Utilz::GUID()] = nullptr;
-		pipelineObjects.renderTargetViews[Utilz::GUID()] = { nullptr };
-		pipelineObjects.samplerStates[Utilz::GUID()] = nullptr;
-		pipelineObjects.blendStates[Utilz::GUID()] = nullptr;
-		pipelineObjects.rasterizerStates[Utilz::GUID()] = nullptr;
-		pipelineObjects.depthStencilStates[Utilz::GUID()] = nullptr;
-		pipelineObjects.unorderedAccessViews[Utilz::GUID()] = { nullptr };
+		INSERT_TYPE_R(PipelineObjects::RenderTarget, 0, 0,0);
+
+		objects_RenderSide[PipelineObjects::RenderTarget][Utilz::GUID()] = PipelineObjects::RenderTarget_{ backbuffer,{ 0.0f, 0.0f,1.0f,0.0f } };
+	//pipelineObjects.renderTargetViews[Default_RenderTarget] = { backbuffer,{ 0.0f, 0.0f,1.0f,0.0f } };
+		//pipelineObjects.depthStencilViews[Default_DepthStencil] = dsv;
+		//
+		////Create nullptrs for IDs that are not assigned;
+		//pipelineObjects.vertexBuffers[Utilz::GUID()].buffer = nullptr;
+		//pipelineObjects.vertexBuffers[Utilz::GUID()].stride = 0;
+		//pipelineObjects.indexBuffers[Utilz::GUID()].buffer = nullptr;
+		//pipelineObjects.indexBuffers[Utilz::GUID()].stride = 0;
+		//pipelineObjects.inputLayouts[Utilz::GUID()] = nullptr;
+		//pipelineObjects.vertexShaders[Utilz::GUID()] = { nullptr };
+		//pipelineObjects.geometryShaders[Utilz::GUID()] = { nullptr };
+		//pipelineObjects.pixelShaders[Utilz::GUID()] = { nullptr };
+		//pipelineObjects.computeShaders[Utilz::GUID()] = { nullptr };
+		//pipelineObjects.constantBuffers[Utilz::GUID()] = nullptr;
+		//pipelineObjects.shaderResourceViews[Utilz::GUID()] = nullptr;
+		//pipelineObjects.renderTargetViews[Utilz::GUID()] = { nullptr };
+		//pipelineObjects.samplerStates[Utilz::GUID()] = nullptr;
+		//pipelineObjects.blendStates[Utilz::GUID()] = nullptr;
+		//pipelineObjects.rasterizerStates[Utilz::GUID()] = nullptr;
+		//pipelineObjects.depthStencilStates[Utilz::GUID()] = nullptr;
+		//pipelineObjects.unorderedAccessViews[Utilz::GUID()] = { nullptr };
 		RETURN_GRAPHICS_SUCCESS;
 	}
 
@@ -44,8 +47,13 @@ namespace Graphics
 	{
 	}
 
-	GRAPHICS_ERROR PipelineHandler::CreateBuffer(Utilz::GUID id, const Buffer & buffer)
+	GRAPHICS_ERROR PipelineHandler::CreateBuffer(Utilz::GUID id, const Pipeline::Buffer & buffer)
 	{
+	/*	if (buffer.flags & BufferFlags::BIND_VERTEX)
+		{
+			if(auto find = vertexbuffer)
+		}*/
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
 
@@ -64,15 +72,15 @@ namespace Graphics
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	
-	GRAPHICS_ERROR PipelineHandler::CreateViewport(Utilz::GUID id, const Viewport & viewport)
+	GRAPHICS_ERROR PipelineHandler::CreateViewport(Utilz::GUID id, const Pipeline::Viewport & viewport)
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilz::GUID id, ShaderType type, const char * sourceCode, const char * entryPoint, const char * shaderModel)
+	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilz::GUID id, Pipeline::ShaderType type, const char * sourceCode, const char * entryPoint, const char * shaderModel)
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilz::GUID id, ShaderType type, void * data, size_t size)
+	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilz::GUID id, Pipeline::ShaderType type, void * data, size_t size)
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
@@ -88,7 +96,7 @@ namespace Graphics
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateRasterizerState(Utilz::GUID id, const RasterizerState & state)
+	GRAPHICS_ERROR PipelineHandler::CreateRasterizerState(Utilz::GUID id, const Pipeline::RasterizerState & state)
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
@@ -96,7 +104,7 @@ namespace Graphics
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateBlendState(Utilz::GUID id, const BlendState & state)
+	GRAPHICS_ERROR PipelineHandler::CreateBlendState(Utilz::GUID id, const Pipeline::BlendState & state)
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
@@ -104,7 +112,7 @@ namespace Graphics
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilState(Utilz::GUID id, const DepthStencilState & state)
+	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilState(Utilz::GUID id, const Pipeline::DepthStencilState & state)
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
@@ -112,7 +120,7 @@ namespace Graphics
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateSamplerState(Utilz::GUID id, const SamplerState & state)
+	GRAPHICS_ERROR PipelineHandler::CreateSamplerState(Utilz::GUID id, const Pipeline::SamplerState & state)
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
@@ -120,7 +128,7 @@ namespace Graphics
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateRenderTarget(Utilz::GUID id, const RenderTarget & target)
+	GRAPHICS_ERROR PipelineHandler::CreateRenderTarget(Utilz::GUID id, const Pipeline::RenderTarget & target)
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
@@ -128,7 +136,7 @@ namespace Graphics
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilView(Utilz::GUID id, const DepthStencilView & view)
+	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilView(Utilz::GUID id, const Pipeline::DepthStencilView & view)
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
@@ -136,7 +144,7 @@ namespace Graphics
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateUnorderedAccessView(Utilz::GUID id, const UnorderedAccessView & view)
+	GRAPHICS_ERROR PipelineHandler::CreateUnorderedAccessView(Utilz::GUID id, const Pipeline::UnorderedAccessView & view)
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}

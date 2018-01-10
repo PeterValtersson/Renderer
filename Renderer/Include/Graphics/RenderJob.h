@@ -32,7 +32,7 @@ namespace Graphics
 
 	struct RenderJob
 	{
-		Pipeline pipeline;
+		Pipeline::Pipeline pipeline;
 		uint32_t vertexCount = 0;
 		uint32_t vertexOffset = 0;
 		uint32_t indexCount = 0;
