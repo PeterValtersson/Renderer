@@ -31,7 +31,10 @@ namespace Graphics
 		PipelineHandler();
 		virtual ~PipelineHandler();
 
-		virtual GRAPHICS_ERROR Init(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RenderTargetView* backbuffer, ID3D11DepthStencilView* dsv);
+		virtual GRAPHICS_ERROR Init(
+			ID3D11Device* device, ID3D11DeviceContext* context, 
+			ID3D11RenderTargetView* backbuffer, ID3D11DepthStencilView* dsv,
+			const D3D11_VIEWPORT& vp);
 		virtual void Shutdown();
 
 		virtual GRAPHICS_ERROR CreateBuffer(Utilz::GUID id, const Pipeline::Buffer& buffer) override;

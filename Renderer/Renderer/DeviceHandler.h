@@ -77,7 +77,7 @@ namespace Graphics {
 		inline ID3D11ShaderResourceView* GetSRV() const { return gBBSRV; };
 		inline ID3D11DepthStencilView* GetDepthStencil() { return gDepthStencilView; };
 		inline ID3D11BlendState*	   GetBlendState() { return blendTransState; };
-
+		inline const D3D11_VIEWPORT&   GetViewport()const { return gViewportDefault; }
 		inline void SetDepthStencilStateAndRS()
 		{
 			gDeviceContext->RSSetState(rasterSolidState);

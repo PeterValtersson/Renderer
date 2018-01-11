@@ -96,7 +96,7 @@ TEST(RendererTest, Create) {
 	re = Renderer_Start_C(r);
 	EXPECT_EQ(re.errornr, 0);
 
-	r->GetPipelineHandler()->CreateBuffer(123, {});
+	//r->GetPipelineHandler()->CreateBuffer(123, {});
 
 	std::this_thread::sleep_for(1s);
 

@@ -31,7 +31,7 @@ namespace Graphics
 		if (!device)
 			RETURN_GRAPHICS_ERROR_C("Could not create pipeline");
 
-		PASS_IF_GRAPHICS_ERROR(pipeline->Init(device->GetDevice(), device->GetDeviceContext(), device->GetRTV(), device->GetDepthStencil()));
+		PASS_IF_GRAPHICS_ERROR(pipeline->Init(device->GetDevice(), device->GetDeviceContext(), device->GetRTV(), device->GetDepthStencil(), device->GetViewport()));
 
 		initiated = true;
 		RETURN_GRAPHICS_SUCCESS;
@@ -238,6 +238,8 @@ namespace Graphics
 	void Renderer_DX11::BeginFrame()
 	{
 		StartProfile;
+		ID3D11RenderTargetView* views[] = { device->GetRTV() };
+		device->GetDeviceContext()->OMSetRenderTargets(1, views, device->GetDepthStencil());
 
 		// Clear the primary render target view using the specified color
 		device->GetDeviceContext()->ClearRenderTargetView(device->GetRTV(), clearColor[at]);
