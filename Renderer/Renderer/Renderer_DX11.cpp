@@ -201,37 +201,41 @@ namespace Graphics
 	{
 		StartProfile;
 		{
-			StartProfileC("Remove Jobs");
-			// Remove jobs
-			while (!jobsToRemove.wasEmpty())
+			pipeline->UpdatePipelineObjects();
+
 			{
-				StartProfileC("Remove Job");
-				auto& job = jobsToRemove.top();
-				if (auto index = renderJobInfoRenderSide.FindRenderJob(job.id, job.group); index.has_value())
+				StartProfileC("Remove Jobs");
+				// Remove jobs
+				while (!jobsToRemove.wasEmpty())
 				{
-					uint32_t last = uint32_t(renderJobInfoRenderSide.GetIDs(job.group).size()) - 1;
-					renderJobInfoRenderSide.GetIDs(job.group)[*index] = renderJobInfoRenderSide.GetIDs(job.group)[last];
-					renderJobInfoRenderSide.GetJobs(job.group)[*index] = renderJobInfoRenderSide.GetJobs(job.group)[last];
+					StartProfileC("Remove Job");
+					auto& job = jobsToRemove.top();
+					if (auto index = renderJobInfoRenderSide.FindRenderJob(job.id, job.group); index.has_value())
+					{
+						uint32_t last = uint32_t(renderJobInfoRenderSide.GetIDs(job.group).size()) - 1;
+						renderJobInfoRenderSide.GetIDs(job.group)[*index] = renderJobInfoRenderSide.GetIDs(job.group)[last];
+						renderJobInfoRenderSide.GetJobs(job.group)[*index] = renderJobInfoRenderSide.GetJobs(job.group)[last];
 
-					renderJobInfoRenderSide.GetIDs(job.group).pop_back();
-					renderJobInfoRenderSide.GetJobs(job.group).pop_back();
+						renderJobInfoRenderSide.GetIDs(job.group).pop_back();
+						renderJobInfoRenderSide.GetJobs(job.group).pop_back();
 
+					}
+					jobsToRemove.pop();
 				}
-				jobsToRemove.pop();
 			}
-		}
-		{
-			StartProfileC("Add Jobs");
-			while (!jobsToAdd.wasEmpty())
 			{
-				StartProfileC("Add Job");
-				auto& job = jobsToAdd.top();
-				if (auto index = renderJobInfoRenderSide.FindRenderJob(job.id, job.group); !index.has_value())
+				StartProfileC("Add Jobs");
+				while (!jobsToAdd.wasEmpty())
 				{
-					renderJobInfoRenderSide.GetIDs(job.group).push_back(job.id);
-					renderJobInfoRenderSide.GetJobs(job.group).push_back(job.job);
+					StartProfileC("Add Job");
+					auto& job = jobsToAdd.top();
+					if (auto index = renderJobInfoRenderSide.FindRenderJob(job.id, job.group); !index.has_value())
+					{
+						renderJobInfoRenderSide.GetIDs(job.group).push_back(job.id);
+						renderJobInfoRenderSide.GetJobs(job.group).push_back(job.job);
+					}
+					jobsToAdd.pop();
 				}
-				jobsToAdd.pop();
 			}
 		}
 	}

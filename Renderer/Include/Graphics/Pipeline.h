@@ -24,6 +24,7 @@ ENUM_FLAG_OPERATOR(T,^)
 namespace Graphics
 {
 	static const Utilz::GUID Default_RenderTarget("Backbuffer");
+	static const Utilz::GUID Default_Viewport("FullscreenViewPort");
 	static const Utilz::GUID Default_DepthStencil("BackbufferDepthStencil");
 	static const Utilz::GUID Default_VertexShader_FullscreenQUAD("FullscreenQUADVS");
 	static const Utilz::GUID Default_PixelShader_POS_TEXTURE_MULTICHANNGEL("MultichannelPixelShader");
@@ -174,15 +175,28 @@ namespace Graphics
 			CPU_WRITE = 1 << 6,
 			DEFAULT = 1 << 7,
 			DYNAMIC = 1 << 8,
-			IMMUTABLE = 1 << 9
+			IMMUTABLE = 1 << 9,
+			STRUCTURED = 1 << 10,
+			RAW			= 1 << 11
 		};
+
+		ENUM_FLAGS(Graphics::Pipeline::BufferFlags);
 		struct Buffer
 		{
 			void* data = nullptr;
-			size_t elementCount = 0;
-			size_t elementStride = 0;
-			size_t maxElements = 0;
+			uint32_t elementCount = 0;
+			uint16_t elementStride = 0;
+			uint32_t maxElements = 0;
 			BufferFlags flags = BufferFlags::NONE;
+
+			static Buffer ConstantBuffer(uint16_t size, void* data = nullptr)
+			{
+				return { data, 1, size, 1, BufferFlags::BIND_CONSTANT | BufferFlags::CPU_WRITE | BufferFlags::DYNAMIC };
+			}
+			static Buffer VertexBuffer(void* data, uint16_t byteWidth, uint32_t numVerts, bool dynamic = false)
+			{
+				return { data, numVerts, byteWidth, numVerts, BufferFlags::BIND_VERTEX | (dynamic ? BufferFlags::DYNAMIC : BufferFlags::DEFAULT) };
+			}
 		};
 
 		struct InputAssemblerStage
@@ -361,5 +375,5 @@ namespace Graphics
 		};
 	}
 }
-ENUM_FLAGS(Graphics::Pipeline::BufferFlags);
+
 #endif

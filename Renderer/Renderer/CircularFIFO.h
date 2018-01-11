@@ -70,7 +70,7 @@ namespace Utilz
 			auto next_tail = (current_tail + 1) % Capacity;
 			if (next_tail != head.load())
 			{
-				buffer[current_tail] = item;
+				buffer[current_tail] = std::move(item);
 				tail.store(next_tail);
 				return true;
 			}

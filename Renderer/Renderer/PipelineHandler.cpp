@@ -1,12 +1,11 @@
 #include "PipelineHandler.h"
 #include <Profiler.h>
-#define INSERT_TYPE_R(type, id) objects_RenderSide[type][id] = type##_
-#define INSERT_TYPE_C(type, id) objects_ClientSide[type].emplace(id)
+#define EMPLACE_NULL(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ nullptr })
+#define EMPLACE_DEF(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ })
 namespace Graphics
 {
 	PipelineHandler::PipelineHandler()
 	{
-		objects_ClientSide;
 	}
 
 
@@ -20,73 +19,140 @@ namespace Graphics
 		const D3D11_VIEWPORT& vp)
 	{
 		StartProfile;
-
-	
 		this->device = device;
 		this->context = context;
-		INSERT_TYPE_R(PipelineObjects::RenderTarget, Default_RenderTarget) { backbuffer,{ 0.0f, 0.0f,1.0f,0.0f } };
-		INSERT_TYPE_R(PipelineObjects::DepthStencilView, Default_DepthStencil) { dsv };
-		INSERT_TYPE_C(PipelineObjects::RenderTarget, Default_RenderTarget);
-		INSERT_TYPE_C(PipelineObjects::DepthStencilView, Default_DepthStencil);
+		
 
+		objects_RenderSide[PipelineObjects::RenderTarget].emplace(Default_RenderTarget, PipelineObjects::RenderTarget_{ backbuffer,{ 0.0f, 0.0f,1.0f,0.0f } });
+		objects_RenderSide[PipelineObjects::DepthStencilView].emplace(Default_DepthStencil, PipelineObjects::DepthStencilView_{ dsv });
+		objects_RenderSide[PipelineObjects::Viewport].emplace(Default_Viewport, PipelineObjects::Viewport_{ vp});
+		objects_ClientSide[PipelineObjects::RenderTarget].emplace(Default_RenderTarget);
+		objects_ClientSide[PipelineObjects::DepthStencilView].emplace(Default_DepthStencil);
+		objects_ClientSide[PipelineObjects::Viewport].emplace(Default_Viewport);
 
-		INSERT_TYPE_R(PipelineObjects::VertexBuffer, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::IndexBuffer, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::ConstantBuffer, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::InputLayout, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::VertexShader, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::GeomtryShader, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::PixelShader, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::ComputeShader, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::RenderTarget, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::UnorderedAccessView, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::ShaderResourceView, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::DepthStencilView, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::SamplerState, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::BlendState, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::RasterizerState, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::DepthStencilState, Default_RenderTarget) { nullptr };
-		INSERT_TYPE_R(PipelineObjects::Viewport, Default_RenderTarget) { vp };
-		//pipelineObjects.renderTargetViews[Default_RenderTarget] = { backbuffer,{ 0.0f, 0.0f,1.0f,0.0f } };
-		//pipelineObjects.depthStencilViews[Default_DepthStencil] = dsv;
-		//
-		////Create nullptrs for IDs that are not assigned;
-		//pipelineObjects.vertexBuffers[Utilz::GUID()].buffer = nullptr;
-		//pipelineObjects.vertexBuffers[Utilz::GUID()].stride = 0;
-		//pipelineObjects.indexBuffers[Utilz::GUID()].buffer = nullptr;
-		//pipelineObjects.indexBuffers[Utilz::GUID()].stride = 0;
-		//pipelineObjects.inputLayouts[Utilz::GUID()] = nullptr;
-		//pipelineObjects.vertexShaders[Utilz::GUID()] = { nullptr };
-		//pipelineObjects.geometryShaders[Utilz::GUID()] = { nullptr };
-		//pipelineObjects.pixelShaders[Utilz::GUID()] = { nullptr };
-		//pipelineObjects.computeShaders[Utilz::GUID()] = { nullptr };
-		//pipelineObjects.constantBuffers[Utilz::GUID()] = nullptr;
-		//pipelineObjects.shaderResourceViews[Utilz::GUID()] = nullptr;
-		//pipelineObjects.renderTargetViews[Utilz::GUID()] = { nullptr };
-		//pipelineObjects.samplerStates[Utilz::GUID()] = nullptr;
-		//pipelineObjects.blendStates[Utilz::GUID()] = nullptr;
-		//pipelineObjects.rasterizerStates[Utilz::GUID()] = nullptr;
-		//pipelineObjects.depthStencilStates[Utilz::GUID()] = nullptr;
-		//pipelineObjects.unorderedAccessViews[Utilz::GUID()] = { nullptr };
+		EMPLACE_NULL(PipelineObjects::VertexBuffer);
+		EMPLACE_NULL(PipelineObjects::IndexBuffer);
+		EMPLACE_NULL(PipelineObjects::ConstantBuffer);
+		EMPLACE_NULL(PipelineObjects::StructuredBuffer);
+		EMPLACE_NULL(PipelineObjects::RawBuffer);
+
+		EMPLACE_NULL(PipelineObjects::InputLayout);
+		EMPLACE_NULL(PipelineObjects::VertexShader);
+		EMPLACE_NULL(PipelineObjects::GeometryShader);
+		EMPLACE_NULL(PipelineObjects::PixelShader);
+		EMPLACE_NULL(PipelineObjects::ComputeShader);
+
+		EMPLACE_NULL(PipelineObjects::RenderTarget);
+		EMPLACE_NULL(PipelineObjects::UnorderedAccessView);
+		EMPLACE_NULL(PipelineObjects::ShaderResourceView);
+		EMPLACE_NULL(PipelineObjects::DepthStencilView);
+
+		EMPLACE_NULL(PipelineObjects::SamplerState);
+		EMPLACE_NULL(PipelineObjects::BlendState);
+		EMPLACE_NULL(PipelineObjects::RasterizerState);
+		EMPLACE_NULL(PipelineObjects::DepthStencilState);
+
+		EMPLACE_DEF(PipelineObjects::Viewport);
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
 
 	void PipelineHandler::Shutdown()
 	{
+		objects_RenderSide[PipelineObjects::RenderTarget].erase(Default_RenderTarget);
+		objects_RenderSide[PipelineObjects::DepthStencilView].erase(Default_DepthStencil);
+
+		for (auto& ot : objects_RenderSide)
+			for (auto& o : ot)
+				o.second.Release();
 	}
 
 	GRAPHICS_ERROR PipelineHandler::CreateBuffer(Utilz::GUID id, const Pipeline::Buffer & buffer)
 	{
-	/*	if (buffer.flags & BufferFlags::BIND_VERTEX)
+		StartProfile;
+		uint32_t type = -1;
+		if (buffer.flags & Pipeline::BufferFlags::BIND_VERTEX)
+			type = PipelineObjects::VertexBuffer;
+		else if (buffer.flags & Pipeline::BufferFlags::BIND_INDEX)
+			type = PipelineObjects::IndexBuffer;
+		else if (buffer.flags & Pipeline::BufferFlags::BIND_CONSTANT)
 		{
-			if(auto find = vertexbuffer)
-		}*/
+			type = PipelineObjects::ConstantBuffer;
+			if (buffer.elementStride % 16 != 0)
+				RETURN_GRAPHICS_ERROR_C("Constant buffer memory must be a multiple of 16 bytes");
+		}
+		
+		else
+			RETURN_GRAPHICS_ERROR_C("Buffer must have a type");
+		if (auto find = objects_ClientSide[type].find(id); find != objects_ClientSide[type].end())
+		{
+			RETURN_GRAPHICS_ERROR_C("Buffer already exists");
+		}
 
+
+		D3D11_BUFFER_DESC bd;
+		ZeroMemory(&bd, sizeof(bd));
+		bd.BindFlags = 0;
+		if (buffer.flags & Pipeline::BufferFlags::BIND_CONSTANT) bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		if (buffer.flags & Pipeline::BufferFlags::BIND_VERTEX) bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		if (buffer.flags & Pipeline::BufferFlags::BIND_INDEX) bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		if (buffer.flags & Pipeline::BufferFlags::BIND_STREAMOUT) bd.BindFlags |= D3D11_BIND_STREAM_OUTPUT;
+		bd.ByteWidth = buffer.maxElements * buffer.elementStride;
+		bd.CPUAccessFlags = 0;
+		if (buffer.flags & Pipeline::BufferFlags::CPU_WRITE) bd.CPUAccessFlags |= D3D11_CPU_ACCESS_WRITE;
+		if (buffer.flags & Pipeline::BufferFlags::CPU_READ) bd.CPUAccessFlags |= D3D11_CPU_ACCESS_READ;
+		bd.Usage = D3D11_USAGE_DEFAULT;
+		if (buffer.flags & Pipeline::BufferFlags::DYNAMIC) bd.Usage = D3D11_USAGE_DYNAMIC;
+		if (buffer.flags & Pipeline::BufferFlags::IMMUTABLE) bd.Usage = D3D11_USAGE_IMMUTABLE;
+		bd.MiscFlags = 0;
+		if (buffer.flags & Pipeline::BufferFlags::STRUCTURED) { bd.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED; bd.StructureByteStride = buffer.elementStride; };
+		if (buffer.flags & Pipeline::BufferFlags::RAW) bd.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+
+		ID3D11Buffer* pBuffer;
+		PipelineObject object;
+		HRESULT hr;
+
+		if (buffer.data)
+		{
+			D3D11_SUBRESOURCE_DATA d;
+			d.pSysMem = buffer.data;
+			d.SysMemPitch = 0;
+			d.SysMemSlicePitch = 0;
+			hr = device->CreateBuffer(&bd, &d, &pBuffer);
+		}
+		else
+		{
+			hr = device->CreateBuffer(&bd, nullptr, &pBuffer);
+		}
+
+		RETURN_IF_GRAPHICS_ERROR(hr, "Could not create buffer. Likely due to incompatible flags");
+
+		if (type == PipelineObjects::VertexBuffer) {
+			object = PipelineObjects::VertexBuffer_{ pBuffer, buffer.elementStride };
+		}
+		else if (type == PipelineObjects::IndexBuffer)
+		{
+			object = PipelineObjects::IndexBuffer_{ pBuffer, buffer.elementStride };
+		}
+		else if (type == PipelineObjects::ConstantBuffer)
+		{
+			object = PipelineObjects::ConstantBuffer_{ pBuffer };
+		}
+		else if (type == PipelineObjects::StructuredBuffer)
+		{
+			object = PipelineObjects::StructuredBuffer_{ pBuffer, buffer.elementStride };
+		}
+
+		toAdd.push({ id, std::move(object) });
+
+		objects_ClientSide[type].emplace(id);
+		
 		RETURN_GRAPHICS_SUCCESS;
 	}
 
 	GRAPHICS_ERROR PipelineHandler::UpdateBuffer(Utilz::GUID id, void * data, size_t size)
 	{
+		
 		RETURN_GRAPHICS_SUCCESS;
 	}
 
@@ -178,6 +244,18 @@ namespace Graphics
 	}
 	GRAPHICS_ERROR PipelineHandler::DestroyUnorderedAccessView(Utilz::GUID id)
 	{
+		RETURN_GRAPHICS_SUCCESS;
+	}
+	GRAPHICS_ERROR PipelineHandler::UpdatePipelineObjects()
+	{
+		StartProfile;
+		while (!toAdd.wasEmpty())
+		{
+			auto& t = toAdd.top();
+			objects_RenderSide[t.obj.type].emplace(t.id, std::move(t.obj));
+
+			toAdd.pop();
+		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
 }

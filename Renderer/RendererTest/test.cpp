@@ -103,3 +103,25 @@ TEST(RendererTest, Create) {
 
 	Renderer_Shutdown_C(r);
 }
+
+TEST(RendererTest, CreateBuffers) {
+	HWND w;
+	InitWindow(w);
+	auto r = CreateRenderer(Renderer_Backend::DIRECTX11, { w });
+	auto re = Renderer_Initialize_C(r);
+	EXPECT_EQ(re.errornr, 0);
+
+	re = Renderer_Start_C(r);
+	EXPECT_EQ(re.errornr, 0);
+
+	re = r->GetPipelineHandler()->CreateBuffer("ConstB", Graphics::Pipeline::Buffer::ConstantBuffer(32));
+	EXPECT_EQ(re.errornr, 0);
+	float p[3] = { 1.0f, 0.0f,0.0f };
+	re = r->GetPipelineHandler()->CreateBuffer("VertexB", Graphics::Pipeline::Buffer::VertexBuffer(p, sizeof(p), 1));
+	EXPECT_EQ(re.errornr, 0);
+
+	std::this_thread::sleep_for(1s);
+
+
+	Renderer_Shutdown_C(r);
+}
