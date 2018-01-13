@@ -9,3 +9,8 @@ Create render objects(vertex buffers...) and a render job and the renderer will 
 # Dependencis
 * CompileTimeGUID
 * Profiler
+
+# Build
+If using Visual Studio (2017) just get each dependency so that they are located in the same folder then you should only need to press build.
+
+If not using Visual Studio I wish you the best of luck.
