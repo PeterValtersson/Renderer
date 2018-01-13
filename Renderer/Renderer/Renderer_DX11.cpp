@@ -163,18 +163,7 @@ namespace Graphics
 	}
 	uint8_t Renderer_DX11::IsRenderJobRegistered(Utilz::GUID id) const
 	{
-		StartProfile;
-
-		uint32_t count = 0;
-		for (uint8_t i = 0; i <= uint8_t(RenderGroup::FINAL_PASS); i++)
-			for (auto& j : renderJobs.clientSide.renderGroupsWithID[i])
-				if (j == id)
-				{
-					count++;
-					continue;
-				}
-
-		return count;
+		return renderJobs.clientSide.Registered(id);
 	}
 	GRAPHICS_ERROR Renderer_DX11::AddUpdateJob(Utilz::GUID id, const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
 	{
@@ -186,6 +175,53 @@ namespace Graphics
 
 		updateJobs.jobsToAdd.push({ id, renderGroupToPerformUpdateBefore, job });
 		RETURN_GRAPHICS_SUCCESS;
+	}
+	GRAPHICS_ERROR Renderer_DX11::AddUpdateJob(const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
+	{
+		return AddUpdateJob(job.objectToMap, job, renderGroupToPerformUpdateBefore);
+	}
+	void Renderer_DX11::RemoveUpdateJob(Utilz::GUID id, RenderGroup renderGroup)
+	{
+		StartProfile;
+
+		if (auto index = renderJobs.clientSide.Find(id, renderGroup); index.has_value())
+		{
+			uint32_t last = uint32_t(updateJobs.clientSide.GetIDs(renderGroup).size()) - 1;
+			updateJobs.clientSide.GetIDs(renderGroup)[*index] = updateJobs.clientSide.GetIDs(renderGroup)[last];
+			updateJobs.clientSide.GetIDs(renderGroup).pop_back();
+
+			updateJobs.jobsToRemove.push({ id, renderGroup });
+		}
+	}
+	void Renderer_DX11::RemoveUpdateJob(Utilz::GUID id)
+	{
+		StartProfile;
+
+		for (uint8_t i = 0; i <= uint8_t(RenderGroup::FINAL_PASS); i++)
+		{
+			if (auto index = updateJobs.clientSide.Find(id, RenderGroup(i)); index.has_value())
+			{
+				uint32_t last = uint32_t(updateJobs.clientSide.renderGroupsWithID[i].size()) - 1;
+				updateJobs.clientSide.renderGroupsWithID[i][*index] = updateJobs.clientSide.renderGroupsWithID[i][last];
+				updateJobs.clientSide.renderGroupsWithID[i].pop_back();
+
+				updateJobs.jobsToRemove.push({ id, RenderGroup(i) });
+			}
+		}
+	}
+	uint32_t Renderer_DX11::GetNumberOfUpdateJobs() const
+	{
+		StartProfile;
+
+		uint32_t count = 0;
+		for (auto&g : updateJobs.clientSide.renderGroupsWithID)
+			count += uint32_t(g.size());
+
+		return count;
+	}
+	uint8_t Renderer_DX11::IsUpdateJobRegistered(Utilz::GUID id) const
+	{
+		return updateJobs.clientSide.Registered(id);
 	}
 	void Renderer_DX11::Run()
 	{

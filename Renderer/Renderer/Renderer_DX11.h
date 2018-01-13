@@ -35,6 +35,11 @@ namespace Graphics
 		uint8_t IsRenderJobRegistered(Utilz::GUID id)const override;
 
 		GRAPHICS_ERROR AddUpdateJob(Utilz::GUID id, const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) override;
+		GRAPHICS_ERROR AddUpdateJob(const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) override;
+		void RemoveUpdateJob(Utilz::GUID id, RenderGroup renderGroup) override;
+		void RemoveUpdateJob(Utilz::GUID id) override;
+		uint32_t GetNumberOfUpdateJobs()const override;
+		uint8_t IsUpdateJobRegistered(Utilz::GUID id)const override;
 	private:
 		RendererInitializationInfo settings;
 		DeviceHandler* device;
@@ -157,7 +162,21 @@ namespace Graphics
 					return renderGroupsWithID[uint8_t(group)];
 				}
 
+				uint32_t Registered(Utilz::GUID id)const
+				{
+					StartProfile;
 
+					uint32_t count = 0;
+					for (uint8_t i = 0; i <= uint8_t(RenderGroup::FINAL_PASS); i++)
+						for (auto& j : renderJobs.clientSide.renderGroupsWithID[i])
+							if (j == id)
+							{
+								count++;
+								continue;
+							}
+
+					return count;
+				}
 			}clientSide;
 
 			JobStuff()
