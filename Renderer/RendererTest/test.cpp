@@ -113,15 +113,45 @@ TEST(RendererTest, CreateBuffers) {
 
 	re = Renderer_Start_C(r);
 	EXPECT_EQ(re.errornr, 0);
-
-	re = r->GetPipelineHandler()->CreateBuffer("ConstB", Graphics::Pipeline::Buffer::ConstantBuffer(32));
+	struct TestData
+	{
+		int testInt = 1337;
+		int pad;
+		int pad1;
+		int pad2;
+	}testData;
+	re = r->GetPipelineHandler()->CreateBuffer("ConstB", Graphics::Pipeline::Buffer::ConstantBuffer(sizeof(TestData), &testData));
+	EXPECT_EQ(re.errornr, 0);
+	Graphics::Pipeline::Buffer bb = Graphics::Pipeline::Buffer::ConstantBuffer(sizeof(TestData), &testData);
+	bb.flags |= Graphics::Pipeline::BufferFlags::CPU_READ;
+	re = r->GetPipelineHandler()->CreateBuffer("ConstBRead", Graphics::Pipeline::Buffer::ConstantBuffer(sizeof(TestData), &testData));
 	EXPECT_EQ(re.errornr, 0);
 	float p[3] = { 1.0f, 0.0f,0.0f };
 	re = r->GetPipelineHandler()->CreateBuffer("VertexB", Graphics::Pipeline::Buffer::VertexBuffer(p, sizeof(p), 1));
 	EXPECT_EQ(re.errornr, 0);
 
+	bool called1 = false;
+	bool called2= false;
+	auto l = [&](Graphics::UpdateObject* buffer) {
+		
+		try
+		{
+			called2 = true;
+			EXPECT_EQ(buffer->GetMapObject<TestData>().testInt, testData.testInt);
+		}
+		catch (GRAPHICS_ERROR err)
+		{
+			called1 = true;
+			EXPECT_NE(err.errornr, 0);
+		}
+		RETURN_GRAPHICS_SUCCESS;
+	};
+	re = r->AddUpdateJob("TestMap", Graphics::UpdateJob::ConstantBuffer("ConstB", Graphics::UpdateFrequency::EVERY_FRAME,l), Graphics::RenderGroup::PRE_PASS_0);
+	EXPECT_EQ(re.errornr, 0);
+	re = r->AddUpdateJob("TestMap2", Graphics::UpdateJob::ConstantBuffer("ConstBRead", Graphics::UpdateFrequency::EVERY_FRAME, l), Graphics::RenderGroup::PRE_PASS_0);
+	EXPECT_EQ(re.errornr, 0);
 	std::this_thread::sleep_for(1s);
-
-
+	EXPECT_TRUE(called1); 
+	EXPECT_TRUE(called2);
 	Renderer_Shutdown_C(r);
 }

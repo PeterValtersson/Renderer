@@ -5,6 +5,7 @@
 #include "PipelineHandler_Interface.h"
 #include <stdint.h>
 #include "RenderJob.h"
+#include "UpdateJob.h"
 
 namespace Graphics
 {
@@ -50,6 +51,8 @@ namespace Graphics
 		virtual void RemoveRenderJob(Utilz::GUID id) = 0;
 		virtual uint32_t GetNumberOfRenderJobs()const = 0;
 		virtual uint8_t IsRenderJobRegistered(Utilz::GUID id)const = 0;
+
+		virtual GRAPHICS_ERROR AddUpdateJob(Utilz::GUID id, const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) = 0;
 	protected:
 		Renderer_Interface() {};
 	};

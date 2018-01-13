@@ -63,7 +63,7 @@ namespace Utilz
 			return false;  // full queue
 		}
 		// Producer only
-		inline bool push(const Element&& item)
+		inline bool push(Element&& item)
 		{
 			auto current_tail = tail.load();
 			auto current_head = head.load();

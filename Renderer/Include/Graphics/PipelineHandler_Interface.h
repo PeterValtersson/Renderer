@@ -13,8 +13,8 @@ namespace Graphics
 		PipelineHandler_Interface() {};
 
 		virtual GRAPHICS_ERROR CreateBuffer(Utilz::GUID id, const Pipeline::Buffer& buffer) = 0;
-		virtual GRAPHICS_ERROR UpdateBuffer(Utilz::GUID id, void* data, size_t size) = 0;
-		virtual GRAPHICS_ERROR UpdateBuffer(Utilz::GUID id, const std::function<void(void* mappedResource)>& mapCallback) = 0;
+		/*virtual GRAPHICS_ERROR UpdateBuffer(Utilz::GUID id, void* data, size_t size) = 0;
+		virtual GRAPHICS_ERROR UpdateBuffer(Utilz::GUID id, const std::function<void(void* mappedResource)>& mapCallback) = 0;*/
 		virtual GRAPHICS_ERROR DestroyBuffer(Utilz::GUID id) = 0;
 
 		virtual GRAPHICS_ERROR CreateViewport(Utilz::GUID id, const Pipeline::Viewport& viewport) = 0;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -158,6 +158,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\DLLExport.h" />
+    <ClInclude Include="..\Include\Graphics\UpdateJob.h" />
     <ClInclude Include="..\Include\Graphics\Pipeline.h" />
     <ClInclude Include="..\Include\Graphics\PipelineHandler_Interface.h" />
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h" />
@@ -167,8 +168,10 @@
     <ClInclude Include="DeviceHandler.h" />
     <ClInclude Include="PipelineAssigner.h" />
     <ClInclude Include="PipelineHandler.h" />
+    <ClInclude Include="PipelineObjects.h" />
     <ClInclude Include="Renderer_DX11.h" />
     <ClInclude Include="Safe_Release.h" />
+    <ClInclude Include="UpdateObjects.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

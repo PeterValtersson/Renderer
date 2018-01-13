@@ -62,5 +62,12 @@
     <ClInclude Include="CircularFIFO.h">
       <Filter>DX11Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\Graphics\UpdateJob.h" />
+    <ClInclude Include="PipelineObjects.h">
+      <Filter>DX11Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="UpdateObjects.h">
+      <Filter>DX11Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

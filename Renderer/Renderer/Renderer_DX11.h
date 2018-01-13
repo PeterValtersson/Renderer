@@ -7,7 +7,7 @@
 #include "PipelineAssigner.h"
 #include <optional>
 #include "CircularFIFO.h"
-
+#include <Profiler.h>
 namespace Graphics
 {
 	class Renderer_DX11 : public Renderer_Interface
@@ -33,6 +33,8 @@ namespace Graphics
 		void RemoveRenderJob(Utilz::GUID id) override;
 		uint32_t GetNumberOfRenderJobs()const override;
 		uint8_t IsRenderJobRegistered(Utilz::GUID id)const override;
+
+		GRAPHICS_ERROR AddUpdateJob(Utilz::GUID id, const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) override;
 	private:
 		RendererInitializationInfo settings;
 		DeviceHandler* device;
@@ -48,32 +50,21 @@ namespace Graphics
 		void BeginFrame();
 		void Frame();
 		void EndFrame();
-
-
+		
 		//***** Renderjob stuff ******//
-		struct RenderJobInfoRenderSide
+		
+		template<class JOB>
+		struct JobStuff
 		{
-			std::vector<std::vector<RenderJob>> renderGroupsWithJob;
-			std::vector<std::vector<Utilz::GUID>> renderGroupsWithID;
-			std::optional<uint32_t> FindRenderJob(Utilz::GUID id, RenderGroup group);
-			inline std::vector<RenderJob>& GetJobs(RenderGroup group)
-			{
-				return renderGroupsWithJob[uint8_t(group)];
-			}
-			inline std::vector<Utilz::GUID>& GetIDs(RenderGroup group)
-			{
-				return renderGroupsWithID[uint8_t(group)];
-			}
-		}renderJobInfoRenderSide;
-
 			//**** TO ADD/REMOVE STUFF ****//
+			template<class JOB>
 			struct ToAdd
 			{
 				Utilz::GUID id;
 				RenderGroup group;
-				RenderJob job;
+				JOB job;
 			};
-			Utilz::CircularFiFo<ToAdd> jobsToAdd;
+			Utilz::CircularFiFo<ToAdd<JOB>> jobsToAdd;
 			struct ToRemove
 			{
 				Utilz::GUID id;
@@ -82,19 +73,104 @@ namespace Graphics
 			Utilz::CircularFiFo<ToRemove> jobsToRemove;
 			//****					   ****//
 
-		struct RenderJobInfoClientSide
-		{
-			std::vector<std::vector<Utilz::GUID>> renderGroupsWithID;
-			std::optional<uint32_t> FindRenderJob(Utilz::GUID id, RenderGroup group);
-			inline std::vector<Utilz::GUID>& GetIDs(RenderGroup group)
+			void Add()
 			{
-				return renderGroupsWithID[uint8_t(group)];
+				StartProfile;
+				while (!jobsToAdd.wasEmpty())
+				{
+					StartProfileC("Add Job");
+					renderSide.Add(jobsToAdd.top());
+					jobsToAdd.pop();
+				}
+			}
+			void Remove()
+			{
+				StartProfile;
+				while (!jobsToRemove.wasEmpty())
+				{
+					StartProfileC("Remove Render Job");
+					renderSide.Remove(jobsToRemove.top());
+					jobsToRemove.pop();
+				}
 			}
 
-			
-		}renderJobInfoClientSide;
-	
+			template<class JOB>
+			struct RenderSide
+			{
+				std::vector<std::vector<JOB>> renderGroupsWithJob;
+				std::vector<std::vector<Utilz::GUID>> renderGroupsWithID;
+				std::optional<uint32_t> Find(Utilz::GUID id, RenderGroup group)
+				{
+					for (uint32_t i = 0; i < renderGroupsWithID[uint8_t(group)].size(); i++)
+						if (renderGroupsWithID[uint8_t(group)][i] == id)
+							return i;
+					return std::nullopt;
+				}
 
+				inline void Add(const ToAdd<JOB>& job)
+				{
+					if (auto index = Find(job.id, job.group); !index.has_value())
+					{
+						GetIDs(job.group).push_back(job.id);
+						GetJobs(job.group).push_back(job.job);
+					}
+				}
+				inline void Remove(const ToRemove& job)
+				{
+					
+					if (auto index = Find(job.id, job.group); index.has_value())
+					{
+						uint32_t last = uint32_t(GetIDs(job.group).size()) - 1;
+						GetIDs(job.group)[*index] = GetIDs(job.group)[last];
+						GetJobs(job.group)[*index] = GetJobs(job.group)[last];
+
+						GetIDs(job.group).pop_back();
+						GetJobs(job.group).pop_back();
+					}
+
+				}
+	
+				inline std::vector<JOB>& GetJobs(RenderGroup group)
+				{
+					return renderGroupsWithJob[uint8_t(group)];
+				}
+				inline std::vector<Utilz::GUID>& GetIDs(RenderGroup group)
+				{
+					return renderGroupsWithID[uint8_t(group)];
+				}
+			};
+			RenderSide<JOB> renderSide;
+
+
+			struct ClientSide
+			{
+				std::vector<std::vector<Utilz::GUID>> renderGroupsWithID;
+				std::optional<uint32_t> Find(Utilz::GUID id, RenderGroup group)
+				{
+					for (uint32_t i = 0; i < renderGroupsWithID[uint8_t(group)].size(); i++)
+						if (renderGroupsWithID[uint8_t(group)][i] == id)
+							return i;
+					return std::nullopt;
+				}
+				inline std::vector<Utilz::GUID>& GetIDs(RenderGroup group)
+				{
+					return renderGroupsWithID[uint8_t(group)];
+				}
+
+
+			}clientSide;
+
+			JobStuff()
+			{
+				clientSide.renderGroupsWithID.resize(uint8_t(RenderGroup::FINAL_PASS) + 1);
+				renderSide.renderGroupsWithID.resize(uint8_t(RenderGroup::FINAL_PASS) + 1);
+				renderSide.renderGroupsWithJob.resize(uint8_t(RenderGroup::FINAL_PASS) + 1);
+			}
+		};
+		JobStuff<RenderJob> renderJobs;
+		JobStuff<UpdateJob> updateJobs;
+
+	
 	};
 }
 #endif

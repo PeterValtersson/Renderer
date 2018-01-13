@@ -1,5 +1,7 @@
 #include "PipelineHandler.h"
 #include <Profiler.h>
+#include "UpdateObjects.h"
+
 #define EMPLACE_NULL(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ nullptr })
 #define EMPLACE_DEF(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ })
 namespace Graphics
@@ -56,7 +58,7 @@ namespace Graphics
 
 		RETURN_GRAPHICS_SUCCESS;
 	}
-
+#define RELEASE_PLO(type) if(o.second.index() == type) std::get<type##_>(o.second).Release()
 	void PipelineHandler::Shutdown()
 	{
 		objects_RenderSide[PipelineObjects::RenderTarget].erase(Default_RenderTarget);
@@ -64,7 +66,30 @@ namespace Graphics
 
 		for (auto& ot : objects_RenderSide)
 			for (auto& o : ot)
-				o.second.Release();
+			{
+				RELEASE_PLO(PipelineObjects::VertexBuffer);
+				else RELEASE_PLO(PipelineObjects::IndexBuffer);
+				else RELEASE_PLO(PipelineObjects::ConstantBuffer);
+				else RELEASE_PLO(PipelineObjects::StructuredBuffer);
+				else RELEASE_PLO(PipelineObjects::RawBuffer);
+
+				else RELEASE_PLO(PipelineObjects::InputLayout);
+				else RELEASE_PLO(PipelineObjects::VertexShader);
+				else RELEASE_PLO(PipelineObjects::GeometryShader);
+				else RELEASE_PLO(PipelineObjects::PixelShader);
+				else RELEASE_PLO(PipelineObjects::ComputeShader);
+
+				else RELEASE_PLO(PipelineObjects::RenderTarget);
+				else RELEASE_PLO(PipelineObjects::UnorderedAccessView);
+				else RELEASE_PLO(PipelineObjects::ShaderResourceView);
+				else RELEASE_PLO(PipelineObjects::DepthStencilView);
+
+				else RELEASE_PLO(PipelineObjects::SamplerState);
+				else RELEASE_PLO(PipelineObjects::BlendState);
+				else RELEASE_PLO(PipelineObjects::RasterizerState);
+				else RELEASE_PLO(PipelineObjects::DepthStencilState);
+			}
+				
 	}
 
 	GRAPHICS_ERROR PipelineHandler::CreateBuffer(Utilz::GUID id, const Pipeline::Buffer & buffer)
@@ -150,17 +175,35 @@ namespace Graphics
 		RETURN_GRAPHICS_SUCCESS;
 	}
 
-	GRAPHICS_ERROR PipelineHandler::UpdateBuffer(Utilz::GUID id, void * data, size_t size)
+	/*GRAPHICS_ERROR PipelineHandler::UpdateBuffer(Utilz::GUID id, const std::function<void(void*mappedResource, size_t maxSize)>& mapCallback)
 	{
-		
+		StartProfile;
+		D3D11_MAPPED_SUBRESOURCE data;
+		ID3D11Buffer* bfr;
+		UINT size = 0;
+		if (auto find = objects_RenderSide[PipelineObjects::ConstantBuffer].find(id); find != objects_RenderSide[PipelineObjects::ConstantBuffer].end())
+		{
+			bfr = find->second.ConstantBuffer().obj;
+
+		}
+		else if (auto find = objects_RenderSide[PipelineObjects::VertexBuffer].find(id); find != objects_RenderSide[PipelineObjects::VertexBuffer].end())
+		{
+			bfr = find->second.VertexBuffer().obj;
+			size = find->second.VertexBuffer().
+		}
+		if (!bfr)
+			RETURN_GRAPHICS_ERROR_C("Buffer not found");
+
+		RETURN_IF_GRAPHICS_ERROR(context->Map(bfr, 0, D3D11_MAP_WRITE_DISCARD, 0, &data), "Could not map buffer");
+
+		mapCallback(data.pData, 0);
+
+		context->Unmap(bfr, 0);
+
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
-
-	GRAPHICS_ERROR PipelineHandler::UpdateBuffer(Utilz::GUID id, const std::function<void(void*mappedResource)>& mapCallback)
-	{
-		RETURN_GRAPHICS_SUCCESS;
-	}
-
+*/
 	GRAPHICS_ERROR PipelineHandler::DestroyBuffer(Utilz::GUID id)
 	{
 		RETURN_GRAPHICS_SUCCESS;
@@ -252,10 +295,18 @@ namespace Graphics
 		while (!toAdd.wasEmpty())
 		{
 			auto& t = toAdd.top();
-			objects_RenderSide[t.obj.type].emplace(t.id, std::move(t.obj));
+			objects_RenderSide[t.obj.index()].emplace(t.id, std::move(t.obj));
 
 			toAdd.pop();
 		}
 		RETURN_GRAPHICS_SUCCESS;
+	}
+	UpdateObject * PipelineHandler::GetUpdateObject(Utilz::GUID id, PipelineObjectType type)
+	{
+		if(type == PipelineObjectType::ConstantBuffer)
+		if (auto find = objects_RenderSide[PipelineObjects::ConstantBuffer].find(id); find != objects_RenderSide[PipelineObjects::ConstantBuffer].end())
+			return new Buffer_UO(context, std::get<PipelineObjects::ConstantBuffer_>(find->second).obj);
+	
+		return nullptr;
 	}
 }
