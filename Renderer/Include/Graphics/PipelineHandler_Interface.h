@@ -19,9 +19,9 @@ namespace Graphics
 
 		virtual GRAPHICS_ERROR CreateViewport(Utilz::GUID id, const Pipeline::Viewport& viewport) = 0;
 			
-		virtual GRAPHICS_ERROR CreateShader(Utilz::GUID id, Pipeline::ShaderType type, const char* sourceCode, const char* entryPoint, const char* shaderModel) = 0;
+		virtual GRAPHICS_ERROR CreateShader(Utilz::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel) = 0;
 		virtual GRAPHICS_ERROR CreateShader(Utilz::GUID id, Pipeline::ShaderType type, void* data, size_t size) = 0;
-		virtual GRAPHICS_ERROR DestroyShader(Utilz::GUID id) = 0;
+		virtual GRAPHICS_ERROR DestroyShader(Utilz::GUID id, Pipeline::ShaderType type) = 0;
 				
 		virtual GRAPHICS_ERROR CreateTexture(Utilz::GUID id, void* data, size_t width, size_t height) = 0;
 		virtual GRAPHICS_ERROR DestroyTexture(Utilz::GUID id) = 0;

@@ -155,6 +155,7 @@
     <ClCompile Include="PipelineHandler.cpp" />
     <ClCompile Include="Renderer_DX11.cpp" />
     <ClCompile Include="Renderer_Interface.cpp" />
+    <ClCompile Include="UpdateObjects.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\DLLExport.h" />

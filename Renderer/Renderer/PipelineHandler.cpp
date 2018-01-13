@@ -1,7 +1,7 @@
 #include "PipelineHandler.h"
 #include <Profiler.h>
 #include "UpdateObjects.h"
-
+#include <d3dcompiler.h>
 #define EMPLACE_NULL(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ nullptr })
 #define EMPLACE_DEF(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ })
 namespace Graphics
@@ -32,13 +32,8 @@ namespace Graphics
 		objects_ClientSide[PipelineObjects::DepthStencilView].emplace(Default_DepthStencil);
 		objects_ClientSide[PipelineObjects::Viewport].emplace(Default_Viewport);
 
-		EMPLACE_NULL(PipelineObjects::VertexBuffer);
-		EMPLACE_NULL(PipelineObjects::IndexBuffer);
-		EMPLACE_NULL(PipelineObjects::ConstantBuffer);
-		EMPLACE_NULL(PipelineObjects::StructuredBuffer);
-		EMPLACE_NULL(PipelineObjects::RawBuffer);
+		EMPLACE_NULL(PipelineObjects::Buffer);
 
-		EMPLACE_NULL(PipelineObjects::InputLayout);
 		EMPLACE_NULL(PipelineObjects::VertexShader);
 		EMPLACE_NULL(PipelineObjects::GeometryShader);
 		EMPLACE_NULL(PipelineObjects::PixelShader);
@@ -67,13 +62,8 @@ namespace Graphics
 		for (auto& ot : objects_RenderSide)
 			for (auto& o : ot)
 			{
-				RELEASE_PLO(PipelineObjects::VertexBuffer);
-				else RELEASE_PLO(PipelineObjects::IndexBuffer);
-				else RELEASE_PLO(PipelineObjects::ConstantBuffer);
-				else RELEASE_PLO(PipelineObjects::StructuredBuffer);
-				else RELEASE_PLO(PipelineObjects::RawBuffer);
+				RELEASE_PLO(PipelineObjects::Buffer);
 
-				else RELEASE_PLO(PipelineObjects::InputLayout);
 				else RELEASE_PLO(PipelineObjects::VertexShader);
 				else RELEASE_PLO(PipelineObjects::GeometryShader);
 				else RELEASE_PLO(PipelineObjects::PixelShader);
@@ -95,25 +85,16 @@ namespace Graphics
 	GRAPHICS_ERROR PipelineHandler::CreateBuffer(Utilz::GUID id, const Pipeline::Buffer & buffer)
 	{
 		StartProfile;
-		uint32_t type = -1;
-		if (buffer.flags & Pipeline::BufferFlags::BIND_VERTEX)
-			type = PipelineObjects::VertexBuffer;
-		else if (buffer.flags & Pipeline::BufferFlags::BIND_INDEX)
-			type = PipelineObjects::IndexBuffer;
-		else if (buffer.flags & Pipeline::BufferFlags::BIND_CONSTANT)
+		if (buffer.flags & Pipeline::BufferFlags::BIND_CONSTANT)
 		{
-			type = PipelineObjects::ConstantBuffer;
 			if (buffer.elementStride % 16 != 0)
 				RETURN_GRAPHICS_ERROR_C("Constant buffer memory must be a multiple of 16 bytes");
 		}
-		
-		else
-			RETURN_GRAPHICS_ERROR_C("Buffer must have a type");
-		if (auto find = objects_ClientSide[type].find(id); find != objects_ClientSide[type].end())
-		{
-			RETURN_GRAPHICS_ERROR_C("Buffer already exists");
-		}
 
+		if (auto find = objects_ClientSide[PipelineObjects::Buffer].find(id); find != objects_ClientSide[PipelineObjects::Buffer].end())
+		{
+			RETURN_GRAPHICS_ERROR("Buffer already exists", 1);
+		}
 
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -152,77 +133,283 @@ namespace Graphics
 
 		RETURN_IF_GRAPHICS_ERROR(hr, "Could not create buffer. Likely due to incompatible flags");
 
-		if (type == PipelineObjects::VertexBuffer) {
-			object = PipelineObjects::VertexBuffer_{ pBuffer, buffer.elementStride };
-		}
-		else if (type == PipelineObjects::IndexBuffer)
-		{
-			object = PipelineObjects::IndexBuffer_{ pBuffer, buffer.elementStride };
-		}
-		else if (type == PipelineObjects::ConstantBuffer)
-		{
-			object = PipelineObjects::ConstantBuffer_{ pBuffer };
-		}
-		else if (type == PipelineObjects::StructuredBuffer)
-		{
-			object = PipelineObjects::StructuredBuffer_{ pBuffer, buffer.elementStride };
-		}
+		toAdd.push({ id, PipelineObjects::Buffer_{ pBuffer, buffer }});
 
-		toAdd.push({ id, std::move(object) });
-
-		objects_ClientSide[type].emplace(id);
+		objects_ClientSide[PipelineObjects::Buffer].emplace(id);
 		
 		RETURN_GRAPHICS_SUCCESS;
 	}
 
-	/*GRAPHICS_ERROR PipelineHandler::UpdateBuffer(Utilz::GUID id, const std::function<void(void*mappedResource, size_t maxSize)>& mapCallback)
-	{
-		StartProfile;
-		D3D11_MAPPED_SUBRESOURCE data;
-		ID3D11Buffer* bfr;
-		UINT size = 0;
-		if (auto find = objects_RenderSide[PipelineObjects::ConstantBuffer].find(id); find != objects_RenderSide[PipelineObjects::ConstantBuffer].end())
-		{
-			bfr = find->second.ConstantBuffer().obj;
-
-		}
-		else if (auto find = objects_RenderSide[PipelineObjects::VertexBuffer].find(id); find != objects_RenderSide[PipelineObjects::VertexBuffer].end())
-		{
-			bfr = find->second.VertexBuffer().obj;
-			size = find->second.VertexBuffer().
-		}
-		if (!bfr)
-			RETURN_GRAPHICS_ERROR_C("Buffer not found");
-
-		RETURN_IF_GRAPHICS_ERROR(context->Map(bfr, 0, D3D11_MAP_WRITE_DISCARD, 0, &data), "Could not map buffer");
-
-		mapCallback(data.pData, 0);
-
-		context->Unmap(bfr, 0);
-
-
-		RETURN_GRAPHICS_SUCCESS;
-	}
-*/
 	GRAPHICS_ERROR PipelineHandler::DestroyBuffer(Utilz::GUID id)
 	{
+		sizeof(PipelineObject);
+		if (auto find = objects_ClientSide[PipelineObjects::Buffer].find(id); find != objects_ClientSide[PipelineObjects::Buffer].end())
+		{
+			objects_ClientSide[PipelineObjects::Buffer].erase(id);
+			toRemove.push({ id,PipelineObjects::Buffer });			
+		}
+		
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	
 	GRAPHICS_ERROR PipelineHandler::CreateViewport(Utilz::GUID id, const Pipeline::Viewport & viewport)
 	{
+		if (auto find = objects_ClientSide[PipelineObjects::Viewport].find(id); find != objects_ClientSide[PipelineObjects::Viewport].end())
+			RETURN_GRAPHICS_ERROR_C("Viewport with name already exists");
+
+
+		objects_ClientSide[PipelineObjects::Viewport].emplace(id);
+
+		toAdd.push({ id , PipelineObjects::Viewport_{ viewport.topLeftX, viewport.topLeftY, viewport.width, viewport.height, viewport.minDepth, viewport.maxDepth } });
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilz::GUID id, Pipeline::ShaderType type, const char * sourceCode, const char * entryPoint, const char * shaderModel)
+	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilz::GUID id, Pipeline::ShaderType type, const char * sourceCode, size_t size, const char * entryPoint, const char * shaderModel)
 	{
-		RETURN_GRAPHICS_SUCCESS;
+		ID3DBlob* blob;
+		ID3DBlob* error;
+		RETURN_IF_GRAPHICS_ERROR_S(D3DCompile(sourceCode, size, NULL, NULL, NULL, entryPoint, shaderModel, 0, 0, &blob, &error), (char*) error);
+
+		return CreateShader(id, type, blob->GetBufferPointer(), blob->GetBufferSize());
 	}
+	template<class T>
+	struct SafeDXP
+	{
+		T* operator->()
+		{
+			return obj;
+		}
+		T** Get()
+		{
+			return obj;
+		}
+		T* Done()
+		{
+			T* t = obj;
+			obj = nullptr;
+			return t;
+		}
+		~SafeDXP()
+		{
+			if (obj)
+				obj->Release();
+		}
+	private:
+		T* obj = nullptr;
+	};
 	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilz::GUID id, Pipeline::ShaderType type, void * data, size_t size)
 	{
+		if (type == Pipeline::ShaderType::VERTEX)
+		{
+			if (auto find = objects_ClientSide[PipelineObjects::VertexShader].find(id); find != objects_ClientSide[PipelineObjects::VertexShader].end())
+				RETURN_GRAPHICS_ERROR_C("Vertex shader with name already exists");
+		}
+		else if (type == Pipeline::ShaderType::PIXEL)
+		{
+			if (auto find = objects_ClientSide[PipelineObjects::PixelShader].find(id); find != objects_ClientSide[PipelineObjects::PixelShader].end())
+				RETURN_GRAPHICS_ERROR_C("Pixel shader with name already exists");
+		}
+		else if (type == Pipeline::ShaderType::GEOMETRY || type == Pipeline::ShaderType::GEOMETRY_STREAM_OUT)
+		{
+			if (auto find = objects_ClientSide[PipelineObjects::GeometryShader].find(id); find != objects_ClientSide[PipelineObjects::GeometryShader].end())
+				RETURN_GRAPHICS_ERROR_C("Geometry shader with name already exists");
+		}
+		else if (type == Pipeline::ShaderType::COMPUTE)
+		{
+			if (auto find = objects_ClientSide[PipelineObjects::ComputeShader].find(id); find != objects_ClientSide[PipelineObjects::ComputeShader].end())
+				RETURN_GRAPHICS_ERROR_C("Compute shader with name already exists");
+		}
+		else
+		{
+			RETURN_GRAPHICS_ERROR_C("Shader type not supported yet");
+		}
+		//Create the input layout with the help of shader reflection
+		SafeDXP<ID3D11ShaderReflection> reflection;
+
+		RETURN_IF_GRAPHICS_ERROR(D3DReflect(data, size, IID_ID3D11ShaderReflection, (void**)reflection.Get()), "Could not reflect shader");
+		D3D11_SHADER_DESC shaderDesc;
+		reflection->GetDesc(&shaderDesc);
+		std::vector<ShaderResourceToAndBindSlot> cbuffers;
+		for (unsigned int i = 0; i < shaderDesc.BoundResources; ++i)
+		{
+			D3D11_SHADER_INPUT_BIND_DESC sibd;
+			reflection->GetResourceBindingDesc(i, &sibd);
+			if (sibd.Type == D3D_SIT_CBUFFER)
+			{
+				//Can't get the size from the RBD, can't get bindslot from the SBD...	
+				//Find the sbd with the same name to get the size.
+				Utilz::GUID sibdName = std::string(sibd.Name);
+				for (unsigned int j = 0; j < shaderDesc.ConstantBuffers; ++j)
+				{
+					D3D11_SHADER_BUFFER_DESC sbd;
+					ID3D11ShaderReflectionConstantBuffer* srcb = reflection->GetConstantBufferByIndex(j);
+					srcb->GetDesc(&sbd);
+					Utilz::GUID name = std::string(sbd.Name);
+					if (name == sibdName)
+					{
+						PASS_IF_GRAPHICS_ERROR(CreateBuffer(name, Pipeline::Buffer::ConstantBuffer(uint16_t(sbd.Size))));
+						cbuffers.push_back({ name, sibd.BindPoint });
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (type == Pipeline::ShaderType::VERTEX)
+		{
+			SafeDXP<ID3D11InputLayout> inputLayout;
+			SafeDXP<ID3D11VertexShader> vs;
+			
+
+			RETURN_IF_GRAPHICS_ERROR(device->CreateVertexShader(data, size, nullptr, vs.Get()), "Could not create vertex shader");
+
+
+			std::vector<D3D11_INPUT_ELEMENT_DESC> inputElementDescs;
+			uint32_t offset = 0;
+			for (uint32_t i = 0; i < shaderDesc.InputParameters; ++i)
+			{
+				D3D11_SIGNATURE_PARAMETER_DESC signatureParamaterDesc;
+				reflection->GetInputParameterDesc(i, &signatureParamaterDesc);
+				D3D11_INPUT_ELEMENT_DESC inputElementDesc;
+				inputElementDesc.SemanticName = signatureParamaterDesc.SemanticName;
+				inputElementDesc.SemanticIndex = signatureParamaterDesc.SemanticIndex;
+				inputElementDesc.AlignedByteOffset = offset;
+				inputElementDesc.InputSlot = 0;
+				inputElementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+				inputElementDesc.InstanceDataStepRate = 0;
+
+				if (signatureParamaterDesc.Mask == 1)
+				{
+					const std::string semName(inputElementDesc.SemanticName);
+					if (semName == "SV_InstanceID")
+						continue;
+					if (semName == "SV_VertexID")
+						continue;
+					if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32_FLOAT;
+					else if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32_SINT;
+					else if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32_UINT;
+					offset += 4;
+
+				}
+				else if (signatureParamaterDesc.Mask <= 3)
+				{
+					if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+					else if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32G32_SINT;
+					else if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32G32_UINT;
+					offset += 8;
+				}
+				else if (signatureParamaterDesc.Mask <= 7)
+				{
+					if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+					else if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32G32B32_SINT;
+					else if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32G32B32_UINT;
+					offset += 12;
+				}
+				else if (signatureParamaterDesc.Mask <= 15)
+				{
+					if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+					else if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+					else if (signatureParamaterDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
+						inputElementDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+					offset += 16;
+				}
+				inputElementDescs.push_back(inputElementDesc);
+			}
+			if (inputElementDescs.size() > 0)
+				RETURN_IF_GRAPHICS_ERROR(device->CreateInputLayout(inputElementDescs.data(), inputElementDescs.size(), data, size, inputLayout.Get()), "Could not create input layout");
+
+			toAdd.push({ id, PipelineObjects::VertexShader_{vs.Done(), inputLayout.Done(), cbuffers} });
+			objects_ClientSide[PipelineObjects::VertexShader].emplace(id);
+		}
+		else if (type == Pipeline::ShaderType::PIXEL)
+		{
+			SafeDXP<ID3D11PixelShader> s;
+			RETURN_IF_GRAPHICS_ERROR(device->CreatePixelShader(data, size, nullptr, s.Get()), "Could not create pixel shader");
+			toAdd.push({ id, PipelineObjects::PixelShader_{ s.Done(), cbuffers } });
+			objects_ClientSide[PipelineObjects::PixelShader].emplace(id);
+		}
+		else if (type == Pipeline::ShaderType::GEOMETRY)
+		{
+			SafeDXP<ID3D11GeometryShader> s;
+			RETURN_IF_GRAPHICS_ERROR(device->CreateGeometryShader(data, size, nullptr, s.Get()), "Could not create geometry shader");
+			toAdd.push({ id, PipelineObjects::GeometryShader_{ s.Done(), cbuffers } });
+			objects_ClientSide[PipelineObjects::GeometryShader].emplace(id);
+		}
+		else if (type == Pipeline::ShaderType::GEOMETRY_STREAM_OUT)
+		{
+			std::vector<D3D11_SO_DECLARATION_ENTRY> SOEntries;
+			for (int i = 0; i < shaderDesc.InputParameters; ++i)
+			{
+				D3D11_SIGNATURE_PARAMETER_DESC signatureParameterDesc;
+				reflection->GetInputParameterDesc(i, &signatureParameterDesc);
+				BYTE mask = signatureParameterDesc.Mask;
+				int varCount = 0;
+				while (mask)
+				{
+					if (mask & 0x01) varCount++;
+					mask = mask >> 1;
+				}
+
+				D3D11_SO_DECLARATION_ENTRY sode;
+				sode.SemanticName = signatureParameterDesc.SemanticName;
+				sode.Stream = signatureParameterDesc.Stream;
+				sode.OutputSlot = 0;
+				sode.StartComponent = 0;
+				sode.ComponentCount = varCount;
+				sode.SemanticIndex = signatureParameterDesc.SemanticIndex;
+
+				SOEntries.push_back(sode);
+			}
+			uint32_t bufferStrides = 0;
+			for (auto& e : SOEntries)
+				bufferStrides += e.ComponentCount * 4;
+
+			SafeDXP<ID3D11GeometryShader> s;
+			RETURN_IF_GRAPHICS_ERROR(device->CreateGeometryShaderWithStreamOutput(data, size, SOEntries.data(), SOEntries.size(), &bufferStrides, 1, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, s.Get()), "Could not create geometry shader");
+			toAdd.push({ id, PipelineObjects::GeometryShader_{ s.Done(), cbuffers } });
+			objects_ClientSide[PipelineObjects::GeometryShader].emplace(id);
+		}
+		else if (type == Pipeline::ShaderType::COMPUTE)
+		{
+			SafeDXP<ID3D11ComputeShader> s;
+			RETURN_IF_GRAPHICS_ERROR(device->CreateComputeShader(data, size, nullptr, s.Get()), "Could not create compute shader");
+			toAdd.push({ id, PipelineObjects::ComputeShader_{ s.Done(), cbuffers } });
+			objects_ClientSide[PipelineObjects::ComputeShader].emplace(id);
+		}
+		
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyShader(Utilz::GUID id)
+	GRAPHICS_ERROR PipelineHandler::DestroyShader(Utilz::GUID id, Pipeline::ShaderType type)
 	{
+		uint32_t t = -1;
+		if (type == Pipeline::ShaderType::VERTEX)
+			t = PipelineObjects::VertexShader;
+		else if (type == Pipeline::ShaderType::PIXEL)
+			t = PipelineObjects::PixelShader;	
+		else if (type == Pipeline::ShaderType::GEOMETRY || type == Pipeline::ShaderType::GEOMETRY_STREAM_OUT)
+			t = PipelineObjects::GeometryShader;		
+		else if (type == Pipeline::ShaderType::COMPUTE)
+			t = PipelineObjects::ComputeShader;
+	
+		if (auto find = objects_ClientSide[t].find(id); find != objects_ClientSide[t].end())
+		{
+			objects_ClientSide[t].erase(id);
+			toRemove.push({ id, t });
+		}
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateTexture(Utilz::GUID id, void * data, size_t width, size_t height)
@@ -292,6 +479,13 @@ namespace Graphics
 	GRAPHICS_ERROR PipelineHandler::UpdatePipelineObjects()
 	{
 		StartProfile;
+		while (!toRemove.wasEmpty())
+		{
+			auto& t = toRemove.top();
+			objects_RenderSide[t.type].erase(t.id);
+
+			toRemove.pop();
+		}
 		while (!toAdd.wasEmpty())
 		{
 			auto& t = toAdd.top();
@@ -303,9 +497,9 @@ namespace Graphics
 	}
 	UpdateObject * PipelineHandler::GetUpdateObject(Utilz::GUID id, PipelineObjectType type)
 	{
-		if(type == PipelineObjectType::ConstantBuffer)
-		if (auto find = objects_RenderSide[PipelineObjects::ConstantBuffer].find(id); find != objects_RenderSide[PipelineObjects::ConstantBuffer].end())
-			return new Buffer_UO(context, std::get<PipelineObjects::ConstantBuffer_>(find->second).obj);
+		if(type == PipelineObjectType::Buffer)
+		if (auto find = objects_RenderSide[PipelineObjects::Buffer].find(id); find != objects_RenderSide[PipelineObjects::Buffer].end())
+			return new Buffer_UO(context, std::get<PipelineObjects::Buffer_>(find->second).obj, std::get<PipelineObjects::Buffer_>(find->second).buffer);
 	
 		return nullptr;
 	}

@@ -146,12 +146,18 @@ TEST(RendererTest, CreateBuffers) {
 		}
 		RETURN_GRAPHICS_SUCCESS;
 	};
-	re = r->AddUpdateJob("TestMap", Graphics::UpdateJob::ConstantBuffer("ConstB", Graphics::UpdateFrequency::EVERY_FRAME,l), Graphics::RenderGroup::PRE_PASS_0);
+	re = r->AddUpdateJob("TestMap", Graphics::UpdateJob::Buffer("ConstB", Graphics::UpdateFrequency::EVERY_FRAME,l), Graphics::RenderGroup::PRE_PASS_0);
 	EXPECT_EQ(re.errornr, 0);
-	re = r->AddUpdateJob("TestMap2", Graphics::UpdateJob::ConstantBuffer("ConstBRead", Graphics::UpdateFrequency::EVERY_FRAME, l), Graphics::RenderGroup::PRE_PASS_0);
+	re = r->AddUpdateJob("TestMap2", Graphics::UpdateJob::Buffer("ConstBRead", Graphics::UpdateFrequency::EVERY_FRAME, l), Graphics::RenderGroup::PRE_PASS_0);
 	EXPECT_EQ(re.errornr, 0);
 	std::this_thread::sleep_for(1s);
 	EXPECT_TRUE(called1); 
 	EXPECT_TRUE(called2);
+
+	r->GetPipelineHandler()->DestroyBuffer("ConstB");
+	r->GetPipelineHandler()->DestroyBuffer("ConstBRead");
+
+
+
 	Renderer_Shutdown_C(r);
 }

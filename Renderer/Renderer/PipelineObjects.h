@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <d3d11.h>
 #include <variant>
-
+#include <Graphics\Pipeline.h>
 #define MAKE_RELEASEABLE_STRUCT(name, objtype, ...)\
 static constexpr uint32_t name = __COUNTER__ - offset - 1;\
 struct name##_\
@@ -14,6 +14,26 @@ void Release()\
 if (obj)\
 obj->Release();\
 obj=nullptr;\
+this->~##name##_();\
+}\
+~name##_()\
+{\
+}\
+ __VA_ARGS__  }
+#define MAKE_RELEASEABLE_STRUCT_DOUBLE(name, objtype, objtype2, ...)\
+static constexpr uint32_t name = __COUNTER__ - offset - 1;\
+struct name##_\
+{\
+objtype * obj = nullptr;\
+objtype2 * obj2 = nullptr;\
+void Release()\
+{\
+if (obj)\
+obj->Release();\
+obj=nullptr;\
+if (obj2)\
+obj2->Release();\
+obj2=nullptr;\
 this->~##name##_();\
 }\
 ~name##_()\
@@ -53,21 +73,21 @@ if (t == PipelineObjects::##name)\
 
 namespace Graphics
 {
+	struct ShaderResourceToAndBindSlot
+	{
+		Utilz::GUID id;
+		UINT binding;
+	};
 	struct PipelineObjects
 	{
 		static constexpr uint32_t offset = __COUNTER__;
 
-		MAKE_RELEASEABLE_STRUCT(VertexBuffer, ID3D11Buffer, uint16_t stride;);
-		MAKE_RELEASEABLE_STRUCT(IndexBuffer, ID3D11Buffer, uint16_t stride;);
-		MAKE_RELEASEABLE_STRUCT(ConstantBuffer, ID3D11Buffer);
-		MAKE_RELEASEABLE_STRUCT(StructuredBuffer, ID3D11Buffer, uint32_t stride;);
-		MAKE_RELEASEABLE_STRUCT(RawBuffer, ID3D11Buffer);
+		MAKE_RELEASEABLE_STRUCT(Buffer, ID3D11Buffer, Pipeline::Buffer buffer;);
 
-		MAKE_RELEASEABLE_STRUCT(InputLayout, ID3D11InputLayout);
-		MAKE_RELEASEABLE_STRUCT(VertexShader, ID3D11VertexShader, std::vector<Utilz::GUID> constantBuffers;);
-		MAKE_RELEASEABLE_STRUCT(GeometryShader, ID3D11GeometryShader, std::vector<Utilz::GUID> constantBuffers;);
-		MAKE_RELEASEABLE_STRUCT(PixelShader, ID3D11PixelShader, std::vector<Utilz::GUID> constantBuffers;);
-		MAKE_RELEASEABLE_STRUCT(ComputeShader, ID3D11VertexShader, std::vector<Utilz::GUID> constantBuffers;);
+		MAKE_RELEASEABLE_STRUCT_DOUBLE(VertexShader, ID3D11VertexShader, ID3D11InputLayout, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_RELEASEABLE_STRUCT(GeometryShader, ID3D11GeometryShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_RELEASEABLE_STRUCT(PixelShader, ID3D11PixelShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_RELEASEABLE_STRUCT(ComputeShader, ID3D11ComputeShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
 
 		MAKE_RELEASEABLE_STRUCT(RenderTarget, ID3D11RenderTargetView, float clearColor[4];);
 		MAKE_RELEASEABLE_STRUCT(UnorderedAccessView, ID3D11UnorderedAccessView, float clearColor[4];);
@@ -88,12 +108,7 @@ namespace Graphics
 	};
 
 	using PipelineObject = std::variant<
-	PipelineObjects::VertexBuffer_,
-	PipelineObjects::IndexBuffer_,
-	PipelineObjects::ConstantBuffer_,
-	PipelineObjects::StructuredBuffer_,
-	PipelineObjects::RawBuffer_,
-	PipelineObjects::InputLayout_,
+	PipelineObjects::Buffer_,
 	PipelineObjects::VertexShader_,
 	PipelineObjects::GeometryShader_,
 	PipelineObjects::PixelShader_,

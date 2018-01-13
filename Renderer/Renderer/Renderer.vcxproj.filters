@@ -28,6 +28,9 @@
     <ClCompile Include="PipelineAssigner.cpp">
       <Filter>DX11Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="UpdateObjects.cpp">
+      <Filter>DX11Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h">
@@ -62,12 +65,14 @@
     <ClInclude Include="CircularFIFO.h">
       <Filter>DX11Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\Graphics\UpdateJob.h" />
     <ClInclude Include="PipelineObjects.h">
       <Filter>DX11Renderer</Filter>
     </ClInclude>
     <ClInclude Include="UpdateObjects.h">
       <Filter>DX11Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Graphics\UpdateJob.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

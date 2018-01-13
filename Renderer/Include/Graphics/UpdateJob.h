@@ -49,20 +49,22 @@ namespace Graphics
 		}
 		virtual void* Map(AccessFlag flag = AccessFlag::READ) = 0;
 		virtual void Unmap() = 0;
+		template<class T>
+		const T& GetInfo()const
+		{
+			return *(T*)GetInfo_();
+		}
+
 		virtual GRAPHICS_ERROR WriteTo(void*data, size_t size) = 0;
 		virtual GRAPHICS_ERROR ReadFrom(void*data, size_t size) = 0;
 	protected:
-		
+		virtual const void* GetInfo_()const = 0;
 	};
 
 
 	enum class PipelineObjectType
 	{
-		VertexBuffer,
-		IndexBuffer,
-		ConstantBuffer,
-		StructuredBuffer,
-		RawBuffer,
+		Buffer,
 
 		RenderTarget,
 		UnorderedAccessView,
@@ -81,9 +83,9 @@ namespace Graphics
 		PipelineObjectType type;
 		std::function<GRAPHICS_ERROR(UpdateObject* obj)> updateCallback;
 
-		static UpdateJob ConstantBuffer(Utilz::GUID id, UpdateFrequency freq, const std::function<GRAPHICS_ERROR(UpdateObject* obj)>& cb)
+		static UpdateJob Buffer(Utilz::GUID id, UpdateFrequency freq, const std::function<GRAPHICS_ERROR(UpdateObject* obj)>& cb)
 		{
-			return { id, freq, PipelineObjectType::ConstantBuffer, cb };
+			return { id, freq, PipelineObjectType::Buffer, cb };
 		}
 	};
 }
