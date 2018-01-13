@@ -171,7 +171,8 @@ namespace Graphics
 		if (auto find = updateJobs.clientSide.Find(id, renderGroupToPerformUpdateBefore); find.has_value())
 			RETURN_GRAPHICS_ERROR_C("UpdateJob with this id already exists");
 
-		updateJobs.clientSide.GetIDs(renderGroupToPerformUpdateBefore).push_back(id);
+		if(job.frequency != UpdateFrequency::ONCE)
+			updateJobs.clientSide.GetIDs(renderGroupToPerformUpdateBefore).push_back(id);
 
 		updateJobs.jobsToAdd.push({ id, renderGroupToPerformUpdateBefore, job });
 		RETURN_GRAPHICS_SUCCESS;
@@ -274,16 +275,22 @@ namespace Graphics
 	void Renderer_DX11::Frame()
 	{
 		StartProfile;
+		static std::vector<JobStuff<UpdateJob>::ToRemove> updateJobsToRemove;
 		for (uint8_t i = 0; i <= uint8_t(RenderGroup::FINAL_PASS); i++)
 		{
 			auto& uj = updateJobs.renderSide.GetJobs(RenderGroup(i));
 			for (auto& job : uj)
 			{
 				job.updateCallback(pipeline->GetUpdateObject(job.objectToMap, job.type));
-				
+				if (job.frequency == UpdateFrequency::ONCE)
+					updateJobsToRemove.push_back({ job.objectToMap,RenderGroup(i) });
 			}
+
+		
 		}
 
+		for (auto toRemove : updateJobsToRemove)
+			updateJobs.renderSide.Remove(toRemove);
 	}
 	void Renderer_DX11::EndFrame()
 	{

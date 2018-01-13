@@ -168,7 +168,7 @@ namespace Graphics
 
 					uint32_t count = 0;
 					for (uint8_t i = 0; i <= uint8_t(RenderGroup::FINAL_PASS); i++)
-						for (auto& j : renderJobs.clientSide.renderGroupsWithID[i])
+						for (auto& j : renderGroupsWithID[i])
 							if (j == id)
 							{
 								count++;
