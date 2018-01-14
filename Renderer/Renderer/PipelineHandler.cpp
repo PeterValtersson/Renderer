@@ -464,6 +464,7 @@ namespace Graphics
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateTexture(Utilz::GUID id, void * data, size_t width, size_t height)
 	{
+		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
 			RETURN_GRAPHICS_ERROR("Texture with name already exists", 1);
 
@@ -504,6 +505,12 @@ namespace Graphics
 	}
 	GRAPHICS_ERROR PipelineHandler::DestroyTexture(Utilz::GUID id)
 	{
+		StartProfile;
+		if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
+		{
+			objects_ClientSide[PipelineObjects::ShaderResourceView].erase(id);
+			toRemove.push({ id, PipelineObjects::ShaderResourceView });
+		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateRasterizerState(Utilz::GUID id, const Pipeline::RasterizerState & state)
