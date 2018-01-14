@@ -515,10 +515,52 @@ namespace Graphics
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateRasterizerState(Utilz::GUID id, const Pipeline::RasterizerState & state)
 	{
+		StartProfile;
+		if (auto find = objects_ClientSide[PipelineObjects::RasterizerState].find(id); find != objects_ClientSide[PipelineObjects::RasterizerState].end())
+			RETURN_GRAPHICS_ERROR("Rasterizer state with name already exists", 1);
+
+		D3D11_RASTERIZER_DESC rd;
+		rd.AntialiasedLineEnable = false;
+		switch (state.cullMode)
+		{
+		case Pipeline::CullMode::CULL_BACK: rd.CullMode = D3D11_CULL_BACK; break;
+		case Pipeline::CullMode::CULL_FRONT: rd.CullMode = D3D11_CULL_FRONT; break;
+		case Pipeline::CullMode::CULL_NONE: rd.CullMode = D3D11_CULL_NONE; break;
+		}
+		switch (state.fillMode)
+		{
+		case Pipeline::FillMode::FILL_SOLID:		rd.FillMode = D3D11_FILL_SOLID; break;
+		case Pipeline::FillMode::FILL_WIREFRAME:  rd.FillMode = D3D11_FILL_WIREFRAME; break;
+		}
+		switch (state.windingOrder)
+		{
+		case Pipeline::WindingOrder::CLOCKWISE:		 rd.FrontCounterClockwise = false; break;
+		case Pipeline::WindingOrder::COUNTERCLOCKWISE: rd.FrontCounterClockwise = true; break;
+		}
+		rd.DepthBias = false;
+		rd.DepthClipEnable = true;
+		rd.DepthBiasClamp = 0;
+		rd.MultisampleEnable = false;
+		rd.ScissorEnable = false;
+		rd.SlopeScaledDepthBias = 0;
+
+		ID3D11RasterizerState* rs;
+		RETURN_IF_GRAPHICS_ERROR(device->CreateRasterizerState(&rd, &rs), "Could not create rasterizer state");
+
+		objects_ClientSide[PipelineObjects::RasterizerState].emplace(id);
+		toAdd.push({ id, PipelineObjects::RasterizerState_{rs} });
+
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::DestroyRasterizerState(Utilz::GUID id)
 	{
+		StartProfile;
+		if (auto find = objects_ClientSide[PipelineObjects::RasterizerState].find(id); find != objects_ClientSide[PipelineObjects::RasterizerState].end())
+		{
+			objects_ClientSide[PipelineObjects::RasterizerState].erase(id);
+			toRemove.push({ id, PipelineObjects::RasterizerState });
+		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateBlendState(Utilz::GUID id, const Pipeline::BlendState & state)
