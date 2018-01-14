@@ -29,7 +29,10 @@ namespace Graphics
 		if (!device)
 			RETURN_GRAPHICS_ERROR_C("Could not create pipeline");
 
-		PASS_IF_GRAPHICS_ERROR(pipeline->Init(device->GetDevice(), device->GetDeviceContext(), device->GetRTV(), device->GetDepthStencil(), device->GetViewport()));
+		PASS_IF_GRAPHICS_ERROR(pipeline->Init(device->GetDevice(), device->GetDeviceContext(), 
+			device->GetRTV(), device->GetSRV(),
+			device->GetDepthStencil(), device->GetDepthSRV(),
+			device->GetViewport()));
 
 		initiated = true;
 		RETURN_GRAPHICS_SUCCESS;
