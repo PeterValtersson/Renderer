@@ -52,7 +52,8 @@ namespace Graphics
 
 	GRAPHICS_ERROR PipelineHandler::Init(
 		ID3D11Device * device, ID3D11DeviceContext * context, 
-		ID3D11RenderTargetView * backbuffer, ID3D11DepthStencilView * dsv,
+		ID3D11RenderTargetView* backbuffer, ID3D11ShaderResourceView* bbsrv,
+		ID3D11DepthStencilView* dsv, ID3D11ShaderResourceView* dsvsrv,
 		const D3D11_VIEWPORT& vp)
 	{
 		StartProfile;
@@ -62,9 +63,14 @@ namespace Graphics
 
 		objects_RenderSide[PipelineObjects::RenderTarget].emplace(Default_RenderTarget, PipelineObjects::RenderTarget_{ backbuffer,{ 0.0f, 0.0f,1.0f,0.0f } });
 		objects_RenderSide[PipelineObjects::DepthStencilView].emplace(Default_DepthStencil, PipelineObjects::DepthStencilView_{ dsv });
+		objects_RenderSide[PipelineObjects::ShaderResourceView].emplace(Default_RenderTarget, PipelineObjects::ShaderResourceView_{ bbsrv });
+		objects_RenderSide[PipelineObjects::ShaderResourceView].emplace(Default_DepthStencil, PipelineObjects::ShaderResourceView_{ dsvsrv });
 		objects_RenderSide[PipelineObjects::Viewport].emplace(Default_Viewport, PipelineObjects::Viewport_{ vp});
+
 		objects_ClientSide[PipelineObjects::RenderTarget].emplace(Default_RenderTarget);
 		objects_ClientSide[PipelineObjects::DepthStencilView].emplace(Default_DepthStencil);
+		objects_ClientSide[PipelineObjects::ShaderResourceView].emplace(Default_RenderTarget);
+		objects_ClientSide[PipelineObjects::ShaderResourceView].emplace(Default_DepthStencil);
 		objects_ClientSide[PipelineObjects::Viewport].emplace(Default_Viewport);
 
 		EMPLACE_NULL(PipelineObjects::Buffer);
