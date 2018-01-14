@@ -676,10 +676,54 @@ namespace Graphics
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilState(Utilz::GUID id, const Pipeline::DepthStencilState & state)
 	{
+		StartProfile;
+		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilState].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilState].end())
+			RETURN_GRAPHICS_ERROR("DepthStencilState with name already exists", 1);
+
+		D3D11_DEPTH_STENCIL_DESC dsd;
+		dsd.DepthEnable = state.enableDepth;
+		switch (state.comparisonOperation)
+		{
+		case Pipeline::ComparisonOperation::EQUAL:			dsd.DepthFunc = D3D11_COMPARISON_EQUAL; break;
+		case Pipeline::ComparisonOperation::GREATER:			dsd.DepthFunc = D3D11_COMPARISON_GREATER; break;
+		case Pipeline::ComparisonOperation::GREATER_EQUAL:	dsd.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL; break;
+		case Pipeline::ComparisonOperation::LESS:				dsd.DepthFunc = D3D11_COMPARISON_LESS; break;
+		case Pipeline::ComparisonOperation::LESS_EQUAL:		dsd.DepthFunc = D3D11_COMPARISON_LESS_EQUAL; break;
+		case Pipeline::ComparisonOperation::NO_COMPARISON:	dsd.DepthFunc = D3D11_COMPARISON_NEVER; break;
+		}
+
+		dsd.DepthWriteMask = state.enableDepth ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+
+		dsd.StencilEnable = true;
+		dsd.StencilReadMask = 0xFF;
+		dsd.StencilWriteMask = 0xFF;
+
+		dsd.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+		dsd.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		dsd.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		dsd.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+
+		dsd.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+		dsd.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		dsd.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		dsd.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+
+		ID3D11DepthStencilState* dss;
+		RETURN_IF_GRAPHICS_ERROR(device->CreateDepthStencilState(&dsd, &dss), "Could not create DepthStencilState");
+
+		objects_ClientSide[PipelineObjects::DepthStencilState].emplace(id);
+		toAdd.push({ id, PipelineObjects::DepthStencilState_{ dss } });
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::DestroyDepthStencilState(Utilz::GUID id)
 	{
+		StartProfile;
+		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilState].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilState].end())
+		{
+			objects_ClientSide[PipelineObjects::DepthStencilState].erase(id);
+			toRemove.push({ id, PipelineObjects::DepthStencilState });
+		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateSamplerState(Utilz::GUID id, const Pipeline::SamplerState & state)
