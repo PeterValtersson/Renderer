@@ -565,10 +565,113 @@ namespace Graphics
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateBlendState(Utilz::GUID id, const Pipeline::BlendState & state)
 	{
+		StartProfile;
+		if (auto find = objects_ClientSide[PipelineObjects::BlendState].find(id); find != objects_ClientSide[PipelineObjects::BlendState].end())
+			RETURN_GRAPHICS_ERROR("BlendState with name already exists", 1);
+
+
+		D3D11_BLEND_DESC bd;
+		bd.IndependentBlendEnable = false;
+
+		D3D11_RENDER_TARGET_BLEND_DESC rtbd[8];
+		rtbd[0].BlendEnable = state.enable;
+		switch (state.blendOperation)
+		{
+		case Pipeline::BlendOperation::ADD: rtbd[0].BlendOp = D3D11_BLEND_OP_ADD; break;
+		case Pipeline::BlendOperation::MAX: rtbd[0].BlendOp = D3D11_BLEND_OP_MAX; break;
+		case Pipeline::BlendOperation::MIN: rtbd[0].BlendOp = D3D11_BLEND_OP_MIN; break;
+		case Pipeline::BlendOperation::SUB: rtbd[0].BlendOp = D3D11_BLEND_OP_SUBTRACT; break;
+		}
+
+		switch (state.blendOperationAlpha)
+		{
+		case Pipeline::BlendOperation::ADD: rtbd[0].BlendOpAlpha = D3D11_BLEND_OP_ADD; break;
+		case Pipeline::BlendOperation::MAX: rtbd[0].BlendOpAlpha = D3D11_BLEND_OP_MAX; break;
+		case Pipeline::BlendOperation::MIN: rtbd[0].BlendOpAlpha = D3D11_BLEND_OP_MIN; break;
+		case Pipeline::BlendOperation::SUB: rtbd[0].BlendOpAlpha = D3D11_BLEND_OP_SUBTRACT; break;
+		}
+
+		switch (state.dstBlend)
+		{
+		case Pipeline::Blend::BLEND_FACTOR:	rtbd[0].DestBlend = D3D11_BLEND_BLEND_FACTOR; break;
+		case Pipeline::Blend::DEST_ALPHA:		rtbd[0].DestBlend = D3D11_BLEND_DEST_ALPHA; break;
+		case Pipeline::Blend::DEST_COLOR:		rtbd[0].DestBlend = D3D11_BLEND_DEST_COLOR; break;
+		case Pipeline::Blend::INV_DEST_ALPHA:	rtbd[0].DestBlend = D3D11_BLEND_INV_DEST_ALPHA; break;
+		case Pipeline::Blend::INV_DEST_COLOR:	rtbd[0].DestBlend = D3D11_BLEND_INV_DEST_COLOR; break;
+		case Pipeline::Blend::INV_SRC_ALPHA:	rtbd[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA; break;
+		case Pipeline::Blend::INV_SRC_COLOR:	rtbd[0].DestBlend = D3D11_BLEND_INV_SRC_COLOR; break;
+		case Pipeline::Blend::ONE:			rtbd[0].DestBlend = D3D11_BLEND_ONE; break;
+		case Pipeline::Blend::SRC_ALPHA:		rtbd[0].DestBlend = D3D11_BLEND_SRC_ALPHA; break;
+		case Pipeline::Blend::SRC_COLOR:		rtbd[0].DestBlend = D3D11_BLEND_SRC_COLOR; break;
+		case Pipeline::Blend::ZERO:			rtbd[0].DestBlend = D3D11_BLEND_ZERO; break;
+		}
+
+		switch (state.srcBlend)
+		{
+		case Pipeline::Blend::BLEND_FACTOR:	rtbd[0].SrcBlend = D3D11_BLEND_BLEND_FACTOR; break;
+		case Pipeline::Blend::DEST_ALPHA:		rtbd[0].SrcBlend = D3D11_BLEND_DEST_ALPHA; break;
+		case Pipeline::Blend::DEST_COLOR:		rtbd[0].SrcBlend = D3D11_BLEND_DEST_COLOR; break;
+		case Pipeline::Blend::INV_DEST_ALPHA:	rtbd[0].SrcBlend = D3D11_BLEND_INV_DEST_ALPHA; break;
+		case Pipeline::Blend::INV_DEST_COLOR:	rtbd[0].SrcBlend = D3D11_BLEND_INV_DEST_COLOR; break;
+		case Pipeline::Blend::INV_SRC_ALPHA:	rtbd[0].SrcBlend = D3D11_BLEND_INV_SRC_ALPHA; break;
+		case Pipeline::Blend::INV_SRC_COLOR:	rtbd[0].SrcBlend = D3D11_BLEND_INV_SRC_COLOR; break;
+		case Pipeline::Blend::ONE:			rtbd[0].SrcBlend = D3D11_BLEND_ONE; break;
+		case Pipeline::Blend::SRC_ALPHA:		rtbd[0].SrcBlend = D3D11_BLEND_SRC_ALPHA; break;
+		case Pipeline::Blend::SRC_COLOR:		rtbd[0].SrcBlend = D3D11_BLEND_SRC_COLOR; break;
+		case Pipeline::Blend::ZERO:			rtbd[0].SrcBlend = D3D11_BLEND_ZERO; break;
+		}
+
+		switch (state.dstBlendAlpha)
+		{
+		case Pipeline::Blend::BLEND_FACTOR:	rtbd[0].DestBlendAlpha = D3D11_BLEND_BLEND_FACTOR; break;
+		case Pipeline::Blend::DEST_ALPHA:		rtbd[0].DestBlendAlpha = D3D11_BLEND_DEST_ALPHA; break;
+		case Pipeline::Blend::DEST_COLOR:		rtbd[0].DestBlendAlpha = D3D11_BLEND_DEST_COLOR; break;
+		case Pipeline::Blend::INV_DEST_ALPHA:	rtbd[0].DestBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA; break;
+		case Pipeline::Blend::INV_DEST_COLOR:	rtbd[0].DestBlendAlpha = D3D11_BLEND_INV_DEST_COLOR; break;
+		case Pipeline::Blend::INV_SRC_ALPHA:	rtbd[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA; break;
+		case Pipeline::Blend::INV_SRC_COLOR:	rtbd[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_COLOR; break;
+		case Pipeline::Blend::ONE:			rtbd[0].DestBlendAlpha = D3D11_BLEND_ONE; break;
+		case Pipeline::Blend::SRC_ALPHA:		rtbd[0].DestBlendAlpha = D3D11_BLEND_SRC_ALPHA; break;
+		case Pipeline::Blend::SRC_COLOR:		rtbd[0].DestBlendAlpha = D3D11_BLEND_SRC_COLOR; break;
+		case Pipeline::Blend::ZERO:			rtbd[0].DestBlendAlpha = D3D11_BLEND_ZERO; break;
+		}
+
+		switch (state.srcBlendAlpha)
+		{
+		case Pipeline::Blend::BLEND_FACTOR:	rtbd[0].SrcBlendAlpha = D3D11_BLEND_BLEND_FACTOR; break;
+		case Pipeline::Blend::DEST_ALPHA:		rtbd[0].SrcBlendAlpha = D3D11_BLEND_DEST_ALPHA; break;
+		case Pipeline::Blend::DEST_COLOR:		rtbd[0].SrcBlendAlpha = D3D11_BLEND_DEST_COLOR; break;
+		case Pipeline::Blend::INV_DEST_ALPHA:	rtbd[0].SrcBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA; break;
+		case Pipeline::Blend::INV_DEST_COLOR:	rtbd[0].SrcBlendAlpha = D3D11_BLEND_INV_DEST_COLOR; break;
+		case Pipeline::Blend::INV_SRC_ALPHA:	rtbd[0].SrcBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA; break;
+		case Pipeline::Blend::INV_SRC_COLOR:	rtbd[0].SrcBlendAlpha = D3D11_BLEND_INV_SRC_COLOR; break;
+		case Pipeline::Blend::ONE:			rtbd[0].SrcBlendAlpha = D3D11_BLEND_ONE; break;
+		case Pipeline::Blend::SRC_ALPHA:		rtbd[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA; break;
+		case Pipeline::Blend::SRC_COLOR:		rtbd[0].SrcBlendAlpha = D3D11_BLEND_SRC_COLOR; break;
+		case Pipeline::Blend::ZERO:			rtbd[0].SrcBlendAlpha = D3D11_BLEND_ZERO; break;
+		}
+		rtbd[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+		bd.AlphaToCoverageEnable = false;
+		bd.RenderTarget[0] = rtbd[0];
+
+		ID3D11BlendState* blendState;
+		RETURN_IF_GRAPHICS_ERROR(device->CreateBlendState(&bd, &blendState), "Could not create blendstate");
+
+
+		objects_ClientSide[PipelineObjects::BlendState].emplace(id);
+		toAdd.push({ id, PipelineObjects::BlendState_{ blendState } });
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::DestroyBlendState(Utilz::GUID id)
 	{
+		StartProfile;
+		if (auto find = objects_ClientSide[PipelineObjects::BlendState].find(id); find != objects_ClientSide[PipelineObjects::BlendState].end())
+		{
+			objects_ClientSide[PipelineObjects::BlendState].erase(id);
+			toRemove.push({ id, PipelineObjects::BlendState });
+		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilState(Utilz::GUID id, const Pipeline::DepthStencilState & state)
