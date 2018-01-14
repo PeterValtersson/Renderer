@@ -38,14 +38,12 @@ namespace Graphics
 		virtual GRAPHICS_ERROR CreateSamplerState(Utilz::GUID id, const Pipeline::SamplerState& state) = 0;
 		virtual GRAPHICS_ERROR DestroySamplerState(Utilz::GUID id) = 0;
 			
-		virtual GRAPHICS_ERROR CreateRenderTarget(Utilz::GUID id, const Pipeline::RenderTarget& target) = 0;
-		virtual GRAPHICS_ERROR DestroyRenderTarget(Utilz::GUID id) = 0;
+		virtual GRAPHICS_ERROR CreateTarget(Utilz::GUID id, const Pipeline::Target& target) = 0;
+		virtual GRAPHICS_ERROR DestroyTarget(Utilz::GUID id) = 0;
 				
 		virtual GRAPHICS_ERROR CreateDepthStencilView(Utilz::GUID id, const Pipeline::DepthStencilView& view) = 0;
 		virtual GRAPHICS_ERROR DestroyDepthStencilView(Utilz::GUID id) = 0;
-			
-		virtual GRAPHICS_ERROR CreateUnorderedAccessView(Utilz::GUID id, const Pipeline::UnorderedAccessView& view) = 0;
-		virtual GRAPHICS_ERROR DestroyUnorderedAccessView(Utilz::GUID id) = 0;
+	
 	protected:
 		virtual ~PipelineHandler_Interface() {};
 	};

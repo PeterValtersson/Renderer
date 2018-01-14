@@ -497,8 +497,6 @@ namespace Graphics
 		srvDesc.Texture2D.MipLevels = 1;
 		RETURN_IF_GRAPHICS_ERROR(device->CreateShaderResourceView(texture.Get(), &srvDesc, srv.Create()), "Could not create shader resource view");
 
-		texture.Done()->Release();
-		
 		objects_ClientSide[PipelineObjects::ShaderResourceView].emplace(id);
 		toAdd.push({ id, PipelineObjects::ShaderResourceView_{srv.Done()} });
 		RETURN_GRAPHICS_SUCCESS;
@@ -781,11 +779,91 @@ namespace Graphics
 		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateRenderTarget(Utilz::GUID id, const Pipeline::RenderTarget & target)
+	GRAPHICS_ERROR PipelineHandler::CreateTarget(Utilz::GUID id, const Pipeline::Target & target)
 	{
+		StartProfile;
+
+		D3D11_TEXTURE2D_DESC desc;
+		desc.Width = target.width;
+		desc.Height = target.height;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		switch (target.format)
+		{
+		case Pipeline::TextureFormat::R32G32B32A32_FLOAT: desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+		case Pipeline::TextureFormat::R8G8B8A8_UNORM:		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; break;
+		}
+
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = 0;
+		if (target.flags & Pipeline::TargetFlags::SHADER_RESOURCE) desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+		if (target.flags & Pipeline::TargetFlags::UNORDERED_ACCESS) desc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
+		if (target.flags & Pipeline::TargetFlags::RENDER_TARGET) desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
+		desc.CPUAccessFlags = target.flags & Pipeline::TargetFlags::CPU_ACCESS_READ ? D3D11_CPU_ACCESS_READ : 0;
+		desc.MiscFlags = 0;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+
+		SafeDXP<ID3D11Texture2D> texture;
+		RETURN_IF_GRAPHICS_ERROR(device->CreateTexture2D(&desc, nullptr, texture.Create()), "Could not create texture");
+
+
+		if (target.flags & Pipeline::TargetFlags::SHADER_RESOURCE)
+		{
+			if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
+				RETURN_GRAPHICS_ERROR("Texture with name already exists", 1);
+
+			ID3D11ShaderResourceView* srv;
+			D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+			srvDesc.Format = desc.Format;
+			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Texture2D.MostDetailedMip = 0;
+			srvDesc.Texture2D.MipLevels = 1;
+			RETURN_IF_GRAPHICS_ERROR(device->CreateShaderResourceView(texture.Get(), &srvDesc, &srv), "Could not create ShaderResourceView");
+
+			objects_ClientSide[PipelineObjects::ShaderResourceView].emplace(id);
+			toAdd.push({ id, PipelineObjects::ShaderResourceView_{ srv} });
+		}
+		if (target.flags & Pipeline::TargetFlags::UNORDERED_ACCESS)
+		{
+			if (auto find = objects_ClientSide[PipelineObjects::UnorderedAccessView].find(id); find != objects_ClientSide[PipelineObjects::UnorderedAccessView].end())
+				RETURN_GRAPHICS_ERROR("UnorderedAccessView with name already exists", 1);
+
+			D3D11_UNORDERED_ACCESS_VIEW_DESC description;
+			ZeroMemory(&description, sizeof(description));
+			description.Format = desc.Format;
+			description.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+			description.Texture2D.MipSlice = 0;
+
+			ID3D11UnorderedAccessView* unorderedAccessView;
+			RETURN_IF_GRAPHICS_ERROR(device->CreateUnorderedAccessView(texture.Get(), &description, &unorderedAccessView), "Could not create UnorderedAccessView");
+			
+			objects_ClientSide[PipelineObjects::UnorderedAccessView].emplace(id);
+			toAdd.push({ id, PipelineObjects::UnorderedAccessView_{ unorderedAccessView, { target.clearColor[0] , target.clearColor[1], target.clearColor[2], target.clearColor[3] } } });
+		}
+	
+
+		if (target.flags & Pipeline::TargetFlags::RENDER_TARGET)
+		{
+			if (auto find = objects_ClientSide[PipelineObjects::RenderTarget].find(id); find != objects_ClientSide[PipelineObjects::RenderTarget].end())
+				RETURN_GRAPHICS_ERROR("RenderTarget with name already exists", 1);
+
+			D3D11_RENDER_TARGET_VIEW_DESC rtvd;
+			rtvd.Format = desc.Format;
+			rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+			rtvd.Texture2D.MipSlice = 0;
+			ID3D11RenderTargetView* rtv;
+			RETURN_IF_GRAPHICS_ERROR(device->CreateRenderTargetView(texture.Get(), &rtvd, &rtv), "Could not create RenderTarget");
+
+			objects_ClientSide[PipelineObjects::RenderTarget].emplace(id);
+			toAdd.push({ id, PipelineObjects::RenderTarget_{ rtv,{ target.clearColor[0] , target.clearColor[1], target.clearColor[2], target.clearColor[3] } } });
+		}
+
+
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyRenderTarget(Utilz::GUID id)
+	GRAPHICS_ERROR PipelineHandler::DestroyTarget(Utilz::GUID id)
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
@@ -797,14 +875,7 @@ namespace Graphics
 	{
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateUnorderedAccessView(Utilz::GUID id, const Pipeline::UnorderedAccessView & view)
-	{
-		RETURN_GRAPHICS_SUCCESS;
-	}
-	GRAPHICS_ERROR PipelineHandler::DestroyUnorderedAccessView(Utilz::GUID id)
-	{
-		RETURN_GRAPHICS_SUCCESS;
-	}
+
 	GRAPHICS_ERROR PipelineHandler::UpdatePipelineObjects()
 	{
 		StartProfile;

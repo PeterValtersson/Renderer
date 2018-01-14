@@ -50,14 +50,11 @@ namespace Graphics
 		virtual GRAPHICS_ERROR CreateSamplerState(Utilz::GUID id, const Pipeline::SamplerState& state) override;
 		virtual GRAPHICS_ERROR DestroySamplerState(Utilz::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateRenderTarget(Utilz::GUID id, const Pipeline::RenderTarget& target) override;
-		virtual GRAPHICS_ERROR DestroyRenderTarget(Utilz::GUID id) override;
+		virtual GRAPHICS_ERROR CreateTarget(Utilz::GUID id, const Pipeline::Target& target) override;
+		virtual GRAPHICS_ERROR DestroyTarget(Utilz::GUID id) override;
 
 		virtual GRAPHICS_ERROR CreateDepthStencilView(Utilz::GUID id, const Pipeline::DepthStencilView& view) override;
 		virtual GRAPHICS_ERROR DestroyDepthStencilView(Utilz::GUID id) override;
-
-		virtual GRAPHICS_ERROR CreateUnorderedAccessView(Utilz::GUID id, const Pipeline::UnorderedAccessView& view) override;
-		virtual GRAPHICS_ERROR DestroyUnorderedAccessView(Utilz::GUID id) override;
 
 		GRAPHICS_ERROR UpdatePipelineObjects();
 

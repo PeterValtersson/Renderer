@@ -138,24 +138,36 @@ namespace Graphics
 			R8G8B8A8_UNORM
 		};
 
-		struct RenderTarget
+		enum class TargetFlags
 		{
-			bool bindAsShaderResource = false;
-			bool bindAsUnorderedAccess = false;
+			NONE = 0,
+			SHADER_RESOURCE = 1 << 0,
+			RENDER_TARGET = 1 << 1,
+			UNORDERED_ACCESS = 1 << 2,
+			CPU_ACCESS_READ = 1 << 3
+		};
+		ENUM_FLAGS(Graphics::Pipeline::TargetFlags);
+		struct Target
+		{
+			TargetFlags flags;
 			uint32_t width = -1;
 			uint32_t height = -1;
 			float clearColor[4] = { 0.0f,0.0f,0.0f,1.0f };
 			TextureFormat format = TextureFormat::R32G32B32A32_FLOAT;
+			static Target RenderTarget(uint32_t width, uint32_t height, bool shaderResource = false, bool cpuread = false)
+			{
+				return { TargetFlags::RENDER_TARGET | (shaderResource ? TargetFlags::SHADER_RESOURCE : TargetFlags::NONE)
+					| (cpuread ? TargetFlags::CPU_ACCESS_READ : TargetFlags::NONE)
+					, width, height };
+			}
+			static Target UnorderedAccessView(uint32_t width, uint32_t height, bool shaderResource = false, bool cpuread = false)
+			{
+				return { TargetFlags::UNORDERED_ACCESS | (shaderResource ? TargetFlags::SHADER_RESOURCE : TargetFlags::NONE)
+					| (cpuread ? TargetFlags::CPU_ACCESS_READ : TargetFlags::NONE)
+					, width, height, {0.0f,0.0f,0.0f,0.0f}, TextureFormat::R8G8B8A8_UNORM };
+			}
+		};
 
-		};
-		struct UnorderedAccessView
-		{
-			bool bindAsShaderResource = false;
-			uint32_t width = -1;
-			uint32_t height = -1;
-			float clearColor[4] = { 0.0f,0.0f,0.0f,0.0f };
-			TextureFormat format = TextureFormat::R8G8B8A8_UNORM;
-		};
 		enum class PrimitiveTopology : uint8_t
 		{
 			POINT_LIST,
