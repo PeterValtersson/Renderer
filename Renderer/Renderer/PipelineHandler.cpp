@@ -2,6 +2,11 @@
 #include <Profiler.h>
 #include "UpdateObjects.h"
 #include <d3dcompiler.h>
+
+#pragma comment(lib, "D3Dcompiler.lib")
+#pragma comment(lib, "dxguid.lib")
+
+
 #define EMPLACE_NULL(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ nullptr })
 #define EMPLACE_DEF(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ })
 namespace Graphics
@@ -181,7 +186,7 @@ namespace Graphics
 		}
 		T** Get()
 		{
-			return obj;
+			return &obj;
 		}
 		T* Done()
 		{
@@ -328,7 +333,7 @@ namespace Graphics
 				inputElementDescs.push_back(inputElementDesc);
 			}
 			if (inputElementDescs.size() > 0)
-				RETURN_IF_GRAPHICS_ERROR(device->CreateInputLayout(inputElementDescs.data(), inputElementDescs.size(), data, size, inputLayout.Get()), "Could not create input layout");
+				RETURN_IF_GRAPHICS_ERROR(device->CreateInputLayout(inputElementDescs.data(), UINT(inputElementDescs.size()), data, size, inputLayout.Get()), "Could not create input layout");
 
 			toAdd.push({ id, PipelineObjects::VertexShader_{vs.Done(), inputLayout.Done(), cbuffers} });
 			objects_ClientSide[PipelineObjects::VertexShader].emplace(id);
@@ -350,7 +355,7 @@ namespace Graphics
 		else if (type == Pipeline::ShaderType::GEOMETRY_STREAM_OUT)
 		{
 			std::vector<D3D11_SO_DECLARATION_ENTRY> SOEntries;
-			for (int i = 0; i < shaderDesc.InputParameters; ++i)
+			for (UINT i = 0; i < shaderDesc.InputParameters; ++i)
 			{
 				D3D11_SIGNATURE_PARAMETER_DESC signatureParameterDesc;
 				reflection->GetInputParameterDesc(i, &signatureParameterDesc);
@@ -377,7 +382,7 @@ namespace Graphics
 				bufferStrides += e.ComponentCount * 4;
 
 			SafeDXP<ID3D11GeometryShader> s;
-			RETURN_IF_GRAPHICS_ERROR(device->CreateGeometryShaderWithStreamOutput(data, size, SOEntries.data(), SOEntries.size(), &bufferStrides, 1, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, s.Get()), "Could not create geometry shader");
+			RETURN_IF_GRAPHICS_ERROR(device->CreateGeometryShaderWithStreamOutput(data, size, SOEntries.data(),UINT( SOEntries.size()), &bufferStrides, 1, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, s.Get()), "Could not create geometry shader");
 			toAdd.push({ id, PipelineObjects::GeometryShader_{ s.Done(), cbuffers } });
 			objects_ClientSide[PipelineObjects::GeometryShader].emplace(id);
 		}
