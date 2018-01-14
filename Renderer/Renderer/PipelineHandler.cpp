@@ -9,6 +9,36 @@
 
 #define EMPLACE_NULL(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ nullptr })
 #define EMPLACE_DEF(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ })
+
+
+static const char* fullscreenQuadVS =
+"void VS_main( uint VertexID : SV_VertexID, out float4 oPosH : SV_POSITION, out float2 oTexC : TEXCOORD ) \
+{ \
+	oPosH.x = (VertexID == 2) ? 3.0f : -1.0f; \
+	oPosH.y = (VertexID == 0) ? -3.0f : 1.0f; \
+	oPosH.zw = 1.0f; \
+ \
+	oTexC = oPosH.xy * float2(0.5f, -0.5f) + 0.5f; \
+}";
+
+static const char* MultiPS =
+"Texture2D gTexture : register(t0); \
+SamplerState gTriLinearSam : register(s0); \
+float4 PS_main(float4 posH : SV_POSITION, float2 texC : TEXCOORD) : SV_TARGET \
+{ \
+	return gTexture.Sample(gTriLinearSam, texC).rgba; \
+}";
+
+static const char* SinglePS =
+"Texture2D gTexture : register(t0); \
+SamplerState gTriLinearSam : register(s0); \
+float4 PS_main(float4 posH : SV_POSITION, float2 texC : TEXCOORD) : SV_TARGET \
+{ \
+	return gTexture.Sample(gTriLinearSam, texC).rrrr; \
+}";
+
+
+
 namespace Graphics
 {
 	PipelineHandler::PipelineHandler()
@@ -55,6 +85,19 @@ namespace Graphics
 		EMPLACE_NULL(PipelineObjects::DepthStencilState);
 
 		EMPLACE_DEF(PipelineObjects::Viewport);
+
+		static const Utilz::GUID Default_RenderTarget("Backbuffer");
+		static const Utilz::GUID Default_Viewport("FullscreenViewPort");
+		static const Utilz::GUID Default_DepthStencil("BackbufferDepthStencil");
+		static const Utilz::GUID Default_VertexShader_FullscreenQUAD("FullscreenQUADVS");
+		static const Utilz::GUID Default_PixelShader_POS_TEXTURE_MULTICHANNGEL("MultichannelPixelShader");
+		static const Utilz::GUID Default_PixelShader_POS_TEXTURE_SingleCHANNGEL("SinglechannelPixelShader");
+		
+		PASS_IF_GRAPHICS_ERROR(CreateShader(Default_VertexShader_FullscreenQUAD, Pipeline::ShaderType::VERTEX, fullscreenQuadVS, strlen(fullscreenQuadVS), "VS_main", "vs_5_0"));
+		PASS_IF_GRAPHICS_ERROR(CreateShader(Default_PixelShader_POS_TEXTURE_MULTICHANNGEL, Pipeline::ShaderType::PIXEL, MultiPS, strlen(MultiPS), "PS_main", "ps_5_0"));
+		PASS_IF_GRAPHICS_ERROR(CreateShader(Default_PixelShader_POS_TEXTURE_SingleCHANNGEL, Pipeline::ShaderType::PIXEL, SinglePS, strlen(SinglePS), "PS_main", "ps_5_0"));
+
+
 
 		RETURN_GRAPHICS_SUCCESS;
 	}
