@@ -86,13 +86,6 @@ namespace Graphics
 
 		EMPLACE_DEF(PipelineObjects::Viewport);
 
-		static const Utilz::GUID Default_RenderTarget("Backbuffer");
-		static const Utilz::GUID Default_Viewport("FullscreenViewPort");
-		static const Utilz::GUID Default_DepthStencil("BackbufferDepthStencil");
-		static const Utilz::GUID Default_VertexShader_FullscreenQUAD("FullscreenQUADVS");
-		static const Utilz::GUID Default_PixelShader_POS_TEXTURE_MULTICHANNGEL("MultichannelPixelShader");
-		static const Utilz::GUID Default_PixelShader_POS_TEXTURE_SingleCHANNGEL("SinglechannelPixelShader");
-		
 		PASS_IF_GRAPHICS_ERROR(CreateShader(Default_VertexShader_FullscreenQUAD, Pipeline::ShaderType::VERTEX, fullscreenQuadVS, strlen(fullscreenQuadVS), "VS_main", "vs_5_0"));
 		PASS_IF_GRAPHICS_ERROR(CreateShader(Default_PixelShader_POS_TEXTURE_MULTICHANNGEL, Pipeline::ShaderType::PIXEL, MultiPS, strlen(MultiPS), "PS_main", "ps_5_0"));
 		PASS_IF_GRAPHICS_ERROR(CreateShader(Default_PixelShader_POS_TEXTURE_SingleCHANNGEL, Pipeline::ShaderType::PIXEL, SinglePS, strlen(SinglePS), "PS_main", "ps_5_0"));
@@ -104,6 +97,7 @@ namespace Graphics
 #define RELEASE_PLO(type) if(o.second.index() == type) std::get<type##_>(o.second).Release()
 	void PipelineHandler::Shutdown()
 	{
+		StartProfile;
 		objects_RenderSide[PipelineObjects::RenderTarget].erase(Default_RenderTarget);
 		objects_RenderSide[PipelineObjects::DepthStencilView].erase(Default_DepthStencil);
 
@@ -190,7 +184,7 @@ namespace Graphics
 
 	GRAPHICS_ERROR PipelineHandler::DestroyBuffer(Utilz::GUID id)
 	{
-		sizeof(PipelineObject);
+		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::Buffer].find(id); find != objects_ClientSide[PipelineObjects::Buffer].end())
 		{
 			objects_ClientSide[PipelineObjects::Buffer].erase(id);
@@ -202,6 +196,7 @@ namespace Graphics
 	
 	GRAPHICS_ERROR PipelineHandler::CreateViewport(Utilz::GUID id, const Pipeline::Viewport & viewport)
 	{
+		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::Viewport].find(id); find != objects_ClientSide[PipelineObjects::Viewport].end())
 			RETURN_GRAPHICS_ERROR_C("Viewport with name already exists");
 
@@ -214,6 +209,7 @@ namespace Graphics
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilz::GUID id, Pipeline::ShaderType type, const char * sourceCode, size_t size, const char * entryPoint, const char * shaderModel)
 	{
+		StartProfile;
 		ID3DBlob* blob;
 		ID3DBlob* error;
 		RETURN_IF_GRAPHICS_ERROR_S(D3DCompile(sourceCode, size, NULL, NULL, NULL, entryPoint, shaderModel, 0, 0, &blob, &error), (char*) error);
@@ -227,9 +223,13 @@ namespace Graphics
 		{
 			return obj;
 		}
-		T** Get()
+		T** Create()
 		{
 			return &obj;
+		}
+		T* Get()
+		{
+			return obj;
 		}
 		T* Done()
 		{
@@ -247,6 +247,7 @@ namespace Graphics
 	};
 	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilz::GUID id, Pipeline::ShaderType type, void * data, size_t size)
 	{
+		StartProfile;
 		if (type == Pipeline::ShaderType::VERTEX)
 		{
 			if (auto find = objects_ClientSide[PipelineObjects::VertexShader].find(id); find != objects_ClientSide[PipelineObjects::VertexShader].end())
@@ -310,7 +311,7 @@ namespace Graphics
 			SafeDXP<ID3D11VertexShader> vs;
 			
 
-			RETURN_IF_GRAPHICS_ERROR(device->CreateVertexShader(data, size, nullptr, vs.Get()), "Could not create vertex shader");
+			RETURN_IF_GRAPHICS_ERROR(device->CreateVertexShader(data, size, nullptr, vs.Create()), "Could not create vertex shader");
 
 
 			std::vector<D3D11_INPUT_ELEMENT_DESC> inputElementDescs;
@@ -376,7 +377,7 @@ namespace Graphics
 				inputElementDescs.push_back(inputElementDesc);
 			}
 			if (inputElementDescs.size() > 0)
-				RETURN_IF_GRAPHICS_ERROR(device->CreateInputLayout(inputElementDescs.data(), UINT(inputElementDescs.size()), data, size, inputLayout.Get()), "Could not create input layout");
+				RETURN_IF_GRAPHICS_ERROR(device->CreateInputLayout(inputElementDescs.data(), UINT(inputElementDescs.size()), data, size, inputLayout.Create()), "Could not create input layout");
 
 			toAdd.push({ id, PipelineObjects::VertexShader_{vs.Done(), inputLayout.Done(), cbuffers} });
 			objects_ClientSide[PipelineObjects::VertexShader].emplace(id);
@@ -384,14 +385,14 @@ namespace Graphics
 		else if (type == Pipeline::ShaderType::PIXEL)
 		{
 			SafeDXP<ID3D11PixelShader> s;
-			RETURN_IF_GRAPHICS_ERROR(device->CreatePixelShader(data, size, nullptr, s.Get()), "Could not create pixel shader");
+			RETURN_IF_GRAPHICS_ERROR(device->CreatePixelShader(data, size, nullptr, s.Create()), "Could not create pixel shader");
 			toAdd.push({ id, PipelineObjects::PixelShader_{ s.Done(), cbuffers } });
 			objects_ClientSide[PipelineObjects::PixelShader].emplace(id);
 		}
 		else if (type == Pipeline::ShaderType::GEOMETRY)
 		{
 			SafeDXP<ID3D11GeometryShader> s;
-			RETURN_IF_GRAPHICS_ERROR(device->CreateGeometryShader(data, size, nullptr, s.Get()), "Could not create geometry shader");
+			RETURN_IF_GRAPHICS_ERROR(device->CreateGeometryShader(data, size, nullptr, s.Create()), "Could not create geometry shader");
 			toAdd.push({ id, PipelineObjects::GeometryShader_{ s.Done(), cbuffers } });
 			objects_ClientSide[PipelineObjects::GeometryShader].emplace(id);
 		}
@@ -425,14 +426,14 @@ namespace Graphics
 				bufferStrides += e.ComponentCount * 4;
 
 			SafeDXP<ID3D11GeometryShader> s;
-			RETURN_IF_GRAPHICS_ERROR(device->CreateGeometryShaderWithStreamOutput(data, size, SOEntries.data(),UINT( SOEntries.size()), &bufferStrides, 1, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, s.Get()), "Could not create geometry shader");
+			RETURN_IF_GRAPHICS_ERROR(device->CreateGeometryShaderWithStreamOutput(data, size, SOEntries.data(),UINT( SOEntries.size()), &bufferStrides, 1, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, s.Create()), "Could not create geometry shader");
 			toAdd.push({ id, PipelineObjects::GeometryShader_{ s.Done(), cbuffers } });
 			objects_ClientSide[PipelineObjects::GeometryShader].emplace(id);
 		}
 		else if (type == Pipeline::ShaderType::COMPUTE)
 		{
 			SafeDXP<ID3D11ComputeShader> s;
-			RETURN_IF_GRAPHICS_ERROR(device->CreateComputeShader(data, size, nullptr, s.Get()), "Could not create compute shader");
+			RETURN_IF_GRAPHICS_ERROR(device->CreateComputeShader(data, size, nullptr, s.Create()), "Could not create compute shader");
 			toAdd.push({ id, PipelineObjects::ComputeShader_{ s.Done(), cbuffers } });
 			objects_ClientSide[PipelineObjects::ComputeShader].emplace(id);
 		}
@@ -442,6 +443,7 @@ namespace Graphics
 	}
 	GRAPHICS_ERROR PipelineHandler::DestroyShader(Utilz::GUID id, Pipeline::ShaderType type)
 	{
+		StartProfile;
 		uint32_t t = -1;
 		if (type == Pipeline::ShaderType::VERTEX)
 			t = PipelineObjects::VertexShader;
@@ -462,6 +464,42 @@ namespace Graphics
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateTexture(Utilz::GUID id, void * data, size_t width, size_t height)
 	{
+		if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
+			RETURN_GRAPHICS_ERROR("Texture with name already exists", 1);
+
+		D3D11_TEXTURE2D_DESC desc;
+		desc.Width = width;
+		desc.Height = height;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		desc.CPUAccessFlags = 0;
+		desc.MiscFlags = 0;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+
+		SafeDXP<ID3D11Texture2D> texture;
+		D3D11_SUBRESOURCE_DATA d;
+		d.pSysMem = data;
+		d.SysMemPitch = width * 4;
+		d.SysMemSlicePitch = 0;
+		RETURN_IF_GRAPHICS_ERROR(device->CreateTexture2D(&desc, &d, texture.Create()), "Could not create texture");
+
+
+		SafeDXP<ID3D11ShaderResourceView> srv;
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		srvDesc.Format = desc.Format;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = 1;
+		RETURN_IF_GRAPHICS_ERROR(device->CreateShaderResourceView(texture.Get(), &srvDesc, srv.Create()), "Could not create shader resource view");
+
+		texture.Done()->Release();
+		
+		objects_ClientSide[PipelineObjects::ShaderResourceView].emplace(id);
+		toAdd.push({ id, PipelineObjects::ShaderResourceView_{srv.Done()} });
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::DestroyTexture(Utilz::GUID id)
