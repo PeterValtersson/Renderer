@@ -47,18 +47,30 @@ namespace Graphics
 			void* data = nullptr;
 			return *(T*)Map(flag);
 		}
-		virtual void* Map(AccessFlag flag = AccessFlag::READ) = 0;
-		virtual void Unmap() = 0;
+		virtual void* Map(AccessFlag flag = AccessFlag::READ)
+		{
+			THROW_GRAPHICS_ERROR("Map not implemented");
+		}
+		virtual void Unmap() {}
 		template<class T>
 		const T& GetInfo()const
 		{
 			return *(T*)GetInfo_();
 		}
 
-		virtual GRAPHICS_ERROR WriteTo(void*data, size_t size) = 0;
-		virtual GRAPHICS_ERROR ReadFrom(void*data, size_t size) = 0;
+		virtual GRAPHICS_ERROR WriteTo(void*data, size_t size)
+		{
+			RETURN_GRAPHICS_ERROR_C("WriteTo not implemented");
+		}
+		virtual GRAPHICS_ERROR ReadFrom(void*data, size_t size)
+		{
+			RETURN_GRAPHICS_ERROR_C("ReadFrom not implemented");
+		}
 	protected:
-		virtual const void* GetInfo_()const = 0;
+		virtual const void* GetInfo_()const
+		{
+			THROW_GRAPHICS_ERROR("GetInfo_ not implemented");
+		}
 	};
 
 

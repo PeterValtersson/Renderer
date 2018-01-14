@@ -13,6 +13,8 @@
 #define THROW_PASS_IF_GRAPHICS_ERROR(x) if(x.errornr < 0) throw x
 #define RETURN_GRAPHICS_SUCCESS return (Graphics::_lastError = Graphics::Graphics_Error{nullptr, 0, nullptr, 0})
 #define GRAPHICS_ERROR const Graphics::Graphics_Error&
+#define THROW_GRAPHICS_ERROR(msg) throw (Graphics::_lastError = Graphics::Graphics_Error{msg, -(__COUNTER__+1), __FILE__, __LINE__})
+
 namespace Graphics
 {
 	struct Graphics_Error
