@@ -106,6 +106,9 @@ namespace Graphics
 		StartProfile;
 		objects_RenderSide[PipelineObjects::RenderTarget].erase(Default_RenderTarget);
 		objects_RenderSide[PipelineObjects::DepthStencilView].erase(Default_DepthStencil);
+		objects_RenderSide[PipelineObjects::ShaderResourceView].erase(Default_RenderTarget);
+		objects_RenderSide[PipelineObjects::ShaderResourceView].erase(Default_DepthStencil);
+
 
 		for (auto& ot : objects_RenderSide)
 			for (auto& o : ot)
