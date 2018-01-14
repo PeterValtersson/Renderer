@@ -728,10 +728,57 @@ namespace Graphics
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateSamplerState(Utilz::GUID id, const Pipeline::SamplerState & state)
 	{
+		StartProfile;
+		if (auto find = objects_ClientSide[PipelineObjects::SamplerState].find(id); find != objects_ClientSide[PipelineObjects::SamplerState].end())
+			RETURN_GRAPHICS_ERROR("SamplerState with name already exists", 1);
+
+		D3D11_SAMPLER_DESC sd;
+		ZeroMemory(&sd, sizeof(D3D11_SAMPLER_DESC));
+
+		switch (state.addressU)
+		{
+		case Pipeline::AddressingMode::WRAP:		sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP; break;
+		case Pipeline::AddressingMode::CLAMP:		sd.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP; break;
+		case Pipeline::AddressingMode::MIRROR:	sd.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR; break;
+		}
+		switch (state.addressV)
+		{
+		case Pipeline::AddressingMode::WRAP:		sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP; break;
+		case Pipeline::AddressingMode::CLAMP:		sd.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP; break;
+		case Pipeline::AddressingMode::MIRROR:	sd.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR; break;
+		}
+		switch (state.addressW)
+		{
+		case Pipeline::AddressingMode::WRAP:		sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP; break;
+		case Pipeline::AddressingMode::CLAMP:		sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP; break;
+		case Pipeline::AddressingMode::MIRROR:	sd.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR; break;
+		}
+		switch (state.filter)
+		{
+		case Pipeline::Filter::ANISOTROPIC:	sd.Filter = D3D11_FILTER_ANISOTROPIC; break;
+		case Pipeline::Filter::LINEAR:		sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; break;
+		case Pipeline::Filter::POINT:			sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT; break;
+		}
+		sd.BorderColor[0] = 0.0f; sd.BorderColor[1] = 0.0f; sd.BorderColor[2] = 0.0f; sd.BorderColor[3] = 0.0f;
+		sd.MinLOD = 0;
+		sd.MaxLOD = D3D11_FLOAT32_MAX;
+		sd.MaxAnisotropy = state.maxAnisotropy;
+		ID3D11SamplerState* samplerState;
+		RETURN_IF_GRAPHICS_ERROR(device->CreateSamplerState(&sd, &samplerState), "Could not create SamplerState");
+
+		objects_ClientSide[PipelineObjects::SamplerState].emplace(id);
+		toAdd.push({ id, PipelineObjects::SamplerState_{ samplerState } });
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::DestroySamplerState(Utilz::GUID id)
 	{
+		StartProfile;
+		if (auto find = objects_ClientSide[PipelineObjects::SamplerState].find(id); find != objects_ClientSide[PipelineObjects::SamplerState].end())
+		{
+			objects_ClientSide[PipelineObjects::SamplerState].erase(id);
+			toRemove.push({ id, PipelineObjects::SamplerState });
+		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateRenderTarget(Utilz::GUID id, const Pipeline::RenderTarget & target)
