@@ -104,12 +104,18 @@ namespace Graphics
 			bool writeDepth = true;
 			ComparisonOperation comparisonOperation = ComparisonOperation::LESS;
 		};
+		enum class DepthStencilViewFlags
+		{
+			NONE = 0,
+			SHADER_RESOURCE = 1 << 0,
+			CUBE = 1 << 1
+		};
+		ENUM_FLAGS(Graphics::Pipeline::DepthStencilViewFlags);
 		struct DepthStencilView
 		{
 			uint32_t width = -1;
 			uint32_t height = -1;
-			bool bindAsTexture = false;
-			bool cube = false;
+			DepthStencilViewFlags flags = DepthStencilViewFlags::NONE;
 		};
 		enum class AddressingMode
 		{

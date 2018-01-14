@@ -874,49 +874,36 @@ namespace Graphics
 	}
 	GRAPHICS_ERROR PipelineHandler::DestroyTarget(Utilz::GUID id)
 	{
+		if (auto find = objects_ClientSide[PipelineObjects::RenderTarget].find(id); find != objects_ClientSide[PipelineObjects::RenderTarget].end())
+		{
+			objects_ClientSide[PipelineObjects::RenderTarget].erase(id);
+			toRemove.push({ id, PipelineObjects::RenderTarget });
+		}
+		if (auto find = objects_ClientSide[PipelineObjects::UnorderedAccessView].find(id); find != objects_ClientSide[PipelineObjects::UnorderedAccessView].end())
+		{
+			objects_ClientSide[PipelineObjects::UnorderedAccessView].erase(id);
+			toRemove.push({ id, PipelineObjects::UnorderedAccessView });
+		}
+		if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
+		{
+			objects_ClientSide[PipelineObjects::ShaderResourceView].erase(id);
+			toRemove.push({ id, PipelineObjects::ShaderResourceView });
+		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilView(Utilz::GUID id, const Pipeline::DepthStencilView & view)
 	{
-		/*if (auto find = objects_ClientSide[PipelineObjects::DepthStencilView].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilView].end())
+		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilView].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilView].end())
 			RETURN_GRAPHICS_ERROR("DepthStencilView with name already exists", 1);
 
-		const auto find = depthStencilViews.find(id);
-		if (find != depthStencilViews.end())
-		{
-			if (bindAsTexture)
-			{
-				auto const findSRV = shaderResourceViews.find(id);
-				if (findSRV == shaderResourceViews.end())
-				{
-					ID3D11Texture2D* texture;
-
-					find->second->GetResource((ID3D11Resource**)&texture);
-
-					D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-					srvd.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-					srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-					srvd.Texture2D.MostDetailedMip = 0;
-					srvd.Texture2D.MipLevels = 1;
-					ID3D11ShaderResourceView* srv;
-					auto hr = device->CreateShaderResourceView(texture, &srvd, &srv);
-					if (FAILED(hr))
-						return DEVICE_FAIL;
-					shaderResourceViews[id] = srv;
-					texture->Release();
-				}
-			}
-			return EXISTS;
-		}
-
 		D3D11_TEXTURE2D_DESC desc;
-		desc.Width = width;
-		desc.Height = height;
+		desc.Width = UINT(view.width);
+		desc.Height =  UINT(view.height);
 		desc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 		desc.MipLevels = 1;
 		desc.ArraySize = 1;
 		desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		if (bindAsTexture) desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+		if (view.flags & Pipeline::DepthStencilViewFlags::SHADER_RESOURCE) desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.CPUAccessFlags = 0;
 		desc.MiscFlags = 0;
@@ -929,36 +916,46 @@ namespace Graphics
 		dsvd.Texture2D.MipSlice = 0;
 		dsvd.Flags = 0;
 
-		ID3D11Texture2D* texture;
+		 SafeDXP<ID3D11Texture2D> texture;
 
-		HRESULT hr = device->CreateTexture2D(&desc, nullptr, &texture);
-		if (FAILED(hr))
-			return DEVICE_FAIL;
+		RETURN_IF_GRAPHICS_ERROR(device->CreateTexture2D(&desc, nullptr, texture.Create()), "Could not create texture");
 
-		ID3D11DepthStencilView* dsv;
-		hr = device->CreateDepthStencilView(texture, &dsvd, &dsv);
-		if (FAILED(hr))
-			return DEVICE_FAIL;
-		depthStencilViews[id] = dsv;
-
-		if (bindAsTexture)
+		if (view.flags & Pipeline::DepthStencilViewFlags::SHADER_RESOURCE)
 		{
+			if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
+				RETURN_GRAPHICS_ERROR("Texture with name already exists", 1);
+
 			D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
 			srvd.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 			srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 			srvd.Texture2D.MostDetailedMip = 0;
 			srvd.Texture2D.MipLevels = 1;
 			ID3D11ShaderResourceView* srv;
-			hr = device->CreateShaderResourceView(texture, &srvd, &srv);
-			if (FAILED(hr))
-				return DEVICE_FAIL;
-			shaderResourceViews[id] = srv;
+			RETURN_IF_GRAPHICS_ERROR(device->CreateShaderResourceView(texture.Get(), &srvd, &srv), "Could not create ShaderResourceView");
+			objects_ClientSide[PipelineObjects::ShaderResourceView].emplace(id);
+			toAdd.push({ id, PipelineObjects::ShaderResourceView_{ srv } });
 		}
-*/
+
+		ID3D11DepthStencilView* dsv;
+		RETURN_IF_GRAPHICS_ERROR(device->CreateDepthStencilView(texture.Get(), &dsvd, &dsv), "Could not create depthstencilview");
+
+		objects_ClientSide[PipelineObjects::DepthStencilView].emplace(id);
+		toAdd.push({ id, PipelineObjects::DepthStencilView_{ dsv } });
+
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	GRAPHICS_ERROR PipelineHandler::DestroyDepthStencilView(Utilz::GUID id)
 	{
+		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilView].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilView].end())
+		{
+			objects_ClientSide[PipelineObjects::DepthStencilView].erase(id);
+			toRemove.push({ id, PipelineObjects::DepthStencilView });
+		}
+		if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
+		{
+			objects_ClientSide[PipelineObjects::ShaderResourceView].erase(id);
+			toRemove.push({ id, PipelineObjects::ShaderResourceView });
+		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
 
