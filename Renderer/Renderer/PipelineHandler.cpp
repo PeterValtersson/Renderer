@@ -275,7 +275,7 @@ namespace Graphics
 		//Create the input layout with the help of shader reflection
 		SafeDXP<ID3D11ShaderReflection> reflection;
 
-		RETURN_IF_GRAPHICS_ERROR(D3DReflect(data, size, IID_ID3D11ShaderReflection, (void**)reflection.Get()), "Could not reflect shader");
+		RETURN_IF_GRAPHICS_ERROR(D3DReflect(data, size, IID_ID3D11ShaderReflection, (void**)reflection.Create()), "Could not reflect shader");
 		D3D11_SHADER_DESC shaderDesc;
 		reflection->GetDesc(&shaderDesc);
 		std::vector<ShaderResourceToAndBindSlot> cbuffers;
