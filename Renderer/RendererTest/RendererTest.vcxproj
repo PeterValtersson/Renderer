@@ -33,22 +33,22 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\include\gtest/;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../CompileTimeGUID/include/</IncludePath>
+    <IncludePath>$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\include\gtest/;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include/</IncludePath>
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\include\gtest/;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../CompileTimeGUID/include/</IncludePath>
+    <IncludePath>$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\include\gtest/;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include/</IncludePath>
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\include\gtest/;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../CompileTimeGUID/include/</IncludePath>
+    <IncludePath>$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\include\gtest/;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include/</IncludePath>
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\include\gtest/;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../CompileTimeGUID/include/</IncludePath>
+    <IncludePath>$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0\build\native\include\gtest/;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include/</IncludePath>
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
   </PropertyGroup>
