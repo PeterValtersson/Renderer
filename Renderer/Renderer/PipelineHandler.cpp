@@ -7,8 +7,8 @@
 #pragma comment(lib, "dxguid.lib")
 
 
-#define EMPLACE_NULL(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ nullptr })
-#define EMPLACE_DEF(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilz::GUID(), PipelineObjects::##name##_{ })
+#define EMPLACE_NULL(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilities::GUID(), PipelineObjects::##name##_{ nullptr })
+#define EMPLACE_DEF(name) objects_RenderSide[PipelineObjects::##name].emplace(Utilities::GUID(), PipelineObjects::##name##_{ })
 
 
 static const char* fullscreenQuadVS =
@@ -133,7 +133,7 @@ namespace Graphics
 				
 	}
 
-	GRAPHICS_ERROR PipelineHandler::CreateBuffer(Utilz::GUID id, const Pipeline::Buffer & buffer)
+	GRAPHICS_ERROR PipelineHandler::CreateBuffer(Utilities::GUID id, const Pipeline::Buffer & buffer)
 	{
 		StartProfile;
 		if (buffer.flags & Pipeline::BufferFlags::BIND_CONSTANT)
@@ -191,7 +191,7 @@ namespace Graphics
 		RETURN_GRAPHICS_SUCCESS;
 	}
 
-	GRAPHICS_ERROR PipelineHandler::DestroyBuffer(Utilz::GUID id)
+	GRAPHICS_ERROR PipelineHandler::DestroyBuffer(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::Buffer].find(id); find != objects_ClientSide[PipelineObjects::Buffer].end())
@@ -203,7 +203,7 @@ namespace Graphics
 		RETURN_GRAPHICS_SUCCESS;
 	}
 	
-	GRAPHICS_ERROR PipelineHandler::CreateViewport(Utilz::GUID id, const Pipeline::Viewport & viewport)
+	GRAPHICS_ERROR PipelineHandler::CreateViewport(Utilities::GUID id, const Pipeline::Viewport & viewport)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::Viewport].find(id); find != objects_ClientSide[PipelineObjects::Viewport].end())
@@ -216,7 +216,7 @@ namespace Graphics
 
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilz::GUID id, Pipeline::ShaderType type, const char * sourceCode, size_t size, const char * entryPoint, const char * shaderModel)
+	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilities::GUID id, Pipeline::ShaderType type, const char * sourceCode, size_t size, const char * entryPoint, const char * shaderModel)
 	{
 		StartProfile;
 		ID3DBlob* blob;
@@ -254,7 +254,7 @@ namespace Graphics
 	private:
 		T* obj = nullptr;
 	};
-	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilz::GUID id, Pipeline::ShaderType type, void * data, size_t size)
+	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilities::GUID id, Pipeline::ShaderType type, void * data, size_t size)
 	{
 		StartProfile;
 		if (type == Pipeline::ShaderType::VERTEX)
@@ -296,13 +296,13 @@ namespace Graphics
 			{
 				//Can't get the size from the RBD, can't get bindslot from the SBD...	
 				//Find the sbd with the same name to get the size.
-				Utilz::GUID sibdName = std::string(sibd.Name);
+				Utilities::GUID sibdName = std::string(sibd.Name);
 				for (unsigned int j = 0; j < shaderDesc.ConstantBuffers; ++j)
 				{
 					D3D11_SHADER_BUFFER_DESC sbd;
 					ID3D11ShaderReflectionConstantBuffer* srcb = reflection->GetConstantBufferByIndex(j);
 					srcb->GetDesc(&sbd);
-					Utilz::GUID name = std::string(sbd.Name);
+					Utilities::GUID name = std::string(sbd.Name);
 					if (name == sibdName)
 					{
 						PASS_IF_GRAPHICS_ERROR(CreateBuffer(name, Pipeline::Buffer::ConstantBuffer(uint16_t(sbd.Size))));
@@ -450,7 +450,7 @@ namespace Graphics
 
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyShader(Utilz::GUID id, Pipeline::ShaderType type)
+	GRAPHICS_ERROR PipelineHandler::DestroyShader(Utilities::GUID id, Pipeline::ShaderType type)
 	{
 		StartProfile;
 		uint32_t t = -1;
@@ -471,7 +471,7 @@ namespace Graphics
 
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateTexture(Utilz::GUID id, void * data, size_t width, size_t height)
+	GRAPHICS_ERROR PipelineHandler::CreateTexture(Utilities::GUID id, void * data, size_t width, size_t height)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
@@ -510,7 +510,7 @@ namespace Graphics
 		toAdd.push({ id, PipelineObjects::ShaderResourceView_{srv.Done()} });
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyTexture(Utilz::GUID id)
+	GRAPHICS_ERROR PipelineHandler::DestroyTexture(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
@@ -520,7 +520,7 @@ namespace Graphics
 		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateRasterizerState(Utilz::GUID id, const Pipeline::RasterizerState & state)
+	GRAPHICS_ERROR PipelineHandler::CreateRasterizerState(Utilities::GUID id, const Pipeline::RasterizerState & state)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::RasterizerState].find(id); find != objects_ClientSide[PipelineObjects::RasterizerState].end())
@@ -560,7 +560,7 @@ namespace Graphics
 
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyRasterizerState(Utilz::GUID id)
+	GRAPHICS_ERROR PipelineHandler::DestroyRasterizerState(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::RasterizerState].find(id); find != objects_ClientSide[PipelineObjects::RasterizerState].end())
@@ -570,7 +570,7 @@ namespace Graphics
 		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateBlendState(Utilz::GUID id, const Pipeline::BlendState & state)
+	GRAPHICS_ERROR PipelineHandler::CreateBlendState(Utilities::GUID id, const Pipeline::BlendState & state)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::BlendState].find(id); find != objects_ClientSide[PipelineObjects::BlendState].end())
@@ -671,7 +671,7 @@ namespace Graphics
 
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyBlendState(Utilz::GUID id)
+	GRAPHICS_ERROR PipelineHandler::DestroyBlendState(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::BlendState].find(id); find != objects_ClientSide[PipelineObjects::BlendState].end())
@@ -681,7 +681,7 @@ namespace Graphics
 		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilState(Utilz::GUID id, const Pipeline::DepthStencilState & state)
+	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilState(Utilities::GUID id, const Pipeline::DepthStencilState & state)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilState].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilState].end())
@@ -723,7 +723,7 @@ namespace Graphics
 
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyDepthStencilState(Utilz::GUID id)
+	GRAPHICS_ERROR PipelineHandler::DestroyDepthStencilState(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilState].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilState].end())
@@ -733,7 +733,7 @@ namespace Graphics
 		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateSamplerState(Utilz::GUID id, const Pipeline::SamplerState & state)
+	GRAPHICS_ERROR PipelineHandler::CreateSamplerState(Utilities::GUID id, const Pipeline::SamplerState & state)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::SamplerState].find(id); find != objects_ClientSide[PipelineObjects::SamplerState].end())
@@ -778,7 +778,7 @@ namespace Graphics
 
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroySamplerState(Utilz::GUID id)
+	GRAPHICS_ERROR PipelineHandler::DestroySamplerState(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::SamplerState].find(id); find != objects_ClientSide[PipelineObjects::SamplerState].end())
@@ -788,7 +788,7 @@ namespace Graphics
 		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateTarget(Utilz::GUID id, const Pipeline::Target & target)
+	GRAPHICS_ERROR PipelineHandler::CreateTarget(Utilities::GUID id, const Pipeline::Target & target)
 	{
 		StartProfile;
 
@@ -872,7 +872,7 @@ namespace Graphics
 
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyTarget(Utilz::GUID id)
+	GRAPHICS_ERROR PipelineHandler::DestroyTarget(Utilities::GUID id)
 	{
 		if (auto find = objects_ClientSide[PipelineObjects::RenderTarget].find(id); find != objects_ClientSide[PipelineObjects::RenderTarget].end())
 		{
@@ -891,7 +891,7 @@ namespace Graphics
 		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilView(Utilz::GUID id, const Pipeline::DepthStencilView & view)
+	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilView(Utilities::GUID id, const Pipeline::DepthStencilView & view)
 	{
 		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilView].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilView].end())
 			RETURN_GRAPHICS_ERROR("DepthStencilView with name already exists", 1);
@@ -944,7 +944,7 @@ namespace Graphics
 
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyDepthStencilView(Utilz::GUID id)
+	GRAPHICS_ERROR PipelineHandler::DestroyDepthStencilView(Utilities::GUID id)
 	{
 		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilView].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilView].end())
 		{
@@ -978,7 +978,7 @@ namespace Graphics
 		}
 		RETURN_GRAPHICS_SUCCESS;
 	}
-	UpdateObject * PipelineHandler::GetUpdateObject(Utilz::GUID id, PipelineObjectType type)
+	UpdateObject * PipelineHandler::GetUpdateObject(Utilities::GUID id, PipelineObjectType type)
 	{
 		if(type == PipelineObjectType::Buffer)
 		if (auto find = objects_RenderSide[PipelineObjects::Buffer].find(id); find != objects_RenderSide[PipelineObjects::Buffer].end())

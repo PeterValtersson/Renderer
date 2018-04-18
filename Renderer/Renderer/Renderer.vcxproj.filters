@@ -62,9 +62,6 @@
     <ClInclude Include="..\Include\Graphics\RenderJob.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="CircularFIFO.h">
-      <Filter>DX11Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="PipelineObjects.h">
       <Filter>DX11Renderer</Filter>
     </ClInclude>

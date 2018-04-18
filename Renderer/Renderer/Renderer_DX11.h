@@ -27,19 +27,19 @@ namespace Graphics
 
 		PipelineHandler_Interface* GetPipelineHandler() override;
 
-		GRAPHICS_ERROR AddRenderJob(Utilz::GUID id, const RenderJob& job, RenderGroup renderGroup) override;
+		GRAPHICS_ERROR AddRenderJob(Utilities::GUID id, const RenderJob& job, RenderGroup renderGroup) override;
 		GRAPHICS_ERROR AddRenderJob(const RenderJob& job, RenderGroup renderGroup) override;
-		void RemoveRenderJob(Utilz::GUID id, RenderGroup renderGroup) override;
-		void RemoveRenderJob(Utilz::GUID id) override;
+		void RemoveRenderJob(Utilities::GUID id, RenderGroup renderGroup) override;
+		void RemoveRenderJob(Utilities::GUID id) override;
 		uint32_t GetNumberOfRenderJobs()const override;
-		uint8_t IsRenderJobRegistered(Utilz::GUID id)const override;
+		uint8_t IsRenderJobRegistered(Utilities::GUID id)const override;
 
-		GRAPHICS_ERROR AddUpdateJob(Utilz::GUID id, const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) override;
+		GRAPHICS_ERROR AddUpdateJob(Utilities::GUID id, const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) override;
 		GRAPHICS_ERROR AddUpdateJob(const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) override;
-		void RemoveUpdateJob(Utilz::GUID id, RenderGroup renderGroup) override;
-		void RemoveUpdateJob(Utilz::GUID id) override;
+		void RemoveUpdateJob(Utilities::GUID id, RenderGroup renderGroup) override;
+		void RemoveUpdateJob(Utilities::GUID id) override;
 		uint32_t GetNumberOfUpdateJobs()const override;
-		uint8_t IsUpdateJobRegistered(Utilz::GUID id)const override;
+		uint8_t IsUpdateJobRegistered(Utilities::GUID id)const override;
 	private:
 		RendererInitializationInfo settings;
 		DeviceHandler* device;
@@ -65,17 +65,17 @@ namespace Graphics
 			template<class JOB>
 			struct ToAdd
 			{
-				Utilz::GUID id;
+				Utilities::GUID id;
 				RenderGroup group;
 				JOB job;
 			};
-			Utilz::CircularFiFo<ToAdd<JOB>> jobsToAdd;
+			Utilities::CircularFiFo<ToAdd<JOB>> jobsToAdd;
 			struct ToRemove
 			{
-				Utilz::GUID id;
+				Utilities::GUID id;
 				RenderGroup group;
 			};
-			Utilz::CircularFiFo<ToRemove> jobsToRemove;
+			Utilities::CircularFiFo<ToRemove> jobsToRemove;
 			//****					   ****//
 
 			void Add()
@@ -103,8 +103,8 @@ namespace Graphics
 			struct RenderSide
 			{
 				std::vector<std::vector<JOB>> renderGroupsWithJob;
-				std::vector<std::vector<Utilz::GUID>> renderGroupsWithID;
-				std::optional<uint32_t> Find(Utilz::GUID id, RenderGroup group)
+				std::vector<std::vector<Utilities::GUID>> renderGroupsWithID;
+				std::optional<uint32_t> Find(Utilities::GUID id, RenderGroup group)
 				{
 					for (uint32_t i = 0; i < renderGroupsWithID[uint8_t(group)].size(); i++)
 						if (renderGroupsWithID[uint8_t(group)][i] == id)
@@ -139,7 +139,7 @@ namespace Graphics
 				{
 					return renderGroupsWithJob[uint8_t(group)];
 				}
-				inline std::vector<Utilz::GUID>& GetIDs(RenderGroup group)
+				inline std::vector<Utilities::GUID>& GetIDs(RenderGroup group)
 				{
 					return renderGroupsWithID[uint8_t(group)];
 				}
@@ -149,20 +149,20 @@ namespace Graphics
 
 			struct ClientSide
 			{
-				std::vector<std::vector<Utilz::GUID>> renderGroupsWithID;
-				std::optional<uint32_t> Find(Utilz::GUID id, RenderGroup group)
+				std::vector<std::vector<Utilities::GUID>> renderGroupsWithID;
+				std::optional<uint32_t> Find(Utilities::GUID id, RenderGroup group)
 				{
 					for (uint32_t i = 0; i < renderGroupsWithID[uint8_t(group)].size(); i++)
 						if (renderGroupsWithID[uint8_t(group)][i] == id)
 							return i;
 					return std::nullopt;
 				}
-				inline std::vector<Utilz::GUID>& GetIDs(RenderGroup group)
+				inline std::vector<Utilities::GUID>& GetIDs(RenderGroup group)
 				{
 					return renderGroupsWithID[uint8_t(group)];
 				}
 
-				uint32_t Registered(Utilz::GUID id)const
+				uint32_t Registered(Utilities::GUID id)const
 				{
 					StartProfile;
 

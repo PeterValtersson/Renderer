@@ -12,37 +12,37 @@ namespace Graphics
 
 		PipelineHandler_Interface() {};
 
-		virtual GRAPHICS_ERROR CreateBuffer(Utilz::GUID id, const Pipeline::Buffer& buffer) = 0;
-		/*virtual GRAPHICS_ERROR UpdateBuffer(Utilz::GUID id, void* data, size_t size) = 0;
-		virtual GRAPHICS_ERROR UpdateBuffer(Utilz::GUID id, const std::function<void(void* mappedResource)>& mapCallback) = 0;*/
-		virtual GRAPHICS_ERROR DestroyBuffer(Utilz::GUID id) = 0;
+		virtual GRAPHICS_ERROR CreateBuffer(Utilities::GUID id, const Pipeline::Buffer& buffer) = 0;
+		/*virtual GRAPHICS_ERROR UpdateBuffer(Utilities::GUID id, void* data, size_t size) = 0;
+		virtual GRAPHICS_ERROR UpdateBuffer(Utilities::GUID id, const std::function<void(void* mappedResource)>& mapCallback) = 0;*/
+		virtual GRAPHICS_ERROR DestroyBuffer(Utilities::GUID id) = 0;
 
-		virtual GRAPHICS_ERROR CreateViewport(Utilz::GUID id, const Pipeline::Viewport& viewport) = 0;
+		virtual GRAPHICS_ERROR CreateViewport(Utilities::GUID id, const Pipeline::Viewport& viewport) = 0;
 			
-		virtual GRAPHICS_ERROR CreateShader(Utilz::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel) = 0;
-		virtual GRAPHICS_ERROR CreateShader(Utilz::GUID id, Pipeline::ShaderType type, void* data, size_t size) = 0;
-		virtual GRAPHICS_ERROR DestroyShader(Utilz::GUID id, Pipeline::ShaderType type) = 0;
+		virtual GRAPHICS_ERROR CreateShader(Utilities::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel) = 0;
+		virtual GRAPHICS_ERROR CreateShader(Utilities::GUID id, Pipeline::ShaderType type, void* data, size_t size) = 0;
+		virtual GRAPHICS_ERROR DestroyShader(Utilities::GUID id, Pipeline::ShaderType type) = 0;
 				
-		virtual GRAPHICS_ERROR CreateTexture(Utilz::GUID id, void* data, size_t width, size_t height) = 0;
-		virtual GRAPHICS_ERROR DestroyTexture(Utilz::GUID id) = 0;
+		virtual GRAPHICS_ERROR CreateTexture(Utilities::GUID id, void* data, size_t width, size_t height) = 0;
+		virtual GRAPHICS_ERROR DestroyTexture(Utilities::GUID id) = 0;
 				
-		virtual GRAPHICS_ERROR CreateRasterizerState(Utilz::GUID id, const Pipeline::RasterizerState& state) = 0;
-		virtual GRAPHICS_ERROR DestroyRasterizerState(Utilz::GUID id) = 0;
+		virtual GRAPHICS_ERROR CreateRasterizerState(Utilities::GUID id, const Pipeline::RasterizerState& state) = 0;
+		virtual GRAPHICS_ERROR DestroyRasterizerState(Utilities::GUID id) = 0;
 				
-		virtual GRAPHICS_ERROR CreateBlendState(Utilz::GUID id, const Pipeline::BlendState& state) = 0;
-		virtual GRAPHICS_ERROR DestroyBlendState(Utilz::GUID id) = 0;
+		virtual GRAPHICS_ERROR CreateBlendState(Utilities::GUID id, const Pipeline::BlendState& state) = 0;
+		virtual GRAPHICS_ERROR DestroyBlendState(Utilities::GUID id) = 0;
 		
-		virtual GRAPHICS_ERROR CreateDepthStencilState(Utilz::GUID id, const Pipeline::DepthStencilState& state) = 0;
-		virtual GRAPHICS_ERROR DestroyDepthStencilState(Utilz::GUID id) = 0;
+		virtual GRAPHICS_ERROR CreateDepthStencilState(Utilities::GUID id, const Pipeline::DepthStencilState& state) = 0;
+		virtual GRAPHICS_ERROR DestroyDepthStencilState(Utilities::GUID id) = 0;
 			
-		virtual GRAPHICS_ERROR CreateSamplerState(Utilz::GUID id, const Pipeline::SamplerState& state) = 0;
-		virtual GRAPHICS_ERROR DestroySamplerState(Utilz::GUID id) = 0;
+		virtual GRAPHICS_ERROR CreateSamplerState(Utilities::GUID id, const Pipeline::SamplerState& state) = 0;
+		virtual GRAPHICS_ERROR DestroySamplerState(Utilities::GUID id) = 0;
 			
-		virtual GRAPHICS_ERROR CreateTarget(Utilz::GUID id, const Pipeline::Target& target) = 0;
-		virtual GRAPHICS_ERROR DestroyTarget(Utilz::GUID id) = 0;
+		virtual GRAPHICS_ERROR CreateTarget(Utilities::GUID id, const Pipeline::Target& target) = 0;
+		virtual GRAPHICS_ERROR DestroyTarget(Utilities::GUID id) = 0;
 				
-		virtual GRAPHICS_ERROR CreateDepthStencilView(Utilz::GUID id, const Pipeline::DepthStencilView& view) = 0;
-		virtual GRAPHICS_ERROR DestroyDepthStencilView(Utilz::GUID id) = 0;
+		virtual GRAPHICS_ERROR CreateDepthStencilView(Utilities::GUID id, const Pipeline::DepthStencilView& view) = 0;
+		virtual GRAPHICS_ERROR DestroyDepthStencilView(Utilities::GUID id) = 0;
 	
 	protected:
 		virtual ~PipelineHandler_Interface() {};

@@ -90,12 +90,12 @@ namespace Graphics
 
 	struct UpdateJob
 	{
-		Utilz::GUID objectToMap;
+		Utilities::GUID objectToMap;
 		UpdateFrequency frequency;
 		PipelineObjectType type;
 		std::function<GRAPHICS_ERROR(UpdateObject* obj)> updateCallback;
 
-		static UpdateJob Buffer(Utilz::GUID id, UpdateFrequency freq, const std::function<GRAPHICS_ERROR(UpdateObject* obj)>& cb)
+		static UpdateJob Buffer(Utilities::GUID id, UpdateFrequency freq, const std::function<GRAPHICS_ERROR(UpdateObject* obj)>& cb)
 		{
 			return { id, freq, PipelineObjectType::Buffer, cb };
 		}

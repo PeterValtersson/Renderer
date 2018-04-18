@@ -23,12 +23,12 @@ ENUM_FLAG_OPERATOR(T,^)
 
 namespace Graphics
 {
-	static const Utilz::GUID Default_RenderTarget("Backbuffer");
-	static const Utilz::GUID Default_Viewport("FullscreenViewPort");
-	static const Utilz::GUID Default_DepthStencil("BackbufferDepthStencil");
-	static const Utilz::GUID Default_VertexShader_FullscreenQUAD("FullscreenQUADVS");
-	static const Utilz::GUID Default_PixelShader_POS_TEXTURE_MULTICHANNGEL("MultichannelPixelShader");
-	static const Utilz::GUID Default_PixelShader_POS_TEXTURE_SingleCHANNGEL("SinglechannelPixelShader");
+	static const Utilities::GUID Default_RenderTarget("Backbuffer");
+	static const Utilities::GUID Default_Viewport("FullscreenViewPort");
+	static const Utilities::GUID Default_DepthStencil("BackbufferDepthStencil");
+	static const Utilities::GUID Default_VertexShader_FullscreenQUAD("FullscreenQUADVS");
+	static const Utilities::GUID Default_PixelShader_POS_TEXTURE_MULTICHANNGEL("MultichannelPixelShader");
+	static const Utilities::GUID Default_PixelShader_POS_TEXTURE_SingleCHANNGEL("SinglechannelPixelShader");
 	namespace Pipeline
 	{
 		enum class CullMode
@@ -219,12 +219,12 @@ namespace Graphics
 
 		struct InputAssemblerStage
 		{
-			Utilz::GUID vertexBuffer;
-			Utilz::GUID indexBuffer;
+			Utilities::GUID vertexBuffer;
+			Utilities::GUID indexBuffer;
 			PrimitiveTopology topology = PrimitiveTopology::TRIANGLE_LIST;
-			Utilz::GUID inputLayout;
+			Utilities::GUID inputLayout;
 
-			Utilz::GUID GetID()const
+			Utilities::GUID GetID()const
 			{
 				return vertexBuffer + indexBuffer + inputLayout;
 			}
@@ -232,8 +232,8 @@ namespace Graphics
 
 		struct StreamOutStage
 		{
-			Utilz::GUID streamOutTarget;
-			Utilz::GUID GetID()const
+			Utilities::GUID streamOutTarget;
+			Utilities::GUID GetID()const
 			{
 				return streamOutTarget;
 			}
@@ -255,18 +255,18 @@ namespace Graphics
 			static const size_t maxTextures = 4;
 			static const size_t maxSamplers = 2;
 			static const size_t maxUAVs = 4;
-			Utilz::GUID shader;
-			Utilz::GUID textures[maxTextures];
-			Utilz::GUID textureBindings[maxTextures];
-			Utilz::GUID samplers[maxSamplers];
+			Utilities::GUID shader;
+			Utilities::GUID textures[maxTextures];
+			Utilities::GUID textureBindings[maxTextures];
+			Utilities::GUID samplers[maxSamplers];
 
 			uint8_t textureCount = 0;
 			uint8_t samplerCount = 0;
 
-			Utilz::GUID uavs[maxUAVs];
+			Utilities::GUID uavs[maxUAVs];
 			uint8_t uavCount = 0;
 
-			Utilz::GUID GetID()const
+			Utilities::GUID GetID()const
 			{
 				return shader + textures[0] + textures[1] + textures[2] + textures[3]
 					+ textureBindings[0] + textureBindings[1] + textureBindings[2] + textureBindings[3]
@@ -278,22 +278,22 @@ namespace Graphics
 		{
 			static const size_t maxTextures = 4;
 			static const size_t maxUnorderedAccessViews = 4;
-			Utilz::GUID shader;
-			Utilz::GUID textures[maxTextures];
-			Utilz::GUID uavs[maxUnorderedAccessViews];
+			Utilities::GUID shader;
+			Utilities::GUID textures[maxTextures];
+			Utilities::GUID uavs[maxUnorderedAccessViews];
 
 		};
 
 		struct OutputMergerStage
 		{
 			static const size_t maxRenderTargets = 4;
-			Utilz::GUID blendState;
-			Utilz::GUID depthStencilState;
-			Utilz::GUID renderTargets[maxRenderTargets];
-			Utilz::GUID depthStencilView;
+			Utilities::GUID blendState;
+			Utilities::GUID depthStencilState;
+			Utilities::GUID renderTargets[maxRenderTargets];
+			Utilities::GUID depthStencilView;
 			uint8_t renderTargetCount = 0;
 
-			Utilz::GUID GetID()const
+			Utilities::GUID GetID()const
 			{
 				return blendState + depthStencilState + depthStencilView + renderTargets[0] + renderTargets[1] + renderTargets[2] + renderTargets[3];
 			}
@@ -310,10 +310,10 @@ namespace Graphics
 
 		struct RasterizerStage
 		{
-			Utilz::GUID rasterizerState;
-			Utilz::GUID viewport;
+			Utilities::GUID rasterizerState;
+			Utilities::GUID viewport;
 
-			Utilz::GUID GetID()const
+			Utilities::GUID GetID()const
 			{
 				return rasterizerState + viewport;
 			}
@@ -344,7 +344,7 @@ namespace Graphics
 
 			ShaderStage CSStage_;
 
-			Utilz::GUID id;
+			Utilities::GUID id;
 
 		public:
 			inline const InputAssemblerStage&			IAStage()const {
@@ -372,7 +372,7 @@ namespace Graphics
 			{
 				return CSStage_;
 			}
-			inline const Utilz::GUID ID()const
+			inline const Utilities::GUID ID()const
 			{
 				return id;
 			}

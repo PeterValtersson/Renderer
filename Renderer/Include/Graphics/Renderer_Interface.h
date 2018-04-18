@@ -44,21 +44,21 @@ namespace Graphics
 
 		virtual PipelineHandler_Interface* GetPipelineHandler() = 0;
 
-		virtual GRAPHICS_ERROR AddRenderJob(Utilz::GUID id, const RenderJob& job, RenderGroup renderGroup) = 0;
+		virtual GRAPHICS_ERROR AddRenderJob(Utilities::GUID id, const RenderJob& job, RenderGroup renderGroup) = 0;
 		// Will use the id of the pipeline
 		virtual GRAPHICS_ERROR AddRenderJob(const RenderJob& job, RenderGroup renderGroup) = 0;
-		virtual void RemoveRenderJob(Utilz::GUID id, RenderGroup renderGroup) = 0;
-		virtual void RemoveRenderJob(Utilz::GUID id) = 0;
+		virtual void RemoveRenderJob(Utilities::GUID id, RenderGroup renderGroup) = 0;
+		virtual void RemoveRenderJob(Utilities::GUID id) = 0;
 		virtual uint32_t GetNumberOfRenderJobs()const = 0;
-		virtual uint8_t IsRenderJobRegistered(Utilz::GUID id)const = 0;
+		virtual uint8_t IsRenderJobRegistered(Utilities::GUID id)const = 0;
 
-		virtual GRAPHICS_ERROR AddUpdateJob(Utilz::GUID id, const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) = 0;
+		virtual GRAPHICS_ERROR AddUpdateJob(Utilities::GUID id, const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) = 0;
 		// Will use the id of the object
 		virtual GRAPHICS_ERROR AddUpdateJob(const UpdateJob& job, RenderGroup renderGroup) = 0;
-		virtual void RemoveUpdateJob(Utilz::GUID id, RenderGroup renderGroupToPerformUpdateBefore) = 0;
-		virtual void RemoveUpdateJob(Utilz::GUID id) = 0;
+		virtual void RemoveUpdateJob(Utilities::GUID id, RenderGroup renderGroupToPerformUpdateBefore) = 0;
+		virtual void RemoveUpdateJob(Utilities::GUID id) = 0;
 		virtual uint32_t GetNumberOfUpdateJobs()const = 0;
-		virtual uint8_t IsUpdateJobRegistered(Utilz::GUID id)const = 0;
+		virtual uint8_t IsUpdateJobRegistered(Utilities::GUID id)const = 0;
 	protected:
 		Renderer_Interface() {};
 	};

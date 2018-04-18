@@ -106,7 +106,7 @@ namespace Graphics
 	{
 		return pipeline;
 	}
-	GRAPHICS_ERROR Renderer_DX11::AddRenderJob(Utilz::GUID id, const RenderJob & job, RenderGroup renderGroup)
+	GRAPHICS_ERROR Renderer_DX11::AddRenderJob(Utilities::GUID id, const RenderJob & job, RenderGroup renderGroup)
 	{
 		StartProfile;
 
@@ -124,7 +124,7 @@ namespace Graphics
 	{
 		return AddRenderJob(job.pipeline.ID(), job, renderGroup);
 	}
-	void Renderer_DX11::RemoveRenderJob(Utilz::GUID id, RenderGroup renderGroup)
+	void Renderer_DX11::RemoveRenderJob(Utilities::GUID id, RenderGroup renderGroup)
 	{
 		StartProfile;
 
@@ -137,7 +137,7 @@ namespace Graphics
 			renderJobs.jobsToRemove.push({ id, renderGroup });
 		}
 	}
-	void Renderer_DX11::RemoveRenderJob(Utilz::GUID id)
+	void Renderer_DX11::RemoveRenderJob(Utilities::GUID id)
 	{
 		StartProfile;
 
@@ -164,11 +164,11 @@ namespace Graphics
 
 		return count;
 	}
-	uint8_t Renderer_DX11::IsRenderJobRegistered(Utilz::GUID id) const
+	uint8_t Renderer_DX11::IsRenderJobRegistered(Utilities::GUID id) const
 	{
 		return renderJobs.clientSide.Registered(id);
 	}
-	GRAPHICS_ERROR Renderer_DX11::AddUpdateJob(Utilz::GUID id, const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
+	GRAPHICS_ERROR Renderer_DX11::AddUpdateJob(Utilities::GUID id, const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
 	{
 		StartProfile;
 		if (auto find = updateJobs.clientSide.Find(id, renderGroupToPerformUpdateBefore); find.has_value())
@@ -184,7 +184,7 @@ namespace Graphics
 	{
 		return AddUpdateJob(job.objectToMap, job, renderGroupToPerformUpdateBefore);
 	}
-	void Renderer_DX11::RemoveUpdateJob(Utilz::GUID id, RenderGroup renderGroup)
+	void Renderer_DX11::RemoveUpdateJob(Utilities::GUID id, RenderGroup renderGroup)
 	{
 		StartProfile;
 
@@ -197,7 +197,7 @@ namespace Graphics
 			updateJobs.jobsToRemove.push({ id, renderGroup });
 		}
 	}
-	void Renderer_DX11::RemoveUpdateJob(Utilz::GUID id)
+	void Renderer_DX11::RemoveUpdateJob(Utilities::GUID id)
 	{
 		StartProfile;
 
@@ -223,7 +223,7 @@ namespace Graphics
 
 		return count;
 	}
-	uint8_t Renderer_DX11::IsUpdateJobRegistered(Utilz::GUID id) const
+	uint8_t Renderer_DX11::IsUpdateJobRegistered(Utilities::GUID id) const
 	{
 		return updateJobs.clientSide.Registered(id);
 	}

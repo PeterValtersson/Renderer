@@ -75,7 +75,7 @@ namespace Graphics
 {
 	struct ShaderResourceToAndBindSlot
 	{
-		Utilz::GUID id;
+		Utilities::GUID id;
 		UINT binding;
 	};
 	struct PipelineObjects

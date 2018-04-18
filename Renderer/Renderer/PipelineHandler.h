@@ -4,7 +4,7 @@
 #include <d3d11.h>
 #include <unordered_map>
 #include <array>
-#include "CircularFIFO.h"
+#include <CircularFIFO.h>
 #include <set>
 #include <Graphics\UpdateJob.h>
 #include "PipelineObjects.h"
@@ -24,52 +24,52 @@ namespace Graphics
 			const D3D11_VIEWPORT& vp);
 		virtual void Shutdown();
 
-		virtual GRAPHICS_ERROR CreateBuffer(Utilz::GUID id, const Pipeline::Buffer& buffer) override;
-	//	virtual GRAPHICS_ERROR UpdateBuffer(Utilz::GUID id, void* data, size_t size);
-	//	virtual GRAPHICS_ERROR UpdateBuffer(Utilz::GUID id, const std::function<void(void* mappedResource, size_t maxSize)>& mapCallback);
-		virtual GRAPHICS_ERROR DestroyBuffer(Utilz::GUID id) override;
+		virtual GRAPHICS_ERROR CreateBuffer(Utilities::GUID id, const Pipeline::Buffer& buffer) override;
+	//	virtual GRAPHICS_ERROR UpdateBuffer(Utilities::GUID id, void* data, size_t size);
+	//	virtual GRAPHICS_ERROR UpdateBuffer(Utilities::GUID id, const std::function<void(void* mappedResource, size_t maxSize)>& mapCallback);
+		virtual GRAPHICS_ERROR DestroyBuffer(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateViewport(Utilz::GUID id, const Pipeline::Viewport& viewport) override;
+		virtual GRAPHICS_ERROR CreateViewport(Utilities::GUID id, const Pipeline::Viewport& viewport) override;
 
-		virtual GRAPHICS_ERROR CreateShader(Utilz::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel) override;
-		virtual GRAPHICS_ERROR CreateShader(Utilz::GUID id, Pipeline::ShaderType type, void* data, size_t size) override;
-		virtual GRAPHICS_ERROR DestroyShader(Utilz::GUID id, Pipeline::ShaderType type) override;
+		virtual GRAPHICS_ERROR CreateShader(Utilities::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel) override;
+		virtual GRAPHICS_ERROR CreateShader(Utilities::GUID id, Pipeline::ShaderType type, void* data, size_t size) override;
+		virtual GRAPHICS_ERROR DestroyShader(Utilities::GUID id, Pipeline::ShaderType type) override;
 
 
-		virtual GRAPHICS_ERROR CreateTexture(Utilz::GUID id, void* data, size_t width, size_t height) override;
-		virtual GRAPHICS_ERROR DestroyTexture(Utilz::GUID id) override;
+		virtual GRAPHICS_ERROR CreateTexture(Utilities::GUID id, void* data, size_t width, size_t height) override;
+		virtual GRAPHICS_ERROR DestroyTexture(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateRasterizerState(Utilz::GUID id, const Pipeline::RasterizerState& state) override;
-		virtual GRAPHICS_ERROR DestroyRasterizerState(Utilz::GUID id) override;
+		virtual GRAPHICS_ERROR CreateRasterizerState(Utilities::GUID id, const Pipeline::RasterizerState& state) override;
+		virtual GRAPHICS_ERROR DestroyRasterizerState(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateBlendState(Utilz::GUID id, const Pipeline::BlendState& state) override;
-		virtual GRAPHICS_ERROR DestroyBlendState(Utilz::GUID id) override;
+		virtual GRAPHICS_ERROR CreateBlendState(Utilities::GUID id, const Pipeline::BlendState& state) override;
+		virtual GRAPHICS_ERROR DestroyBlendState(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateDepthStencilState(Utilz::GUID id, const Pipeline::DepthStencilState& state) override;
-		virtual GRAPHICS_ERROR DestroyDepthStencilState(Utilz::GUID id) override;
+		virtual GRAPHICS_ERROR CreateDepthStencilState(Utilities::GUID id, const Pipeline::DepthStencilState& state) override;
+		virtual GRAPHICS_ERROR DestroyDepthStencilState(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateSamplerState(Utilz::GUID id, const Pipeline::SamplerState& state) override;
-		virtual GRAPHICS_ERROR DestroySamplerState(Utilz::GUID id) override;
+		virtual GRAPHICS_ERROR CreateSamplerState(Utilities::GUID id, const Pipeline::SamplerState& state) override;
+		virtual GRAPHICS_ERROR DestroySamplerState(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateTarget(Utilz::GUID id, const Pipeline::Target& target) override;
-		virtual GRAPHICS_ERROR DestroyTarget(Utilz::GUID id) override;
+		virtual GRAPHICS_ERROR CreateTarget(Utilities::GUID id, const Pipeline::Target& target) override;
+		virtual GRAPHICS_ERROR DestroyTarget(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateDepthStencilView(Utilz::GUID id, const Pipeline::DepthStencilView& view) override;
-		virtual GRAPHICS_ERROR DestroyDepthStencilView(Utilz::GUID id) override;
+		virtual GRAPHICS_ERROR CreateDepthStencilView(Utilities::GUID id, const Pipeline::DepthStencilView& view) override;
+		virtual GRAPHICS_ERROR DestroyDepthStencilView(Utilities::GUID id) override;
 
 		GRAPHICS_ERROR UpdatePipelineObjects();
 
-		virtual UpdateObject* GetUpdateObject(Utilz::GUID id, PipelineObjectType type);
+		virtual UpdateObject* GetUpdateObject(Utilities::GUID id, PipelineObjectType type);
 	protected:
 		ID3D11Device * device;
 		ID3D11DeviceContext* context;
 		
-		std::array<std::unordered_map<Utilz::GUID, PipelineObject, Utilz::GUID::Hasher>, PipelineObjects::NUM_TYPES> objects_RenderSide;
-		std::array<std::set<Utilz::GUID, Utilz::GUID::Compare>, PipelineObjects::NUM_TYPES> objects_ClientSide;
+		std::array<std::unordered_map<Utilities::GUID, PipelineObject, Utilities::GUID::Hasher>, PipelineObjects::NUM_TYPES> objects_RenderSide;
+		std::array<std::set<Utilities::GUID, Utilities::GUID::Compare>, PipelineObjects::NUM_TYPES> objects_ClientSide;
 		PipelineObject o;
 		struct ToAdd
 		{
-			Utilz::GUID id;
+			Utilities::GUID id;
 			PipelineObject obj;
 			ToAdd& operator=(ToAdd&& other)
 			{
@@ -78,16 +78,16 @@ namespace Graphics
 				return *this;
 			}
 		};
-		Utilz::CircularFiFo<ToAdd> toAdd;
+		Utilities::CircularFiFo<ToAdd> toAdd;
 		struct ToRemove
 		{
-			Utilz::GUID id;
+			Utilities::GUID id;
 			uint32_t type;
 		};
-		Utilz::CircularFiFo<ToRemove> toRemove;
+		Utilities::CircularFiFo<ToRemove> toRemove;
 
 	/**<Key is evaluated by (GUID(shader) + GUID(resourceBindingName))*/
-		std::unordered_map<Utilz::GUID, int, Utilz::GUID::Hasher> shaderAndResourceNameToBindSlot;
+		std::unordered_map<Utilities::GUID, int, Utilities::GUID::Hasher> shaderAndResourceNameToBindSlot;
 
 
 	};

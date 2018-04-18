@@ -165,7 +165,6 @@
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h" />
     <ClInclude Include="..\Include\Graphics\RenderJob.h" />
     <ClInclude Include="..\Include\Graphics_Error.h" />
-    <ClInclude Include="CircularFIFO.h" />
     <ClInclude Include="DeviceHandler.h" />
     <ClInclude Include="PipelineAssigner.h" />
     <ClInclude Include="PipelineHandler.h" />
