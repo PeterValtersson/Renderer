@@ -16,26 +16,26 @@ namespace Graphics
 		Renderer_DX11(const RendererInitializationInfo & ii);
 		~Renderer_DX11();
 
-		GRAPHICS_ERROR Initialize() override;
+		UERROR Initialize() override;
 		void Shutdown()  override;
 
 		void Pause()  override;
-		GRAPHICS_ERROR Start()  override;
+		UERROR Start()  override;
 
-		GRAPHICS_ERROR UpdateSettings(const RendererInitializationInfo& ii)  override;
+		UERROR UpdateSettings(const RendererInitializationInfo& ii)  override;
 		const RendererInitializationInfo& GetSettings()const  override;
 
 		PipelineHandler_Interface* GetPipelineHandler() override;
 
-		GRAPHICS_ERROR AddRenderJob(Utilities::GUID id, const RenderJob& job, RenderGroup renderGroup) override;
-		GRAPHICS_ERROR AddRenderJob(const RenderJob& job, RenderGroup renderGroup) override;
+		UERROR AddRenderJob(Utilities::GUID id, const RenderJob& job, RenderGroup renderGroup) override;
+		UERROR AddRenderJob(const RenderJob& job, RenderGroup renderGroup) override;
 		void RemoveRenderJob(Utilities::GUID id, RenderGroup renderGroup) override;
 		void RemoveRenderJob(Utilities::GUID id) override;
 		uint32_t GetNumberOfRenderJobs()const override;
 		uint8_t IsRenderJobRegistered(Utilities::GUID id)const override;
 
-		GRAPHICS_ERROR AddUpdateJob(Utilities::GUID id, const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) override;
-		GRAPHICS_ERROR AddUpdateJob(const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) override;
+		UERROR AddUpdateJob(Utilities::GUID id, const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) override;
+		UERROR AddUpdateJob(const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) override;
 		void RemoveUpdateJob(Utilities::GUID id, RenderGroup renderGroup) override;
 		void RemoveUpdateJob(Utilities::GUID id) override;
 		uint32_t GetNumberOfUpdateJobs()const override;

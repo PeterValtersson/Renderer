@@ -13,7 +13,7 @@ DECLDIR_GRAPHICS_C Graphics::Renderer_Interface * CreateRenderer(Renderer_Backen
 	return nullptr;
 }
 
-DECLDIR_GRAPHICS_C Graphics::Graphics_Error Renderer_Initialize_C(Graphics::Renderer_Interface * r)
+DECLDIR_GRAPHICS_C Utilities::Error Renderer_Initialize_C(Graphics::Renderer_Interface * r)
 {
 	return r->Initialize();
 }
@@ -29,12 +29,12 @@ DECLDIR_GRAPHICS_C void Renderer_Pause_C(Graphics::Renderer_Interface * r)
 	r->Pause();
 }
 
-DECLDIR_GRAPHICS_C Graphics::Graphics_Error Renderer_Start_C(Graphics::Renderer_Interface * r)
+DECLDIR_GRAPHICS_C Utilities::Error Renderer_Start_C(Graphics::Renderer_Interface * r)
 {
 	return r->Start();
 }
 
-DECLDIR_GRAPHICS_C Graphics::Graphics_Error Renderer_UpdateSettings_C(Graphics::Renderer_Interface * r, Graphics::RendererInitializationInfo ii)
+DECLDIR_GRAPHICS_C Utilities::Error Renderer_UpdateSettings_C(Graphics::Renderer_Interface * r, Graphics::RendererInitializationInfo ii)
 {
 	return r->UpdateSettings(ii);
 }

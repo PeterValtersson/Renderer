@@ -8,6 +8,7 @@
 #include <set>
 #include <Graphics\UpdateJob.h>
 #include "PipelineObjects.h"
+#include <Error.h>
 
 namespace Graphics
 {
@@ -16,48 +17,48 @@ namespace Graphics
 	public:
 		PipelineHandler();
 		virtual ~PipelineHandler();
-
-		virtual GRAPHICS_ERROR Init(
+	
+		virtual UERROR Init(
 			ID3D11Device* device, ID3D11DeviceContext* context, 
 			ID3D11RenderTargetView* backbuffer, ID3D11ShaderResourceView* bbsrv, 
 			ID3D11DepthStencilView* dsv, ID3D11ShaderResourceView* dsvsrv,
 			const D3D11_VIEWPORT& vp);
 		virtual void Shutdown();
 
-		virtual GRAPHICS_ERROR CreateBuffer(Utilities::GUID id, const Pipeline::Buffer& buffer) override;
-	//	virtual GRAPHICS_ERROR UpdateBuffer(Utilities::GUID id, void* data, size_t size);
-	//	virtual GRAPHICS_ERROR UpdateBuffer(Utilities::GUID id, const std::function<void(void* mappedResource, size_t maxSize)>& mapCallback);
-		virtual GRAPHICS_ERROR DestroyBuffer(Utilities::GUID id) override;
+		virtual UERROR CreateBuffer(Utilities::GUID id, const Pipeline::Buffer& buffer) override;
+	//	virtual UERROR UpdateBuffer(Utilities::GUID id, void* data, size_t size);
+	//	virtual UERROR UpdateBuffer(Utilities::GUID id, const std::function<void(void* mappedResource, size_t maxSize)>& mapCallback);
+		virtual UERROR DestroyBuffer(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateViewport(Utilities::GUID id, const Pipeline::Viewport& viewport) override;
+		virtual UERROR CreateViewport(Utilities::GUID id, const Pipeline::Viewport& viewport) override;
 
-		virtual GRAPHICS_ERROR CreateShader(Utilities::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel) override;
-		virtual GRAPHICS_ERROR CreateShader(Utilities::GUID id, Pipeline::ShaderType type, void* data, size_t size) override;
-		virtual GRAPHICS_ERROR DestroyShader(Utilities::GUID id, Pipeline::ShaderType type) override;
+		virtual UERROR CreateShader(Utilities::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel) override;
+		virtual UERROR CreateShader(Utilities::GUID id, Pipeline::ShaderType type, void* data, size_t size) override;
+		virtual UERROR DestroyShader(Utilities::GUID id, Pipeline::ShaderType type) override;
 
 
-		virtual GRAPHICS_ERROR CreateTexture(Utilities::GUID id, void* data, size_t width, size_t height) override;
-		virtual GRAPHICS_ERROR DestroyTexture(Utilities::GUID id) override;
+		virtual UERROR CreateTexture(Utilities::GUID id, void* data, size_t width, size_t height) override;
+		virtual UERROR DestroyTexture(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateRasterizerState(Utilities::GUID id, const Pipeline::RasterizerState& state) override;
-		virtual GRAPHICS_ERROR DestroyRasterizerState(Utilities::GUID id) override;
+		virtual UERROR CreateRasterizerState(Utilities::GUID id, const Pipeline::RasterizerState& state) override;
+		virtual UERROR DestroyRasterizerState(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateBlendState(Utilities::GUID id, const Pipeline::BlendState& state) override;
-		virtual GRAPHICS_ERROR DestroyBlendState(Utilities::GUID id) override;
+		virtual UERROR CreateBlendState(Utilities::GUID id, const Pipeline::BlendState& state) override;
+		virtual UERROR DestroyBlendState(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateDepthStencilState(Utilities::GUID id, const Pipeline::DepthStencilState& state) override;
-		virtual GRAPHICS_ERROR DestroyDepthStencilState(Utilities::GUID id) override;
+		virtual UERROR CreateDepthStencilState(Utilities::GUID id, const Pipeline::DepthStencilState& state) override;
+		virtual UERROR DestroyDepthStencilState(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateSamplerState(Utilities::GUID id, const Pipeline::SamplerState& state) override;
-		virtual GRAPHICS_ERROR DestroySamplerState(Utilities::GUID id) override;
+		virtual UERROR CreateSamplerState(Utilities::GUID id, const Pipeline::SamplerState& state) override;
+		virtual UERROR DestroySamplerState(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateTarget(Utilities::GUID id, const Pipeline::Target& target) override;
-		virtual GRAPHICS_ERROR DestroyTarget(Utilities::GUID id) override;
+		virtual UERROR CreateTarget(Utilities::GUID id, const Pipeline::Target& target) override;
+		virtual UERROR DestroyTarget(Utilities::GUID id) override;
 
-		virtual GRAPHICS_ERROR CreateDepthStencilView(Utilities::GUID id, const Pipeline::DepthStencilView& view) override;
-		virtual GRAPHICS_ERROR DestroyDepthStencilView(Utilities::GUID id) override;
+		virtual UERROR CreateDepthStencilView(Utilities::GUID id, const Pipeline::DepthStencilView& view) override;
+		virtual UERROR DestroyDepthStencilView(Utilities::GUID id) override;
 
-		GRAPHICS_ERROR UpdatePipelineObjects();
+		UERROR UpdatePipelineObjects();
 
 		virtual UpdateObject* GetUpdateObject(Utilities::GUID id, PipelineObjectType type);
 	protected:

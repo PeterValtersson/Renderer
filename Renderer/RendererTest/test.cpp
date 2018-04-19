@@ -91,10 +91,10 @@ TEST(RendererTest, Create) {
 	InitWindow(w);
 	auto r = CreateRenderer(Renderer_Backend::DIRECTX11, { w });
 	auto re = Renderer_Initialize_C(r);
-	EXPECT_EQ(re.errornr, 0);
+	EXPECT_EQ(re.hash, "Success"_hash);
 
 	re = Renderer_Start_C(r);
-	EXPECT_EQ(re.errornr, 0);
+	EXPECT_EQ(re.hash, "Success"_hash);
 
 	//r->GetPipelineHandler()->CreateBuffer(123, {});
 
@@ -109,10 +109,10 @@ TEST(RendererTest, CreateBuffers) {
 	InitWindow(w);
 	auto r = CreateRenderer(Renderer_Backend::DIRECTX11, { w });
 	auto re = Renderer_Initialize_C(r);
-	EXPECT_EQ(re.errornr, 0);
+	EXPECT_EQ(re.hash, "Success"_hash);
 
 	re = Renderer_Start_C(r);
-	EXPECT_EQ(re.errornr, 0);
+	EXPECT_EQ(re.hash, "Success"_hash);
 	struct TestData
 	{
 		int testInt = 1337;
@@ -121,14 +121,14 @@ TEST(RendererTest, CreateBuffers) {
 		int pad2;
 	}testData;
 	re = r->GetPipelineHandler()->CreateBuffer("ConstB", Graphics::Pipeline::Buffer::ConstantBuffer(sizeof(TestData), &testData));
-	EXPECT_EQ(re.errornr, 0);
+	EXPECT_EQ(re.hash, "Success"_hash);
 	Graphics::Pipeline::Buffer bb = Graphics::Pipeline::Buffer::ConstantBuffer(sizeof(TestData), &testData);
 	bb.flags |= Graphics::Pipeline::BufferFlags::CPU_READ;
 	re = r->GetPipelineHandler()->CreateBuffer("ConstBRead", Graphics::Pipeline::Buffer::ConstantBuffer(sizeof(TestData), &testData));
-	EXPECT_EQ(re.errornr, 0);
+	EXPECT_EQ(re.hash, "Success"_hash);
 	float p[3] = { 1.0f, 0.0f,0.0f };
 	re = r->GetPipelineHandler()->CreateBuffer("VertexB", Graphics::Pipeline::Buffer::VertexBuffer(p, sizeof(p), 1));
-	EXPECT_EQ(re.errornr, 0);
+	EXPECT_EQ(re.hash, "Success"_hash);
 
 	bool called1 = false;
 	bool called2= false;
@@ -139,17 +139,17 @@ TEST(RendererTest, CreateBuffers) {
 			called2 = true;
 			EXPECT_EQ(buffer->GetMapObject<TestData>().testInt, testData.testInt);
 		}
-		catch (GRAPHICS_ERROR err)
+		catch (UERROR err)
 		{
 			called1 = true;
-			EXPECT_NE(err.errornr, 0);
+			EXPECT_NE(err.hash, "Success"_hash);
 		}
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	};
 	re = r->AddUpdateJob("TestMap", Graphics::UpdateJob::Buffer("ConstB", Graphics::UpdateFrequency::EVERY_FRAME,l), Graphics::RenderGroup::PRE_PASS_0);
-	EXPECT_EQ(re.errornr, 0);
+	EXPECT_EQ(re.hash, "Success"_hash);
 	re = r->AddUpdateJob("TestMap2", Graphics::UpdateJob::Buffer("ConstBRead", Graphics::UpdateFrequency::EVERY_FRAME, l), Graphics::RenderGroup::PRE_PASS_0);
-	EXPECT_EQ(re.errornr, 0);
+	EXPECT_EQ(re.hash, "Success"_hash);
 	std::this_thread::sleep_for(1s);
 	EXPECT_TRUE(called1); 
 	EXPECT_TRUE(called2);

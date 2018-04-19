@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 #include "RenderJob.h"
-#include "../Graphics_Error.h"
+#include <Error.h>
 
 #ifndef ENUM_FLAG_OPERATOR
 #define ENUM_FLAG_OPERATOR(T,X) inline T operator X (T lhs, T rhs) { return (T) (static_cast<std::underlying_type_t <T>>(lhs) X static_cast<std::underlying_type_t <T>>(rhs)); } 
@@ -49,7 +49,7 @@ namespace Graphics
 		}
 		virtual void* Map(AccessFlag flag = AccessFlag::READ)
 		{
-			THROW_GRAPHICS_ERROR("Map not implemented");
+			THROW_ERROR("Map not implemented");
 		}
 		virtual void Unmap() {}
 		template<class T>
@@ -58,18 +58,18 @@ namespace Graphics
 			return *(T*)GetInfo_();
 		}
 
-		virtual GRAPHICS_ERROR WriteTo(void*data, size_t size)
+		virtual UERROR WriteTo(void*data, size_t size)
 		{
-			RETURN_GRAPHICS_ERROR_C("WriteTo not implemented");
+			RETURN_ERROR("WriteTo not implemented");
 		}
-		virtual GRAPHICS_ERROR ReadFrom(void*data, size_t size)
+		virtual UERROR ReadFrom(void*data, size_t size)
 		{
-			RETURN_GRAPHICS_ERROR_C("ReadFrom not implemented");
+			RETURN_ERROR("ReadFrom not implemented");
 		}
 	protected:
 		virtual const void* GetInfo_()const
 		{
-			THROW_GRAPHICS_ERROR("GetInfo_ not implemented");
+			THROW_ERROR("GetInfo_ not implemented");
 		}
 	};
 
@@ -93,9 +93,9 @@ namespace Graphics
 		Utilities::GUID objectToMap;
 		UpdateFrequency frequency;
 		PipelineObjectType type;
-		std::function<GRAPHICS_ERROR(UpdateObject* obj)> updateCallback;
+		std::function<UERROR(UpdateObject* obj)> updateCallback;
 
-		static UpdateJob Buffer(Utilities::GUID id, UpdateFrequency freq, const std::function<GRAPHICS_ERROR(UpdateObject* obj)>& cb)
+		static UpdateJob Buffer(Utilities::GUID id, UpdateFrequency freq, const std::function<UERROR(UpdateObject* obj)>& cb)
 		{
 			return { id, freq, PipelineObjectType::Buffer, cb };
 		}

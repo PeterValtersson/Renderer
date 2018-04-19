@@ -13,29 +13,29 @@ namespace Graphics
 	Renderer_DX11::~Renderer_DX11()
 	{
 	}
-	GRAPHICS_ERROR Renderer_DX11::Initialize()
+	UERROR Renderer_DX11::Initialize()
 	{
 		StartProfile;
 
 		if (initiated)
-			RETURN_GRAPHICS_ERROR_C("Renderer has already been initiated");
+			RETURN_ERROR("Renderer has already been initiated");
 
 		device = new DeviceHandler();
 		if (!device)
-			RETURN_GRAPHICS_ERROR_C("Could not create device handler");
-		PASS_IF_GRAPHICS_ERROR(device->Init((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));
+			RETURN_ERROR("Could not create device handler");
+		PASS_IF_ERROR(device->Init((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));
 		
 		pipeline = new PipelineAssigner();
 		if (!device)
-			RETURN_GRAPHICS_ERROR_C("Could not create pipeline");
+			RETURN_ERROR("Could not create pipeline");
 
-		PASS_IF_GRAPHICS_ERROR(pipeline->Init(device->GetDevice(), device->GetDeviceContext(), 
+		PASS_IF_ERROR(pipeline->Init(device->GetDevice(), device->GetDeviceContext(), 
 			device->GetRTV(), device->GetSRV(),
 			device->GetDepthStencil(), device->GetDepthSRV(),
 			device->GetViewport()));
 
 		initiated = true;
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
 	void Renderer_DX11::Shutdown()
 	{
@@ -79,24 +79,24 @@ namespace Graphics
 		}
 		at = ++at % 5;
 	}
-	GRAPHICS_ERROR Renderer_DX11::Start()
+	UERROR Renderer_DX11::Start()
 	{
 		StartProfile;
 		if (running)
-			RETURN_GRAPHICS_ERROR_C("Renderer already running");
+			RETURN_ERROR("Renderer already running");
 		if (!initiated)
-			RETURN_GRAPHICS_ERROR_C("Renderer must be initiated first");
+			RETURN_ERROR("Renderer must be initiated first");
 		running = true;
 		myThread = std::thread(&Renderer_DX11::Run, this);
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR Renderer_DX11::UpdateSettings(const RendererInitializationInfo & ii)
+	UERROR Renderer_DX11::UpdateSettings(const RendererInitializationInfo & ii)
 	{
 		StartProfile;
 		settings = ii;
-		PASS_IF_GRAPHICS_ERROR(device->ResizeSwapChain((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));
+		PASS_IF_ERROR(device->ResizeSwapChain((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
 	const RendererInitializationInfo & Renderer_DX11::GetSettings() const
 	{
@@ -106,21 +106,21 @@ namespace Graphics
 	{
 		return pipeline;
 	}
-	GRAPHICS_ERROR Renderer_DX11::AddRenderJob(Utilities::GUID id, const RenderJob & job, RenderGroup renderGroup)
+	UERROR Renderer_DX11::AddRenderJob(Utilities::GUID id, const RenderJob & job, RenderGroup renderGroup)
 	{
 		StartProfile;
 
 		if (renderJobs.clientSide.Find(id, renderGroup).has_value())
-			RETURN_GRAPHICS_ERROR_C("RenderJob is already registered to group");
+			RETURN_ERROR("RenderJob is already registered to group");
 
 		renderJobs.clientSide.GetIDs(renderGroup).push_back(id);
 
 		renderJobs.jobsToAdd.push({ id, renderGroup, job });
 
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR Renderer_DX11::AddRenderJob(const RenderJob & job, RenderGroup renderGroup)
+	UERROR Renderer_DX11::AddRenderJob(const RenderJob & job, RenderGroup renderGroup)
 	{
 		return AddRenderJob(job.pipeline.ID(), job, renderGroup);
 	}
@@ -168,19 +168,19 @@ namespace Graphics
 	{
 		return renderJobs.clientSide.Registered(id);
 	}
-	GRAPHICS_ERROR Renderer_DX11::AddUpdateJob(Utilities::GUID id, const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
+	UERROR Renderer_DX11::AddUpdateJob(Utilities::GUID id, const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
 	{
 		StartProfile;
 		if (auto find = updateJobs.clientSide.Find(id, renderGroupToPerformUpdateBefore); find.has_value())
-			RETURN_GRAPHICS_ERROR_C("UpdateJob with this id already exists");
+			RETURN_ERROR("UpdateJob with this id already exists");
 
 		if(job.frequency != UpdateFrequency::ONCE)
 			updateJobs.clientSide.GetIDs(renderGroupToPerformUpdateBefore).push_back(id);
 
 		updateJobs.jobsToAdd.push({ id, renderGroupToPerformUpdateBefore, job });
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR Renderer_DX11::AddUpdateJob(const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
+	UERROR Renderer_DX11::AddUpdateJob(const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
 	{
 		return AddUpdateJob(job.objectToMap, job, renderGroupToPerformUpdateBefore);
 	}

@@ -43,7 +43,6 @@
     <ClInclude Include="DeviceHandler.h">
       <Filter>DX11Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\Graphics_Error.h" />
     <ClInclude Include="Safe_Release.h">
       <Filter>DX11Renderer</Filter>
     </ClInclude>

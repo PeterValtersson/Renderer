@@ -50,7 +50,7 @@ namespace Graphics
 	{
 	}
 
-	GRAPHICS_ERROR PipelineHandler::Init(
+	UERROR PipelineHandler::Init(
 		ID3D11Device * device, ID3D11DeviceContext * context, 
 		ID3D11RenderTargetView* backbuffer, ID3D11ShaderResourceView* bbsrv,
 		ID3D11DepthStencilView* dsv, ID3D11ShaderResourceView* dsvsrv,
@@ -92,13 +92,13 @@ namespace Graphics
 
 		EMPLACE_DEF(PipelineObjects::Viewport);
 
-		PASS_IF_GRAPHICS_ERROR(CreateShader(Default_VertexShader_FullscreenQUAD, Pipeline::ShaderType::VERTEX, fullscreenQuadVS, strlen(fullscreenQuadVS), "VS_main", "vs_5_0"));
-		PASS_IF_GRAPHICS_ERROR(CreateShader(Default_PixelShader_POS_TEXTURE_MULTICHANNGEL, Pipeline::ShaderType::PIXEL, MultiPS, strlen(MultiPS), "PS_main", "ps_5_0"));
-		PASS_IF_GRAPHICS_ERROR(CreateShader(Default_PixelShader_POS_TEXTURE_SingleCHANNGEL, Pipeline::ShaderType::PIXEL, SinglePS, strlen(SinglePS), "PS_main", "ps_5_0"));
+		PASS_IF_ERROR(CreateShader(Default_VertexShader_FullscreenQUAD, Pipeline::ShaderType::VERTEX, fullscreenQuadVS, strlen(fullscreenQuadVS), "VS_main", "vs_5_0"));
+		PASS_IF_ERROR(CreateShader(Default_PixelShader_POS_TEXTURE_MULTICHANNGEL, Pipeline::ShaderType::PIXEL, MultiPS, strlen(MultiPS), "PS_main", "ps_5_0"));
+		PASS_IF_ERROR(CreateShader(Default_PixelShader_POS_TEXTURE_SingleCHANNGEL, Pipeline::ShaderType::PIXEL, SinglePS, strlen(SinglePS), "PS_main", "ps_5_0"));
 
 
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
 #define RELEASE_PLO(type) if(o.second.index() == type) std::get<type##_>(o.second).Release()
 	void PipelineHandler::Shutdown()
@@ -133,18 +133,18 @@ namespace Graphics
 				
 	}
 
-	GRAPHICS_ERROR PipelineHandler::CreateBuffer(Utilities::GUID id, const Pipeline::Buffer & buffer)
+	UERROR PipelineHandler::CreateBuffer(Utilities::GUID id, const Pipeline::Buffer & buffer)
 	{
 		StartProfile;
 		if (buffer.flags & Pipeline::BufferFlags::BIND_CONSTANT)
 		{
 			if (buffer.elementStride % 16 != 0)
-				RETURN_GRAPHICS_ERROR_C("Constant buffer memory must be a multiple of 16 bytes");
+				RETURN_ERROR("Constant buffer memory must be a multiple of 16 bytes");
 		}
 
 		if (auto find = objects_ClientSide[PipelineObjects::Buffer].find(id); find != objects_ClientSide[PipelineObjects::Buffer].end())
 		{
-			RETURN_GRAPHICS_ERROR("Buffer already exists", 1);
+			RETURN_ERROR("Buffer already exists");
 		}
 
 		D3D11_BUFFER_DESC bd;
@@ -182,16 +182,16 @@ namespace Graphics
 			hr = device->CreateBuffer(&bd, nullptr, &pBuffer);
 		}
 
-		RETURN_IF_GRAPHICS_ERROR(hr, "Could not create buffer. Likely due to incompatible flags");
+		RETURN_IF_HR_ERROR(hr, "Could not create buffer. Likely due to incompatible flags");
 
 		toAdd.push({ id, PipelineObjects::Buffer_{ pBuffer, buffer }});
 
 		objects_ClientSide[PipelineObjects::Buffer].emplace(id);
 		
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
 
-	GRAPHICS_ERROR PipelineHandler::DestroyBuffer(Utilities::GUID id)
+	UERROR PipelineHandler::DestroyBuffer(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::Buffer].find(id); find != objects_ClientSide[PipelineObjects::Buffer].end())
@@ -200,29 +200,29 @@ namespace Graphics
 			toRemove.push({ id,PipelineObjects::Buffer });			
 		}
 		
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
 	
-	GRAPHICS_ERROR PipelineHandler::CreateViewport(Utilities::GUID id, const Pipeline::Viewport & viewport)
+	UERROR PipelineHandler::CreateViewport(Utilities::GUID id, const Pipeline::Viewport & viewport)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::Viewport].find(id); find != objects_ClientSide[PipelineObjects::Viewport].end())
-			RETURN_GRAPHICS_ERROR_C("Viewport with name already exists");
+			RETURN_ERROR("Viewport with name already exists");
 
 
 		objects_ClientSide[PipelineObjects::Viewport].emplace(id);
 
 		toAdd.push({ id , PipelineObjects::Viewport_{ viewport.topLeftX, viewport.topLeftY, viewport.width, viewport.height, viewport.minDepth, viewport.maxDepth } });
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilities::GUID id, Pipeline::ShaderType type, const char * sourceCode, size_t size, const char * entryPoint, const char * shaderModel)
+	UERROR PipelineHandler::CreateShader(Utilities::GUID id, Pipeline::ShaderType type, const char * sourceCode, size_t size, const char * entryPoint, const char * shaderModel)
 	{
 		StartProfile;
 		ID3DBlob* blob;
 		ID3DBlob* error;
-		RETURN_IF_GRAPHICS_ERROR_S(D3DCompile(sourceCode, size, NULL, NULL, NULL, entryPoint, shaderModel, 0, 0, &blob, &error), (char*) error);
-
+		if(FAILED(D3DCompile(sourceCode, size, NULL, NULL, NULL, entryPoint, shaderModel, 0, 0, &blob, &error)))
+			RETURN_ERROR_EX("Could not compile shader. Error: ", (char*) error);
 		return CreateShader(id, type, blob->GetBufferPointer(), blob->GetBufferSize());
 	}
 	template<class T>
@@ -254,37 +254,37 @@ namespace Graphics
 	private:
 		T* obj = nullptr;
 	};
-	GRAPHICS_ERROR PipelineHandler::CreateShader(Utilities::GUID id, Pipeline::ShaderType type, void * data, size_t size)
+	UERROR PipelineHandler::CreateShader(Utilities::GUID id, Pipeline::ShaderType type, void * data, size_t size)
 	{
 		StartProfile;
 		if (type == Pipeline::ShaderType::VERTEX)
 		{
 			if (auto find = objects_ClientSide[PipelineObjects::VertexShader].find(id); find != objects_ClientSide[PipelineObjects::VertexShader].end())
-				RETURN_GRAPHICS_ERROR_C("Vertex shader with name already exists");
+				RETURN_ERROR("Vertex shader with name already exists");
 		}
 		else if (type == Pipeline::ShaderType::PIXEL)
 		{
 			if (auto find = objects_ClientSide[PipelineObjects::PixelShader].find(id); find != objects_ClientSide[PipelineObjects::PixelShader].end())
-				RETURN_GRAPHICS_ERROR_C("Pixel shader with name already exists");
+				RETURN_ERROR("Pixel shader with name already exists");
 		}
 		else if (type == Pipeline::ShaderType::GEOMETRY || type == Pipeline::ShaderType::GEOMETRY_STREAM_OUT)
 		{
 			if (auto find = objects_ClientSide[PipelineObjects::GeometryShader].find(id); find != objects_ClientSide[PipelineObjects::GeometryShader].end())
-				RETURN_GRAPHICS_ERROR_C("Geometry shader with name already exists");
+				RETURN_ERROR("Geometry shader with name already exists");
 		}
 		else if (type == Pipeline::ShaderType::COMPUTE)
 		{
 			if (auto find = objects_ClientSide[PipelineObjects::ComputeShader].find(id); find != objects_ClientSide[PipelineObjects::ComputeShader].end())
-				RETURN_GRAPHICS_ERROR_C("Compute shader with name already exists");
+				RETURN_ERROR("Compute shader with name already exists");
 		}
 		else
 		{
-			RETURN_GRAPHICS_ERROR_C("Shader type not supported yet");
+			RETURN_ERROR("Shader type not supported yet");
 		}
 		//Create the input layout with the help of shader reflection
 		SafeDXP<ID3D11ShaderReflection> reflection;
 
-		RETURN_IF_GRAPHICS_ERROR(D3DReflect(data, size, IID_ID3D11ShaderReflection, (void**)reflection.Create()), "Could not reflect shader");
+		RETURN_IF_HR_ERROR(D3DReflect(data, size, IID_ID3D11ShaderReflection, (void**)reflection.Create()), "Could not reflect shader");
 		D3D11_SHADER_DESC shaderDesc;
 		reflection->GetDesc(&shaderDesc);
 		std::vector<ShaderResourceToAndBindSlot> cbuffers;
@@ -305,7 +305,7 @@ namespace Graphics
 					Utilities::GUID name = std::string(sbd.Name);
 					if (name == sibdName)
 					{
-						PASS_IF_GRAPHICS_ERROR(CreateBuffer(name, Pipeline::Buffer::ConstantBuffer(uint16_t(sbd.Size))));
+						PASS_IF_ERROR(CreateBuffer(name, Pipeline::Buffer::ConstantBuffer(uint16_t(sbd.Size))));
 						cbuffers.push_back({ name, sibd.BindPoint });
 
 						break;
@@ -320,7 +320,7 @@ namespace Graphics
 			SafeDXP<ID3D11VertexShader> vs;
 			
 
-			RETURN_IF_GRAPHICS_ERROR(device->CreateVertexShader(data, size, nullptr, vs.Create()), "Could not create vertex shader");
+			RETURN_IF_HR_ERROR(device->CreateVertexShader(data, size, nullptr, vs.Create()), "Could not create vertex shader");
 
 
 			std::vector<D3D11_INPUT_ELEMENT_DESC> inputElementDescs;
@@ -386,7 +386,7 @@ namespace Graphics
 				inputElementDescs.push_back(inputElementDesc);
 			}
 			if (inputElementDescs.size() > 0)
-				RETURN_IF_GRAPHICS_ERROR(device->CreateInputLayout(inputElementDescs.data(), UINT(inputElementDescs.size()), data, size, inputLayout.Create()), "Could not create input layout");
+				RETURN_IF_HR_ERROR(device->CreateInputLayout(inputElementDescs.data(), UINT(inputElementDescs.size()), data, size, inputLayout.Create()), "Could not create input layout");
 
 			toAdd.push({ id, PipelineObjects::VertexShader_{vs.Done(), inputLayout.Done(), cbuffers} });
 			objects_ClientSide[PipelineObjects::VertexShader].emplace(id);
@@ -394,14 +394,14 @@ namespace Graphics
 		else if (type == Pipeline::ShaderType::PIXEL)
 		{
 			SafeDXP<ID3D11PixelShader> s;
-			RETURN_IF_GRAPHICS_ERROR(device->CreatePixelShader(data, size, nullptr, s.Create()), "Could not create pixel shader");
+			RETURN_IF_HR_ERROR(device->CreatePixelShader(data, size, nullptr, s.Create()), "Could not create pixel shader");
 			toAdd.push({ id, PipelineObjects::PixelShader_{ s.Done(), cbuffers } });
 			objects_ClientSide[PipelineObjects::PixelShader].emplace(id);
 		}
 		else if (type == Pipeline::ShaderType::GEOMETRY)
 		{
 			SafeDXP<ID3D11GeometryShader> s;
-			RETURN_IF_GRAPHICS_ERROR(device->CreateGeometryShader(data, size, nullptr, s.Create()), "Could not create geometry shader");
+			RETURN_IF_HR_ERROR(device->CreateGeometryShader(data, size, nullptr, s.Create()), "Could not create geometry shader");
 			toAdd.push({ id, PipelineObjects::GeometryShader_{ s.Done(), cbuffers } });
 			objects_ClientSide[PipelineObjects::GeometryShader].emplace(id);
 		}
@@ -435,22 +435,22 @@ namespace Graphics
 				bufferStrides += e.ComponentCount * 4;
 
 			SafeDXP<ID3D11GeometryShader> s;
-			RETURN_IF_GRAPHICS_ERROR(device->CreateGeometryShaderWithStreamOutput(data, size, SOEntries.data(),UINT( SOEntries.size()), &bufferStrides, 1, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, s.Create()), "Could not create geometry shader");
+			RETURN_IF_HR_ERROR(device->CreateGeometryShaderWithStreamOutput(data, size, SOEntries.data(),UINT( SOEntries.size()), &bufferStrides, 1, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, s.Create()), "Could not create geometry shader");
 			toAdd.push({ id, PipelineObjects::GeometryShader_{ s.Done(), cbuffers } });
 			objects_ClientSide[PipelineObjects::GeometryShader].emplace(id);
 		}
 		else if (type == Pipeline::ShaderType::COMPUTE)
 		{
 			SafeDXP<ID3D11ComputeShader> s;
-			RETURN_IF_GRAPHICS_ERROR(device->CreateComputeShader(data, size, nullptr, s.Create()), "Could not create compute shader");
+			RETURN_IF_HR_ERROR(device->CreateComputeShader(data, size, nullptr, s.Create()), "Could not create compute shader");
 			toAdd.push({ id, PipelineObjects::ComputeShader_{ s.Done(), cbuffers } });
 			objects_ClientSide[PipelineObjects::ComputeShader].emplace(id);
 		}
 		
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyShader(Utilities::GUID id, Pipeline::ShaderType type)
+	UERROR PipelineHandler::DestroyShader(Utilities::GUID id, Pipeline::ShaderType type)
 	{
 		StartProfile;
 		uint32_t t = -1;
@@ -469,13 +469,13 @@ namespace Graphics
 			toRemove.push({ id, t });
 		}
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateTexture(Utilities::GUID id, void * data, size_t width, size_t height)
+	UERROR PipelineHandler::CreateTexture(Utilities::GUID id, void * data, size_t width, size_t height)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
-			RETURN_GRAPHICS_ERROR("Texture with name already exists", 1);
+			RETURN_ERROR("Texture already exists");
 
 		D3D11_TEXTURE2D_DESC desc;
 		desc.Width = UINT(width);
@@ -495,7 +495,7 @@ namespace Graphics
 		d.pSysMem = data;
 		d.SysMemPitch = UINT( width * 4);
 		d.SysMemSlicePitch = 0;
-		RETURN_IF_GRAPHICS_ERROR(device->CreateTexture2D(&desc, &d, texture.Create()), "Could not create texture");
+		RETURN_IF_HR_ERROR(device->CreateTexture2D(&desc, &d, texture.Create()), "Could not create texture");
 
 
 		SafeDXP<ID3D11ShaderResourceView> srv;
@@ -504,13 +504,13 @@ namespace Graphics
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = 1;
-		RETURN_IF_GRAPHICS_ERROR(device->CreateShaderResourceView(texture.Get(), &srvDesc, srv.Create()), "Could not create shader resource view");
+		RETURN_IF_HR_ERROR(device->CreateShaderResourceView(texture.Get(), &srvDesc, srv.Create()), "Could not create shader resource view");
 
 		objects_ClientSide[PipelineObjects::ShaderResourceView].emplace(id);
 		toAdd.push({ id, PipelineObjects::ShaderResourceView_{srv.Done()} });
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyTexture(Utilities::GUID id)
+	UERROR PipelineHandler::DestroyTexture(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
@@ -518,13 +518,13 @@ namespace Graphics
 			objects_ClientSide[PipelineObjects::ShaderResourceView].erase(id);
 			toRemove.push({ id, PipelineObjects::ShaderResourceView });
 		}
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateRasterizerState(Utilities::GUID id, const Pipeline::RasterizerState & state)
+	UERROR PipelineHandler::CreateRasterizerState(Utilities::GUID id, const Pipeline::RasterizerState & state)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::RasterizerState].find(id); find != objects_ClientSide[PipelineObjects::RasterizerState].end())
-			RETURN_GRAPHICS_ERROR("Rasterizer state with name already exists", 1);
+			RETURN_ERROR("Rasterizer already exists");
 
 		D3D11_RASTERIZER_DESC rd;
 		rd.AntialiasedLineEnable = false;
@@ -552,15 +552,15 @@ namespace Graphics
 		rd.SlopeScaledDepthBias = 0;
 
 		ID3D11RasterizerState* rs;
-		RETURN_IF_GRAPHICS_ERROR(device->CreateRasterizerState(&rd, &rs), "Could not create rasterizer state");
+		RETURN_IF_HR_ERROR(device->CreateRasterizerState(&rd, &rs), "Could not create rasterizer state");
 
 		objects_ClientSide[PipelineObjects::RasterizerState].emplace(id);
 		toAdd.push({ id, PipelineObjects::RasterizerState_{rs} });
 
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyRasterizerState(Utilities::GUID id)
+	UERROR PipelineHandler::DestroyRasterizerState(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::RasterizerState].find(id); find != objects_ClientSide[PipelineObjects::RasterizerState].end())
@@ -568,13 +568,13 @@ namespace Graphics
 			objects_ClientSide[PipelineObjects::RasterizerState].erase(id);
 			toRemove.push({ id, PipelineObjects::RasterizerState });
 		}
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateBlendState(Utilities::GUID id, const Pipeline::BlendState & state)
+	UERROR PipelineHandler::CreateBlendState(Utilities::GUID id, const Pipeline::BlendState & state)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::BlendState].find(id); find != objects_ClientSide[PipelineObjects::BlendState].end())
-			RETURN_GRAPHICS_ERROR("BlendState with name already exists", 1);
+			RETURN_ERROR("BlendState already exists");
 
 
 		D3D11_BLEND_DESC bd;
@@ -663,15 +663,15 @@ namespace Graphics
 		bd.RenderTarget[0] = rtbd[0];
 
 		ID3D11BlendState* blendState;
-		RETURN_IF_GRAPHICS_ERROR(device->CreateBlendState(&bd, &blendState), "Could not create blendstate");
+		RETURN_IF_HR_ERROR(device->CreateBlendState(&bd, &blendState), "Could not create blendstate");
 
 
 		objects_ClientSide[PipelineObjects::BlendState].emplace(id);
 		toAdd.push({ id, PipelineObjects::BlendState_{ blendState } });
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyBlendState(Utilities::GUID id)
+	UERROR PipelineHandler::DestroyBlendState(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::BlendState].find(id); find != objects_ClientSide[PipelineObjects::BlendState].end())
@@ -679,13 +679,13 @@ namespace Graphics
 			objects_ClientSide[PipelineObjects::BlendState].erase(id);
 			toRemove.push({ id, PipelineObjects::BlendState });
 		}
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilState(Utilities::GUID id, const Pipeline::DepthStencilState & state)
+	UERROR PipelineHandler::CreateDepthStencilState(Utilities::GUID id, const Pipeline::DepthStencilState & state)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilState].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilState].end())
-			RETURN_GRAPHICS_ERROR("DepthStencilState with name already exists", 1);
+			RETURN_ERROR("DepthStencilState already exists");
 
 		D3D11_DEPTH_STENCIL_DESC dsd;
 		dsd.DepthEnable = state.enableDepth;
@@ -716,14 +716,14 @@ namespace Graphics
 		dsd.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 
 		ID3D11DepthStencilState* dss;
-		RETURN_IF_GRAPHICS_ERROR(device->CreateDepthStencilState(&dsd, &dss), "Could not create DepthStencilState");
+		RETURN_IF_HR_ERROR(device->CreateDepthStencilState(&dsd, &dss), "Could not create DepthStencilState");
 
 		objects_ClientSide[PipelineObjects::DepthStencilState].emplace(id);
 		toAdd.push({ id, PipelineObjects::DepthStencilState_{ dss } });
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyDepthStencilState(Utilities::GUID id)
+	UERROR PipelineHandler::DestroyDepthStencilState(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilState].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilState].end())
@@ -731,13 +731,13 @@ namespace Graphics
 			objects_ClientSide[PipelineObjects::DepthStencilState].erase(id);
 			toRemove.push({ id, PipelineObjects::DepthStencilState });
 		}
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateSamplerState(Utilities::GUID id, const Pipeline::SamplerState & state)
+	UERROR PipelineHandler::CreateSamplerState(Utilities::GUID id, const Pipeline::SamplerState & state)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::SamplerState].find(id); find != objects_ClientSide[PipelineObjects::SamplerState].end())
-			RETURN_GRAPHICS_ERROR("SamplerState with name already exists", 1);
+			RETURN_ERROR("SamplerState already exists");
 
 		D3D11_SAMPLER_DESC sd;
 		ZeroMemory(&sd, sizeof(D3D11_SAMPLER_DESC));
@@ -771,14 +771,14 @@ namespace Graphics
 		sd.MaxLOD = D3D11_FLOAT32_MAX;
 		sd.MaxAnisotropy = state.maxAnisotropy;
 		ID3D11SamplerState* samplerState;
-		RETURN_IF_GRAPHICS_ERROR(device->CreateSamplerState(&sd, &samplerState), "Could not create SamplerState");
+		RETURN_IF_HR_ERROR(device->CreateSamplerState(&sd, &samplerState), "Could not create SamplerState");
 
 		objects_ClientSide[PipelineObjects::SamplerState].emplace(id);
 		toAdd.push({ id, PipelineObjects::SamplerState_{ samplerState } });
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroySamplerState(Utilities::GUID id)
+	UERROR PipelineHandler::DestroySamplerState(Utilities::GUID id)
 	{
 		StartProfile;
 		if (auto find = objects_ClientSide[PipelineObjects::SamplerState].find(id); find != objects_ClientSide[PipelineObjects::SamplerState].end())
@@ -786,9 +786,9 @@ namespace Graphics
 			objects_ClientSide[PipelineObjects::SamplerState].erase(id);
 			toRemove.push({ id, PipelineObjects::SamplerState });
 		}
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateTarget(Utilities::GUID id, const Pipeline::Target & target)
+	UERROR PipelineHandler::CreateTarget(Utilities::GUID id, const Pipeline::Target & target)
 	{
 		StartProfile;
 
@@ -814,13 +814,13 @@ namespace Graphics
 		desc.SampleDesc.Quality = 0;
 
 		SafeDXP<ID3D11Texture2D> texture;
-		RETURN_IF_GRAPHICS_ERROR(device->CreateTexture2D(&desc, nullptr, texture.Create()), "Could not create texture");
+		RETURN_IF_HR_ERROR(device->CreateTexture2D(&desc, nullptr, texture.Create()), "Could not create texture");
 
 
 		if (target.flags & Pipeline::TargetFlags::SHADER_RESOURCE)
 		{
 			if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
-				RETURN_GRAPHICS_ERROR("Texture with name already exists", 1);
+				RETURN_ERROR("Texture already exists");
 
 			ID3D11ShaderResourceView* srv;
 			D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -828,7 +828,7 @@ namespace Graphics
 			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 			srvDesc.Texture2D.MostDetailedMip = 0;
 			srvDesc.Texture2D.MipLevels = 1;
-			RETURN_IF_GRAPHICS_ERROR(device->CreateShaderResourceView(texture.Get(), &srvDesc, &srv), "Could not create ShaderResourceView");
+			RETURN_IF_HR_ERROR(device->CreateShaderResourceView(texture.Get(), &srvDesc, &srv), "Could not create ShaderResourceView");
 
 			objects_ClientSide[PipelineObjects::ShaderResourceView].emplace(id);
 			toAdd.push({ id, PipelineObjects::ShaderResourceView_{ srv} });
@@ -836,7 +836,7 @@ namespace Graphics
 		if (target.flags & Pipeline::TargetFlags::UNORDERED_ACCESS)
 		{
 			if (auto find = objects_ClientSide[PipelineObjects::UnorderedAccessView].find(id); find != objects_ClientSide[PipelineObjects::UnorderedAccessView].end())
-				RETURN_GRAPHICS_ERROR("UnorderedAccessView with name already exists", 1);
+				RETURN_ERROR("UnorderedAccessView already exists");
 
 			D3D11_UNORDERED_ACCESS_VIEW_DESC description;
 			ZeroMemory(&description, sizeof(description));
@@ -845,7 +845,7 @@ namespace Graphics
 			description.Texture2D.MipSlice = 0;
 
 			ID3D11UnorderedAccessView* unorderedAccessView;
-			RETURN_IF_GRAPHICS_ERROR(device->CreateUnorderedAccessView(texture.Get(), &description, &unorderedAccessView), "Could not create UnorderedAccessView");
+			RETURN_IF_HR_ERROR(device->CreateUnorderedAccessView(texture.Get(), &description, &unorderedAccessView), "Could not create UnorderedAccessView");
 			
 			objects_ClientSide[PipelineObjects::UnorderedAccessView].emplace(id);
 			toAdd.push({ id, PipelineObjects::UnorderedAccessView_{ unorderedAccessView, { target.clearColor[0] , target.clearColor[1], target.clearColor[2], target.clearColor[3] } } });
@@ -855,14 +855,14 @@ namespace Graphics
 		if (target.flags & Pipeline::TargetFlags::RENDER_TARGET)
 		{
 			if (auto find = objects_ClientSide[PipelineObjects::RenderTarget].find(id); find != objects_ClientSide[PipelineObjects::RenderTarget].end())
-				RETURN_GRAPHICS_ERROR("RenderTarget with name already exists", 1);
+				RETURN_ERROR("RenderTarget already exists");
 
 			D3D11_RENDER_TARGET_VIEW_DESC rtvd;
 			rtvd.Format = desc.Format;
 			rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 			rtvd.Texture2D.MipSlice = 0;
 			ID3D11RenderTargetView* rtv;
-			RETURN_IF_GRAPHICS_ERROR(device->CreateRenderTargetView(texture.Get(), &rtvd, &rtv), "Could not create RenderTarget");
+			RETURN_IF_HR_ERROR(device->CreateRenderTargetView(texture.Get(), &rtvd, &rtv), "Could not create RenderTarget");
 
 			objects_ClientSide[PipelineObjects::RenderTarget].emplace(id);
 			toAdd.push({ id, PipelineObjects::RenderTarget_{ rtv,{ target.clearColor[0] , target.clearColor[1], target.clearColor[2], target.clearColor[3] } } });
@@ -870,9 +870,9 @@ namespace Graphics
 
 
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyTarget(Utilities::GUID id)
+	UERROR PipelineHandler::DestroyTarget(Utilities::GUID id)
 	{
 		if (auto find = objects_ClientSide[PipelineObjects::RenderTarget].find(id); find != objects_ClientSide[PipelineObjects::RenderTarget].end())
 		{
@@ -889,12 +889,12 @@ namespace Graphics
 			objects_ClientSide[PipelineObjects::ShaderResourceView].erase(id);
 			toRemove.push({ id, PipelineObjects::ShaderResourceView });
 		}
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::CreateDepthStencilView(Utilities::GUID id, const Pipeline::DepthStencilView & view)
+	UERROR PipelineHandler::CreateDepthStencilView(Utilities::GUID id, const Pipeline::DepthStencilView & view)
 	{
 		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilView].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilView].end())
-			RETURN_GRAPHICS_ERROR("DepthStencilView with name already exists", 1);
+			RETURN_ERROR("DepthStencilView already exists");
 
 		D3D11_TEXTURE2D_DESC desc;
 		desc.Width = UINT(view.width);
@@ -918,12 +918,12 @@ namespace Graphics
 
 		 SafeDXP<ID3D11Texture2D> texture;
 
-		RETURN_IF_GRAPHICS_ERROR(device->CreateTexture2D(&desc, nullptr, texture.Create()), "Could not create texture");
+		RETURN_IF_HR_ERROR(device->CreateTexture2D(&desc, nullptr, texture.Create()), "Could not create texture");
 
 		if (view.flags & Pipeline::DepthStencilViewFlags::SHADER_RESOURCE)
 		{
 			if (auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find(id); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end())
-				RETURN_GRAPHICS_ERROR("Texture with name already exists", 1);
+				RETURN_ERROR("Texture already exists");
 
 			D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
 			srvd.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
@@ -931,20 +931,20 @@ namespace Graphics
 			srvd.Texture2D.MostDetailedMip = 0;
 			srvd.Texture2D.MipLevels = 1;
 			ID3D11ShaderResourceView* srv;
-			RETURN_IF_GRAPHICS_ERROR(device->CreateShaderResourceView(texture.Get(), &srvd, &srv), "Could not create ShaderResourceView");
+			RETURN_IF_HR_ERROR(device->CreateShaderResourceView(texture.Get(), &srvd, &srv), "Could not create ShaderResourceView");
 			objects_ClientSide[PipelineObjects::ShaderResourceView].emplace(id);
 			toAdd.push({ id, PipelineObjects::ShaderResourceView_{ srv } });
 		}
 
 		ID3D11DepthStencilView* dsv;
-		RETURN_IF_GRAPHICS_ERROR(device->CreateDepthStencilView(texture.Get(), &dsvd, &dsv), "Could not create depthstencilview");
+		RETURN_IF_HR_ERROR(device->CreateDepthStencilView(texture.Get(), &dsvd, &dsv), "Could not create depthstencilview");
 
 		objects_ClientSide[PipelineObjects::DepthStencilView].emplace(id);
 		toAdd.push({ id, PipelineObjects::DepthStencilView_{ dsv } });
 
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
-	GRAPHICS_ERROR PipelineHandler::DestroyDepthStencilView(Utilities::GUID id)
+	UERROR PipelineHandler::DestroyDepthStencilView(Utilities::GUID id)
 	{
 		if (auto find = objects_ClientSide[PipelineObjects::DepthStencilView].find(id); find != objects_ClientSide[PipelineObjects::DepthStencilView].end())
 		{
@@ -956,10 +956,10 @@ namespace Graphics
 			objects_ClientSide[PipelineObjects::ShaderResourceView].erase(id);
 			toRemove.push({ id, PipelineObjects::ShaderResourceView });
 		}
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
 
-	GRAPHICS_ERROR PipelineHandler::UpdatePipelineObjects()
+	UERROR PipelineHandler::UpdatePipelineObjects()
 	{
 		StartProfile;
 		while (!toRemove.wasEmpty())
@@ -976,7 +976,7 @@ namespace Graphics
 
 			toAdd.pop();
 		}
-		RETURN_GRAPHICS_SUCCESS;
+		RETURN_SUCCESS;
 	}
 	UpdateObject * PipelineHandler::GetUpdateObject(Utilities::GUID id, PipelineObjectType type)
 	{
