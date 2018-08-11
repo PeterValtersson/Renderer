@@ -215,6 +215,10 @@ namespace Graphics
 			{
 				return { data, numVerts, byteWidth, numVerts, BufferFlags::BIND_VERTEX | (dynamic ? BufferFlags::DYNAMIC : BufferFlags::DEFAULT) };
 			}
+			static Buffer StructuredBuffer(void* data, uint16_t byteWidth, uint32_t count)
+			{
+				return {data, count, byteWidth, count, BufferFlags::STRUCTURED | BufferFlags::DEFAULT};
+			}
 		};
 
 		struct InputAssemblerStage

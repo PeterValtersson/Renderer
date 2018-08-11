@@ -1,5 +1,6 @@
 #include <Graphics\Renderer_Interface.h>
 #include "Renderer_DX11.h"
+#include "SecretPointer.h"
 DECLDIR_GRAPHICS_C Graphics::Renderer_Interface * CreateRenderer(Renderer_Backend backend, const Graphics::RendererInitializationInfo & ii)
 {
 	switch (backend)
@@ -43,3 +44,11 @@ DECLDIR_GRAPHICS_C Graphics::RendererInitializationInfo Renderer_GetSettings_C(G
 {
 	return r->GetSettings();
 }
+
+Graphics::Renderer_Interface * Graphics::Get()
+{
+	if (!renderer)
+		THROW_ERROR("No renderer instance");
+	return renderer;
+}
+

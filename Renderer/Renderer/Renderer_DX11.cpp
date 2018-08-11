@@ -1,5 +1,6 @@
 #include "Renderer_DX11.h"
 #include <Profiler.h>
+#include "SecretPointer.h"
 namespace Graphics
 {
 
@@ -35,6 +36,7 @@ namespace Graphics
 			device->GetViewport()));
 
 		initiated = true;
+		renderer = this;
 		RETURN_SUCCESS;
 	}
 	void Renderer_DX11::Shutdown()
@@ -58,6 +60,7 @@ namespace Graphics
 
 		
 		initiated = false;
+		renderer = nullptr;
 	}	
 
 	float clearColor[5][4] = {

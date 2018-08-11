@@ -62,6 +62,8 @@ namespace Graphics
 	protected:
 		Renderer_Interface() {};
 	};
+
+	DECLDIR_GRAPHICS Renderer_Interface* Get();
 }
 enum class Renderer_Backend
 {

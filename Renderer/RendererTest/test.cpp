@@ -161,3 +161,19 @@ TEST(RendererTest, CreateBuffers) {
 
 	Renderer_Shutdown_C(r);
 }
+
+
+TEST(RendererTest, Get) {
+
+	HWND w;
+	InitWindow(w);
+	auto r = CreateRenderer(Renderer_Backend::DIRECTX11, { w });
+	auto re = Renderer_Initialize_C(r);
+	EXPECT_EQ(re.hash, "Success"_hash);
+
+	re = Renderer_Start_C(r);
+	EXPECT_EQ(re.hash, "Success"_hash);
+
+	auto nr = Graphics::Get();
+
+}
