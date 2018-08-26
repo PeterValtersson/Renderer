@@ -136,15 +136,17 @@ namespace Graphics
 	UERROR PipelineHandler::CreateBuffer(Utilities::GUID id, const Pipeline::Buffer & buffer)
 	{
 		StartProfile;
+		if (buffer.elementCount == 0)
+			RETURN_ERROR_EX("Buffer with element count of zero", id);
 		if (buffer.flags & Pipeline::BufferFlags::BIND_CONSTANT)
 		{
 			if (buffer.elementStride % 16 != 0)
-				RETURN_ERROR("Constant buffer memory must be a multiple of 16 bytes");
+				RETURN_ERROR_EX("Constant buffer memory must be a multiple of 16 bytes", id);
 		}
 
 		if (auto find = objects_ClientSide[PipelineObjects::Buffer].find(id); find != objects_ClientSide[PipelineObjects::Buffer].end())
 		{
-			RETURN_ERROR("Buffer already exists");
+			RETURN_ERROR_EX("Buffer already exists", id);
 		}
 
 		D3D11_BUFFER_DESC bd;
