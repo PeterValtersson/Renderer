@@ -1,10 +1,10 @@
 #ifndef SE_GRAPHICS_PIPELINE_H_
 #define SE_GRAPHICS_PIPELINE_H_
 #include <cstdint>
-#include <GUID.h>
+#include <Utilities/GUID.h>
 #include <type_traits>
 #include <functional>
-#include <Flags.h>
+#include <Utilities/Flags.h>
 
 namespace Graphics
 {
@@ -12,8 +12,8 @@ namespace Graphics
 	static const Utilities::GUID Default_Viewport("FullscreenViewPort");
 	static const Utilities::GUID Default_DepthStencil("BackbufferDepthStencil");
 	static const Utilities::GUID Default_VertexShader_FullscreenQUAD("FullscreenQUADVS");
-	static const Utilities::GUID Default_PixelShader_POS_TEXTURE_MULTICHANNGEL("MultichannelPixelShader");
-	static const Utilities::GUID Default_PixelShader_POS_TEXTURE_SingleCHANNGEL("SinglechannelPixelShader");
+	static const Utilities::GUID Default_PixelShader_POS_TEXTURE_MultiChannel("MultichannelPixelShader");
+	static const Utilities::GUID Default_PixelShader_POS_TEXTURE_SingleChannel("SinglechannelPixelShader");
 	namespace Pipeline
 	{
 		enum class CullMode

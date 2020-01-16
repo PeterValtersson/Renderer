@@ -1,67 +1,37 @@
 #include "Renderer_DX11.h"
-#include <Profiler.h>
-#include "SecretPointer.h"
+#include <Utilities/Profiler/Profiler.h>
 namespace Graphics
 {
 
 	Renderer_DX11::Renderer_DX11(const RendererInitializationInfo & ii)
-		: settings(ii), running(false), initiated(false), pipeline(nullptr), device(nullptr)
+		: settings(ii), running(false)
 	{
+		device_handler = std::make_unique<DeviceHandler>( ( HWND )settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount );
+
+		pipeline = std::make_unique<PipelineAssigner>( device_handler->GetDevice(), device_handler->GetDeviceContext(),
+													   device_handler->GetRTV(), device_handler->GetSRV(),
+													   device_handler->GetDepthStencil(), device_handler->GetDepthSRV(),
+													   device_handler->GetViewport() );
 
 	}
 
 
-	Renderer_DX11::~Renderer_DX11()
+	Renderer_DX11::~Renderer_DX11()noexcept
 	{
-	}
-	UERROR Renderer_DX11::Initialize()
-	{
-		StartProfile;
-
-		if (initiated)
-			RETURN_ERROR("Renderer has already been initiated");
-
-		device = new DeviceHandler();
-		if (!device)
-			RETURN_ERROR("Could not create device handler");
-		PASS_IF_ERROR(device->Init((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));
-		
-		pipeline = new PipelineAssigner();
-		if (!device)
-			RETURN_ERROR("Could not create pipeline");
-
-		PASS_IF_ERROR(pipeline->Init(device->GetDevice(), device->GetDeviceContext(), 
-			device->GetRTV(), device->GetSRV(),
-			device->GetDepthStencil(), device->GetDepthSRV(),
-			device->GetViewport()));
-
-		initiated = true;
-		renderer = this;
-		RETURN_SUCCESS;
-	}
-	void Renderer_DX11::Shutdown()
-	{
-		StartProfile;
-		if (running)
+		if ( running )
 		{
 			running = false;
 			myThread.join();
 		}
-		if (pipeline)
+		if ( pipeline )
 		{
 			pipeline->Shutdown();
-			pipeline = nullptr;
 		}
-		if (device)
+		if ( device_handler )
 		{
-			device->Shutdown();
-			device = nullptr;
+			device_handler->Shutdown();
 		}
-
-		
-		initiated = false;
-		renderer = nullptr;
-	}	
+	}
 
 	float clearColor[5][4] = {
 		{1, 0, 0, 1 },
@@ -71,10 +41,10 @@ namespace Graphics
 	{ 0, 0, 1, 1 }
 	};
 	int at = 0;
-	void Renderer_DX11::Pause()
+	void Renderer_DX11::Pause()noexcept
 	{
 	
-		StartProfile;
+		PROFILE;
 		if (running)
 		{
 			running = false;
@@ -82,54 +52,49 @@ namespace Graphics
 		}
 		at = ++at % 5;
 	}
-	UERROR Renderer_DX11::Start()
+	void Renderer_DX11::Start()noexcept
 	{
-		StartProfile;
-		if (running)
-			RETURN_ERROR("Renderer already running");
-		if (!initiated)
-			RETURN_ERROR("Renderer must be initiated first");
+		PROFILE;
+		if ( running )
+			return;
+		
 		running = true;
 		myThread = std::thread(&Renderer_DX11::Run, this);
-		RETURN_SUCCESS;
 	}
-	UERROR Renderer_DX11::UpdateSettings(const RendererInitializationInfo & ii)
+	void Renderer_DX11::UpdateSettings(const RendererInitializationInfo & ii)
 	{
-		StartProfile;
+		PROFILE;
 		settings = ii;
-		PASS_IF_ERROR(device->ResizeSwapChain((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount));
-
-		RETURN_SUCCESS;
+		device_handler->ResizeSwapChain((HWND)settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount);
 	}
-	const RendererInitializationInfo & Renderer_DX11::GetSettings() const
+	const RendererInitializationInfo & Renderer_DX11::GetSettings() const noexcept
 	{
 		return settings;
 	}
-	PipelineHandler_Interface * Renderer_DX11::GetPipelineHandler()
-	{
-		return pipeline;
-	}
-	UERROR Renderer_DX11::AddRenderJob(Utilities::GUID id, const RenderJob & job, RenderGroup renderGroup)
-	{
-		StartProfile;
 
-		if (renderJobs.clientSide.Find(id, renderGroup).has_value())
-			RETURN_ERROR("RenderJob is already registered to group");
+	void Renderer_DX11::UsePipelineHandler( const std::function<void( PipelineHandler_Interface & pipeline_handler )>& callback ) noexcept
+	{
+		callback( *pipeline );
+	}
+
+	void Renderer_DX11::AddRenderJob(Utilities::GUID id, const RenderJob & job, RenderGroup renderGroup)
+	{
+		PROFILE;
+
+		if ( renderJobs.clientSide.Find( id, renderGroup ).has_value() )
+			throw RenderJob_Exisits( id );
 
 		renderJobs.clientSide.GetIDs(renderGroup).push_back(id);
 
 		renderJobs.jobsToAdd.push({ id, renderGroup, job });
-
-
-		RETURN_SUCCESS;
 	}
-	UERROR Renderer_DX11::AddRenderJob(const RenderJob & job, RenderGroup renderGroup)
+	void Renderer_DX11::AddRenderJob(const RenderJob & job, RenderGroup renderGroup)
 	{
 		return AddRenderJob(job.pipeline.ID(), job, renderGroup);
 	}
-	void Renderer_DX11::RemoveRenderJob(Utilities::GUID id, RenderGroup renderGroup)
+	void Renderer_DX11::RemoveRenderJob(Utilities::GUID id, RenderGroup renderGroup)noexcept
 	{
-		StartProfile;
+		PROFILE;
 
 		if (auto index = renderJobs.clientSide.Find(id, renderGroup); index.has_value())
 		{
@@ -140,9 +105,9 @@ namespace Graphics
 			renderJobs.jobsToRemove.push({ id, renderGroup });
 		}
 	}
-	void Renderer_DX11::RemoveRenderJob(Utilities::GUID id)
+	void Renderer_DX11::RemoveRenderJob(Utilities::GUID id)noexcept
 	{
-		StartProfile;
+		PROFILE;
 
 		for (uint8_t i = 0; i <= uint8_t(RenderGroup::FINAL_PASS); i++)
 		{
@@ -157,39 +122,39 @@ namespace Graphics
 		}
 		
 	}
-	uint32_t Renderer_DX11::GetNumberOfRenderJobs() const
+	size_t Renderer_DX11::GetNumberOfRenderJobs() const noexcept
 	{
-		StartProfile;
+		PROFILE;
 
-		uint32_t count = 0;
+		size_t count = 0;
 		for (auto&g : renderJobs.clientSide.renderGroupsWithID)
-			count += uint32_t(g.size());
+			count += g.size();
 
 		return count;
 	}
-	uint8_t Renderer_DX11::IsRenderJobRegistered(Utilities::GUID id) const
+	size_t Renderer_DX11::IsRenderJobRegistered(Utilities::GUID id) const noexcept
 	{
-		return renderJobs.clientSide.Registered(id);
+		return renderJobs.clientSide.IsRegistered( id );
 	}
-	UERROR Renderer_DX11::AddUpdateJob(Utilities::GUID id, const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
+	void Renderer_DX11::AddUpdateJob(Utilities::GUID id, const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
 	{
-		StartProfile;
-		if (auto find = updateJobs.clientSide.Find(id, renderGroupToPerformUpdateBefore); find.has_value())
-			RETURN_ERROR("UpdateJob with this id already exists");
+		PROFILE;
+		if ( auto find = updateJobs.clientSide.Find( id, renderGroupToPerformUpdateBefore ); find.has_value() )
+			throw UpdateJob_Exisits( id );
 
 		if(job.frequency != UpdateFrequency::ONCE)
 			updateJobs.clientSide.GetIDs(renderGroupToPerformUpdateBefore).push_back(id);
 
 		updateJobs.jobsToAdd.push({ id, renderGroupToPerformUpdateBefore, job });
-		RETURN_SUCCESS;
+
 	}
-	UERROR Renderer_DX11::AddUpdateJob(const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
+	void Renderer_DX11::AddUpdateJob(const UpdateJob & job, RenderGroup renderGroupToPerformUpdateBefore)
 	{
 		return AddUpdateJob(job.objectToMap, job, renderGroupToPerformUpdateBefore);
 	}
-	void Renderer_DX11::RemoveUpdateJob(Utilities::GUID id, RenderGroup renderGroup)
+	void Renderer_DX11::RemoveUpdateJob(Utilities::GUID id, RenderGroup renderGroup)noexcept
 	{
-		StartProfile;
+		PROFILE;
 
 		if (auto index = renderJobs.clientSide.Find(id, renderGroup); index.has_value())
 		{
@@ -200,9 +165,9 @@ namespace Graphics
 			updateJobs.jobsToRemove.push({ id, renderGroup });
 		}
 	}
-	void Renderer_DX11::RemoveUpdateJob(Utilities::GUID id)
+	void Renderer_DX11::RemoveUpdateJob(Utilities::GUID id)noexcept
 	{
-		StartProfile;
+		PROFILE;
 
 		for (uint8_t i = 0; i <= uint8_t(RenderGroup::FINAL_PASS); i++)
 		{
@@ -216,23 +181,23 @@ namespace Graphics
 			}
 		}
 	}
-	uint32_t Renderer_DX11::GetNumberOfUpdateJobs() const
+	size_t Renderer_DX11::GetNumberOfUpdateJobs() const noexcept
 	{
-		StartProfile;
+		PROFILE;
 
-		uint32_t count = 0;
+		size_t count = 0;
 		for (auto&g : updateJobs.clientSide.renderGroupsWithID)
-			count += uint32_t(g.size());
+			count += g.size();
 
 		return count;
 	}
-	uint8_t Renderer_DX11::IsUpdateJobRegistered(Utilities::GUID id) const
+	size_t Renderer_DX11::IsUpdateJobRegistered(Utilities::GUID id) const noexcept
 	{
-		return updateJobs.clientSide.Registered(id);
+		return updateJobs.clientSide.IsRegistered(id);
 	}
 	void Renderer_DX11::Run()
 	{
-		StartProfile;
+		PROFILE;
 		while (running)
 		{
 			StartProfileC("Run_While");
@@ -249,7 +214,7 @@ namespace Graphics
 	}
 	void Renderer_DX11::ResolveJobs()
 	{
-		StartProfile;
+		PROFILE;
 		{
 			pipeline->UpdatePipelineObjects();
 
@@ -267,20 +232,20 @@ namespace Graphics
 	}
 	void Renderer_DX11::BeginFrame()
 	{
-		StartProfile;
-		ID3D11RenderTargetView* views[] = { device->GetRTV() };
-		device->GetDeviceContext()->OMSetRenderTargets(1, views, device->GetDepthStencil());
+		PROFILE;
+		ID3D11RenderTargetView* views[] = { device_handler->GetRTV() };
+		device_handler->Getdevice_handlerContext()->OMSetRenderTargets(1, views, device_handler->GetDepthStencil());
 
 		// Clear the primary render target view using the specified color
-		device->GetDeviceContext()->ClearRenderTargetView(device->GetRTV(), clearColor[at]);
+		device_handler->Getdevice_handlerContext()->ClearRenderTargetView(device_handler->GetRTV(), clearColor[at]);
 
 		// Clear the standard depth stencil view
-		device->GetDeviceContext()->ClearDepthStencilView(device->GetDepthStencil(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+		device_handler->Getdevice_handlerContext()->ClearDepthStencilView(device_handler->GetDepthStencil(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	}
 	void Renderer_DX11::Frame()
 	{
-		StartProfile;
+		PROFILE;
 		static std::vector<JobStuff<UpdateJob>::ToRemove> updateJobsToRemove;
 		for (uint8_t i = 0; i <= uint8_t(RenderGroup::FINAL_PASS); i++)
 		{
@@ -300,8 +265,8 @@ namespace Graphics
 	}
 	void Renderer_DX11::EndFrame()
 	{
-		StartProfile;
-		device->Present(settings.vsync);
+		PROFILE;
+		device_handler->Present(settings.vsync);
 	}
 
 }

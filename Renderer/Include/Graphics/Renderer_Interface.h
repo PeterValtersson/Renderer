@@ -1,81 +1,86 @@
 #ifndef _GRAPHICS_RENDERER_INTERFACE_H_
 #define _GRAPHICS_RENDERER_INTERFACE_H_
 #include "../DLLExport.h"
-#include <Error.h>
 #include "PipelineHandler_Interface.h"
 #include <stdint.h>
 #include "RenderJob.h"
 #include "UpdateJob.h"
-
+#include <Utilities/GUID.h>
+#include <Utilities/ErrorHandling.h>
 namespace Graphics
 {
-	enum class WindowState : uint8_t
-	{
+	struct RenderJob_Exisits : Utilities::Exception{
+		RenderJob_Exisits( Utilities::GUID ID ) : Utilities::Exception( "RenderJob \"" + ID.to_string() + "\" already exists" )
+		{};
+	};
+	struct UpdateJob_Exisits : Utilities::Exception{
+		UpdateJob_Exisits( Utilities::GUID ID ) : Utilities::Exception( "UpdateJob \"" + ID.to_string() + "\" already exists" )
+		{};
+	};
+	enum class WindowState : uint8_t{
 		WINDOWED,
 		FULLSCREEN,
 		FULLSCREEN_BORDERLESS
 	};
-	struct Resolution
-	{
+	struct Resolution{
 		uint32_t width;
 		uint32_t height;
 	};
-	struct RendererInitializationInfo
-	{
+	struct RendererInitializationInfo{
 		void* windowHandle = nullptr;
 		WindowState windowState = WindowState::WINDOWED;
-		uint32_t bufferCount = 2;
+		uint8_t bufferCount = 2;
 		Resolution resolution = { 1280, 720 };
 		uint8_t vsync = 1Ui8;
 	};
-	class Renderer_Interface
-	{
-	public:
-		virtual ~Renderer_Interface() {};
-
-		virtual UERROR Initialize() = 0;
-		virtual void Shutdown() = 0;
-
-		virtual void Pause() = 0;
-		virtual UERROR Start() = 0;
-
-		virtual UERROR UpdateSettings(const RendererInitializationInfo& ii) = 0;
-		virtual const RendererInitializationInfo& GetSettings()const = 0;
-
-		virtual PipelineHandler_Interface* GetPipelineHandler() = 0;
-
-		virtual UERROR AddRenderJob(Utilities::GUID id, const RenderJob& job, RenderGroup renderGroup) = 0;
-		// Will use the id of the pipeline
-		virtual UERROR AddRenderJob(const RenderJob& job, RenderGroup renderGroup) = 0;
-		virtual void RemoveRenderJob(Utilities::GUID id, RenderGroup renderGroup) = 0;
-		virtual void RemoveRenderJob(Utilities::GUID id) = 0;
-		virtual uint32_t GetNumberOfRenderJobs()const = 0;
-		virtual uint8_t IsRenderJobRegistered(Utilities::GUID id)const = 0;
-
-		virtual UERROR AddUpdateJob(Utilities::GUID id, const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore) = 0;
-		// Will use the id of the object
-		virtual UERROR AddUpdateJob(const UpdateJob& job, RenderGroup renderGroup) = 0;
-		virtual void RemoveUpdateJob(Utilities::GUID id, RenderGroup renderGroupToPerformUpdateBefore) = 0;
-		virtual void RemoveUpdateJob(Utilities::GUID id) = 0;
-		virtual uint32_t GetNumberOfUpdateJobs()const = 0;
-		virtual uint8_t IsUpdateJobRegistered(Utilities::GUID id)const = 0;
-	protected:
-		Renderer_Interface() {};
+	enum class Renderer_Backend{
+		DIRECTX11
 	};
+	class Renderer_Interface{
+	public:
+		DECLDIR_GRAPHICS static std::unique_ptr<Renderer_Interface> Create_Renderer( Renderer_Backend backend, const RendererInitializationInfo& ii );
 
-	DECLDIR_GRAPHICS Renderer_Interface* Get();
+		virtual ~Renderer_Interface()noexcept
+		{};
+
+		virtual void Pause()noexcept = 0;
+		virtual void Start()noexcept = 0;
+
+		virtual void UpdateSettings( const RendererInitializationInfo& ii ) = 0;
+		virtual const RendererInitializationInfo& GetSettings()const noexcept = 0;
+
+		virtual void UsePipelineHandler( const std::function<void( PipelineHandler_Interface & pipeline_handler )>& callback )noexcept = 0;
+
+		virtual void AddRenderJob( Utilities::GUID id, const RenderJob& job, RenderGroup renderGroup ) = 0;
+		// Will use the id of the pipeline
+		virtual void AddRenderJob( const RenderJob& job, RenderGroup renderGroup ) = 0;
+		virtual void RemoveRenderJob( Utilities::GUID id, RenderGroup renderGroup )noexcept = 0;
+		virtual void RemoveRenderJob( Utilities::GUID id )noexcept = 0;
+		virtual size_t GetNumberOfRenderJobs()const noexcept = 0;
+		// Returns the number of groups this job is registered under.
+		virtual size_t IsRenderJobRegistered( Utilities::GUID id )const noexcept = 0;
+
+		virtual void AddUpdateJob( Utilities::GUID id, const UpdateJob& job, RenderGroup renderGroupToPerformUpdateBefore ) = 0;
+		// Will use the id of the object
+		virtual void AddUpdateJob( const UpdateJob& job, RenderGroup renderGroup ) = 0;
+		virtual void RemoveUpdateJob( Utilities::GUID id, RenderGroup renderGroupToPerformUpdateBefore )noexcept = 0;
+		virtual void RemoveUpdateJob( Utilities::GUID id )noexcept = 0;
+		virtual size_t GetNumberOfUpdateJobs()const noexcept = 0;
+		// Returns the number of groups this job is registered under.
+		virtual size_t IsUpdateJobRegistered( Utilities::GUID id )const noexcept = 0;
+	protected:
+		Renderer_Interface()
+		{};
+	};
 }
-enum class Renderer_Backend
-{
-	DIRECTX11
-};
-DECLDIR_GRAPHICS_C Graphics::Renderer_Interface* CreateRenderer(Renderer_Backend backend, const Graphics::RendererInitializationInfo & ii);
-DECLDIR_GRAPHICS_C Utilities::Error Renderer_Initialize_C(Graphics::Renderer_Interface* r);
-DECLDIR_GRAPHICS_C void Renderer_Shutdown_C(Graphics::Renderer_Interface* r);
-DECLDIR_GRAPHICS_C void Renderer_Pause_C(Graphics::Renderer_Interface* r);
-DECLDIR_GRAPHICS_C Utilities::Error Renderer_Start_C(Graphics::Renderer_Interface* r);
 
-DECLDIR_GRAPHICS_C Utilities::Error Renderer_UpdateSettings_C(Graphics::Renderer_Interface* r, Graphics::RendererInitializationInfo ii);
-DECLDIR_GRAPHICS_C Graphics::RendererInitializationInfo Renderer_GetSettings_C(Graphics::Renderer_Interface* r);
+//DECLDIR_GRAPHICS_C Graphics::Renderer_Interface* CreateRenderer(Renderer_Backend backend, const Graphics::RendererInitializationInfo & ii);
+//DECLDIR_GRAPHICS_C Utilities::Error Renderer_Initialize_C(Graphics::Renderer_Interface* r);
+//DECLDIR_GRAPHICS_C void Renderer_Shutdown_C(Graphics::Renderer_Interface* r);
+//DECLDIR_GRAPHICS_C void Renderer_Pause_C(Graphics::Renderer_Interface* r);
+//DECLDIR_GRAPHICS_C Utilities::Error Renderer_Start_C(Graphics::Renderer_Interface* r);
+//
+//DECLDIR_GRAPHICS_C Utilities::Error Renderer_UpdateSettings_C(Graphics::Renderer_Interface* r, Graphics::RendererInitializationInfo ii);
+//DECLDIR_GRAPHICS_C Graphics::RendererInitializationInfo Renderer_GetSettings_C(Graphics::Renderer_Interface* r);
 
 #endif

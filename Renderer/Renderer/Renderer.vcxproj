@@ -155,7 +155,6 @@
     <ClCompile Include="PipelineHandler.cpp" />
     <ClCompile Include="Renderer_DX11.cpp" />
     <ClCompile Include="Renderer_Interface.cpp" />
-    <ClCompile Include="SecretPointer.cpp" />
     <ClCompile Include="UpdateObjects.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -171,7 +170,6 @@
     <ClInclude Include="PipelineObjects.h" />
     <ClInclude Include="Renderer_DX11.h" />
     <ClInclude Include="Safe_Release.h" />
-    <ClInclude Include="SecretPointer.h" />
     <ClInclude Include="UpdateObjects.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

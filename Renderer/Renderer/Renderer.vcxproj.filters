@@ -31,9 +31,6 @@
     <ClCompile Include="UpdateObjects.cpp">
       <Filter>DX11Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="SecretPointer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h">
@@ -71,9 +68,6 @@
       <Filter>DX11Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\Graphics\UpdateJob.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="SecretPointer.h">
       <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
