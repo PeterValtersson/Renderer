@@ -20,8 +20,8 @@ namespace Graphics
 		{
 			c->Unmap(bfr, 0);
 		}
-		UERROR WriteTo(void*data, size_t size)override;
-		UERROR ReadFrom(void*data, size_t size)override;
+		void WriteTo(void*data, size_t size)override;
+		void ReadFrom(void*data, size_t size)override;
 
 	private:
 		const void* GetInfo_()const override;

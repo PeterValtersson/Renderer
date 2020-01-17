@@ -9,6 +9,9 @@
 #include <Utilities/CircularFIFO.h>
 namespace Graphics
 {
+	struct Could_Not_Create_Device : Graphics_Exception{
+		Could_Not_Create_Device(long error) : Graphics_Exception("Could not create device")
+	};
 	class Renderer_DX11 : public Renderer_Interface{
 	public:
 		Renderer_DX11( const RendererInitializationInfo& ii );

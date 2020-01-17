@@ -1,13 +1,14 @@
 #include "DeviceHandler.h"
 #include "Safe_Release.h"
-#include <Profiler.h>
+#include <Utilities/Profiler/Profiler.h>
+#include <Graphics/PipelineHandler_Interface.h>
 
 #pragma comment(lib, "d3d11.lib")
 
 using namespace DirectX;
 namespace Graphics
 {
-	DeviceHandler::DeviceHandler() : gFeatureLevel()
+	DeviceHandler::DeviceHandler( HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount ) : gFeatureLevel()
 	{
 		gDevice = nullptr;
 		gDeviceContext = nullptr;
@@ -24,26 +25,18 @@ namespace Graphics
 		blendTransState = nullptr;
 		rasterSolidState = nullptr;
 		rasterWireState = nullptr;
-	}
-
-	DeviceHandler::~DeviceHandler() {
 
 
-	}
+		CreateDeviceResources();
 
-	UERROR DeviceHandler::Init(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount) {
+		CreateSwapChain( windowHandle, fullscreen, borderless, bufferCount );
 
-		StartProfile;
+		CreateBackBufferRTV();
 
-		PASS_IF_ERROR(CreateDeviceResources());
-
-		PASS_IF_ERROR(CreateSwapChain(windowHandle, fullscreen, borderless, bufferCount));
-
-		PASS_IF_ERROR(CreateBackBufferRTV());
-
-		PASS_IF_ERROR(CreateDepthStencil());
+		CreateDepthStencil();
 
 		SetViewport();
+
 		CreateBlendState();
 
 
@@ -59,43 +52,38 @@ namespace Graphics
 		rasterizerState.MultisampleEnable = false;
 		rasterizerState.AntialiasedLineEnable = false;
 
-		auto hr = gDevice->CreateRasterizerState(&rasterizerState, &rasterSolidState);
-		RETURN_IF_HR_ERROR(hr, "Failed to create rasterizer state");
+		if (auto hr = gDevice->CreateRasterizerState( &rasterizerState, &rasterSolidState ); FAILED(hr))
+			throw Could_Not_Create_RasterizerState( "CreateRasterizerState failed", "Rasterizer_Solid", {}, hr );
 
-		gDeviceContext->RSSetState(rasterSolidState);
+		gDeviceContext->RSSetState( rasterSolidState );
 
 		rasterizerState.FillMode = D3D11_FILL_WIREFRAME;
 
-		hr = gDevice->CreateRasterizerState(&rasterizerState, &rasterWireState);
-		RETURN_IF_HR_ERROR(hr, "Failed to create rasterizer state");
-
-
-		RETURN_SUCCESS;
+		if ( auto hr = gDevice->CreateRasterizerState( &rasterizerState, &rasterWireState ); FAILED( hr ) )
+			throw Could_Not_Create_RasterizerState( "CreateRasterizerState failed", "Rasterizer_Wired", {}, hr );
 
 	}
 
-	void DeviceHandler::Shutdown() {
-
-		StartProfile;
-		Safe_Release(gBBSRV);
-		Safe_Release(gBackBuffer);
-		Safe_Release(gBackbufferRTV);
-		Safe_Release(pDSState);
-		Safe_Release(gDepthStencilView);
-		Safe_Release(gDepthStencilSRV);
-		Safe_Release(blendSolidState);
-		Safe_Release(blendTransState);
-		Safe_Release(rasterSolidState);
-		Safe_Release(rasterWireState);
-		Safe_Release(gSwapChain);
-		Safe_Release(gSecDeviceContext);
-		Safe_Release(gDeviceContext);
-		Safe_Release(gDevice);
+	DeviceHandler::~DeviceHandler() {
+		Safe_Release( gBBSRV );
+		Safe_Release( gBackBuffer );
+		Safe_Release( gBackbufferRTV );
+		Safe_Release( pDSState );
+		Safe_Release( gDepthStencilView );
+		Safe_Release( gDepthStencilSRV );
+		Safe_Release( blendSolidState );
+		Safe_Release( blendTransState );
+		Safe_Release( rasterSolidState );
+		Safe_Release( rasterWireState );
+		Safe_Release( gSwapChain );
+		Safe_Release( gSecDeviceContext );
+		Safe_Release( gDeviceContext );
+		Safe_Release( gDevice );
 	}
 
-	UERROR DeviceHandler::CreateDeviceResources() {
+	void DeviceHandler::CreateDeviceResources() {
 
-		StartProfile;
+		PROFILE;
 
 		D3D_FEATURE_LEVEL levels[] = {
 
@@ -111,20 +99,21 @@ namespace Graphics
 		deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 
 #endif
-		HRESULT hr = D3D11CreateDevice(
+		if ( auto hr = D3D11CreateDevice(
 
 			nullptr,
 			D3D_DRIVER_TYPE_HARDWARE,
 			0,
 			deviceFlags,
 			levels,
-			ARRAYSIZE(levels),
+			ARRAYSIZE( levels ),
 			D3D11_SDK_VERSION,
 			&gDevice,
 			&gFeatureLevel,
 			&gDeviceContext
 
-		);
+			); FAILED(hr))
+			throw ;
 		RETURN_IF_HR_ERROR(hr, "Could not create device and device context");
 
 		hr = gDevice->CreateDeferredContext(0, &gSecDeviceContext);
@@ -135,7 +124,7 @@ namespace Graphics
 
 	UERROR DeviceHandler::CreateSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount) {
 
-		StartProfile;
+		PROFILE;
 
 		DXGI_SWAP_CHAIN_DESC swChDesc;
 		ZeroMemory(&swChDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
@@ -171,7 +160,7 @@ namespace Graphics
 
 	UERROR DeviceHandler::CreateBackBufferRTV() {
 
-		StartProfile;
+		PROFILE;
 
 		HRESULT hr = gSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&gBackBuffer);
 		RETURN_IF_HR_ERROR(hr, "Could not get backbuffer texture");
@@ -194,7 +183,7 @@ namespace Graphics
 
 	UERROR DeviceHandler::CreateDepthStencil() {
 
-		StartProfile;
+		PROFILE;
 
 		gBackBuffer->GetDesc(&gBB_Desc);
 		D3D11_TEXTURE2D_DESC td;
@@ -267,7 +256,7 @@ namespace Graphics
 	}
 
 	void DeviceHandler::SetViewport() {
-		StartProfile;
+		PROFILE;
 		ZeroMemory(&gViewportDefault, sizeof(D3D11_VIEWPORT));
 		gViewportDefault.TopLeftX = 0.0f;
 		gViewportDefault.TopLeftY = 0.0f;
@@ -288,7 +277,7 @@ namespace Graphics
 
 	UERROR DeviceHandler::ResizeSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount)
 	{
-		StartProfile;
+		PROFILE;
 		Safe_Release(gDepthStencilSRV);
 		Safe_Release(gDepthStencilView);
 		Safe_Release(pDSState);
@@ -307,7 +296,7 @@ namespace Graphics
 
 	UERROR DeviceHandler::CreateBlendState()
 	{
-		StartProfile;
+		PROFILE;
 		// Transparency off
 		D3D11_RENDER_TARGET_BLEND_DESC rendTarBlendState[8];
 		for (auto& rtbs : rendTarBlendState)
@@ -373,8 +362,5 @@ namespace Graphics
 		RETURN_SUCCESS;
 	}
 
-	ID3D11Texture2D* DeviceHandler::GetBackBufferTexture()
-	{
-		return gBackBuffer;
-	}
+	
 }

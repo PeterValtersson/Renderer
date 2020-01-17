@@ -5,7 +5,7 @@
 #include <d3dcompiler.h>	// We also need the D3DCompiler header to compile shaders
 #include <DirectXMath.h>
 #include <Windows.h>
-#include <Error.h>
+#include <Graphics/Graphics_Exception.h>
 
 namespace Graphics {
 
@@ -13,62 +13,57 @@ namespace Graphics {
 	class DeviceHandler {
 
 	public:
-
-		DeviceHandler();
-		~DeviceHandler();
-
 		/**
 		* @brief Init initializes the DeviceHandler
 		* @details Calls for all necessary functions for all components to be initialized
-		* @retval return_value_n Returns a HRESULT indicating if the DirectX core was successfully created or not
+		* @exception
 		* @endcode
 		*/
-		UERROR Init(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
-
+		DeviceHandler( HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount );
 		/**
 		* @brief Shutdown releases the DirectX components
 		* @details Releases the pointers
 		* @endcode
 		*/
-		void Shutdown();
+		~DeviceHandler();
 
-		UERROR CreateDeviceResources();
-
-
-		UERROR CreateSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
+		void CreateDeviceResources();
 
 
-		UERROR CreateBackBufferRTV();
+		void CreateSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
 
 
-		UERROR CreateDepthStencil();
+		void CreateBackBufferRTV();
+
+
+		void CreateDepthStencil();
 
 		/**
 		* @brief SetViewport initializes the default viewport
 		* @details From the back buffer texture, width and height is used to set the size of the viewport
 		* @endcode
 		*/
-		void SetViewport();
+		void SetViewport()noexcept;
 
 
 		/**
 		* @brief Present displays the rendered image to the user
 		* @endcode
 		*/
-		HRESULT Present(UINT vsync);
+		HRESULT Present(UINT vsync)noexcept;
 
 		/**
 		* @brief Resizes the swapchain
 		* @param[in] windowHandle A window handle.
 		* @endcode
 		*/
-		UERROR ResizeSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
+		void ResizeSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
 
 		/**
 		* @brief Creates a blend state
 		* @endcode
 		*/
-		UERROR CreateBlendState();
+		void CreateBlendState();
 
 		inline ID3D11Device*           GetDevice() { return gDevice; };
 		inline ID3D11DeviceContext*    GetDeviceContext() { return gDeviceContext; };
@@ -79,13 +74,13 @@ namespace Graphics {
 		inline ID3D11ShaderResourceView* GetDepthSRV() const { return gDepthStencilSRV; };
 		inline ID3D11BlendState*	   GetBlendState() { return blendTransState; };
 		inline const D3D11_VIEWPORT&   GetViewport()const { return gViewportDefault; }
-		inline void SetDepthStencilStateAndRS()
+		inline void SetDepthStencilStateAndRS()noexcept
 		{
 			gDeviceContext->RSSetState(rasterSolidState);
 			gDeviceContext->OMSetDepthStencilState(pDSState, 1);
 		}
 
-		inline void SetRasterStateFill(uint8_t fillSolid)
+		inline void SetRasterStateFill(uint8_t fillSolid)noexcept
 		{
 			if (fillSolid == 1)
 			{
@@ -97,7 +92,7 @@ namespace Graphics {
 			}
 		}
 
-		inline void SetBlendTransparencyState(uint8_t transparency)
+		inline void SetBlendTransparencyState(uint8_t transparency)noexcept
 		{
 			if (transparency == 1)
 			{
@@ -111,16 +106,20 @@ namespace Graphics {
 			}
 		}
 
-		inline D3D11_TEXTURE2D_DESC GetTexDesc() {
+		inline D3D11_TEXTURE2D_DESC GetTexDesc()noexcept
+		{
 			return gBB_Desc;
 		}
 
-		inline ID3D11ShaderResourceView* GetDepthStencilSRV()
+		inline ID3D11ShaderResourceView* GetDepthStencilSRV()noexcept
 		{
 			return gDepthStencilSRV;
 		}
 
-		ID3D11Texture2D* GetBackBufferTexture();
+		inline ID3D11Texture2D* GetBackBufferTexture()noexcept
+		{
+			return gBackBuffer;
+		}
 	private:
 
 		ID3D11Device * gDevice;

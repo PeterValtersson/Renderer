@@ -21,37 +21,37 @@ namespace Graphics
 						 const D3D11_VIEWPORT& vp );
 		virtual ~PipelineHandler()noexcept;
 
-		virtual void CreateBuffer( Utilities::GUID id, const Pipeline::Buffer& buffer ) = 0;
-		/*virtual void UpdateBuffer(Utilities::GUID id, void* data, size_t size) = 0;
-		virtual void UpdateBuffer(Utilities::GUID id, const std::function<void(void* mappedResource)>& mapCallback) = 0;*/
-		virtual void DestroyBuffer( Utilities::GUID id )noexcept = 0;
+		virtual void CreateBuffer( Utilities::GUID id, const Pipeline::Buffer& buffer ) override;
+		/*virtual void UpdateBuffer(Utilities::GUID id, void* data, size_t size) override;
+		virtual void UpdateBuffer(Utilities::GUID id, const std::function<void(void* mappedResource)>& mapCallback) override;*/
+		virtual void DestroyBuffer( Utilities::GUID id )noexcept override;
 
-		virtual void CreateViewport( Utilities::GUID id, const Pipeline::Viewport& viewport ) = 0;
+		virtual void CreateViewport( Utilities::GUID id, const Pipeline::Viewport& viewport ) override;
 
-		virtual void CreateShader( Utilities::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel ) = 0;
-		virtual void CreateShader( Utilities::GUID id, Pipeline::ShaderType type, void* data, size_t size ) = 0;
-		virtual void DestroyShader( Utilities::GUID id, Pipeline::ShaderType type )noexcept = 0;
+		virtual void CreateShader( Utilities::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel ) override;
+		virtual void CreateShader( Utilities::GUID id, Pipeline::ShaderType type, void* data, size_t size ) override;
+		virtual void DestroyShader( Utilities::GUID id, Pipeline::ShaderType type )noexcept override;
 
-		//virtual void CreateTexture( Utilities::GUID id, void* data, size_t width, size_t height ) = 0;
-		//virtual void DestroyTexture( Utilities::GUID id )noexcept = 0;
+		//virtual void CreateTexture( Utilities::GUID id, void* data, size_t width, size_t height ) override;
+		//virtual void DestroyTexture( Utilities::GUID id )noexcept override;
 
-		virtual void CreateRasterizerState( Utilities::GUID id, const Pipeline::RasterizerState& state ) = 0;
-		virtual void DestroyRasterizerState( Utilities::GUID id )noexcept = 0;
+		virtual void CreateRasterizerState( Utilities::GUID id, const Pipeline::RasterizerState& state ) override;
+		virtual void DestroyRasterizerState( Utilities::GUID id )noexcept override;
 
-		virtual void CreateBlendState( Utilities::GUID id, const Pipeline::BlendState& state ) = 0;
-		virtual void DestroyBlendState( Utilities::GUID id )noexcept = 0;
+		virtual void CreateBlendState( Utilities::GUID id, const Pipeline::BlendState& state ) override;
+		virtual void DestroyBlendState( Utilities::GUID id )noexcept override;
 
-		virtual void CreateDepthStencilState( Utilities::GUID id, const Pipeline::DepthStencilState& state ) = 0;
-		virtual void DestroyDepthStencilState( Utilities::GUID id )noexcept = 0;
+		virtual void CreateDepthStencilState( Utilities::GUID id, const Pipeline::DepthStencilState& state ) override;
+		virtual void DestroyDepthStencilState( Utilities::GUID id )noexcept override;
 
-		virtual void CreateSamplerState( Utilities::GUID id, const Pipeline::SamplerState& state ) = 0;
-		virtual void DestroySamplerState( Utilities::GUID id )noexcept = 0;
+		virtual void CreateSamplerState( Utilities::GUID id, const Pipeline::SamplerState& state ) override;
+		virtual void DestroySamplerState( Utilities::GUID id )noexcept override;
 
-		virtual void CreateTexture( Utilities::GUID id, const Pipeline::Texture& target ) = 0;
-		virtual void DestroyTexture( Utilities::GUID id )noexcept = 0;
+		virtual void CreateTexture( Utilities::GUID id, const Pipeline::Texture& target ) override;
+		virtual void DestroyTexture( Utilities::GUID id )noexcept override;
 
-		virtual void CreateDepthStencilView( Utilities::GUID id, const Pipeline::DepthStencilView& view ) = 0;
-		virtual void DestroyDepthStencilView( Utilities::GUID id )noexcept = 0;
+		virtual void CreateDepthStencilView( Utilities::GUID id, const Pipeline::DepthStencilView& view ) override;
+		virtual void DestroyDepthStencilView( Utilities::GUID id )noexcept override;
 
 		virtual void UpdatePipelineObjects()noexcept;
 
