@@ -2,6 +2,7 @@
 #include "Safe_Release.h"
 #include <Utilities/Profiler/Profiler.h>
 #include <Graphics/PipelineHandler_Interface.h>
+#include <Graphics/Renderer_Interface.h>
 
 #pragma comment(lib, "d3d11.lib")
 
@@ -52,7 +53,7 @@ namespace Graphics
 		rasterizerState.MultisampleEnable = false;
 		rasterizerState.AntialiasedLineEnable = false;
 
-		if (auto hr = gDevice->CreateRasterizerState( &rasterizerState, &rasterSolidState ); FAILED(hr))
+		if ( auto hr = gDevice->CreateRasterizerState( &rasterizerState, &rasterSolidState ); FAILED( hr ) )
 			throw Could_Not_Create_RasterizerState( "CreateRasterizerState failed", "Rasterizer_Solid", {}, hr );
 
 		gDeviceContext->RSSetState( rasterSolidState );
@@ -64,7 +65,8 @@ namespace Graphics
 
 	}
 
-	DeviceHandler::~DeviceHandler() {
+	DeviceHandler::~DeviceHandler()
+	{
 		Safe_Release( gBBSRV );
 		Safe_Release( gBackBuffer );
 		Safe_Release( gBackbufferRTV );
@@ -81,7 +83,8 @@ namespace Graphics
 		Safe_Release( gDevice );
 	}
 
-	void DeviceHandler::CreateDeviceResources() {
+	void DeviceHandler::CreateDeviceResources()
+	{
 
 		PROFILE;
 
@@ -100,7 +103,6 @@ namespace Graphics
 
 #endif
 		if ( auto hr = D3D11CreateDevice(
-
 			nullptr,
 			D3D_DRIVER_TYPE_HARDWARE,
 			0,
@@ -110,25 +112,24 @@ namespace Graphics
 			D3D11_SDK_VERSION,
 			&gDevice,
 			&gFeatureLevel,
-			&gDeviceContext
+			&gDeviceContext );
 
-			); FAILED(hr))
-			throw ;
-		RETURN_IF_HR_ERROR(hr, "Could not create device and device context");
+			FAILED( hr ) )
+			throw Could_Not_Create_Device( "Device and Context", hr );
 
-		hr = gDevice->CreateDeferredContext(0, &gSecDeviceContext);
-		RETURN_IF_HR_ERROR(hr, "Could not create deferred context");
+		if ( auto hr = gDevice->CreateDeferredContext( 0, &gSecDeviceContext ); FAILED( hr ) )
+			throw Could_Not_Create_Device( "Deferred Context", hr );
 
-		RETURN_SUCCESS;
 	}
 
-	UERROR DeviceHandler::CreateSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount) {
+	void DeviceHandler::CreateSwapChain( HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount )
+	{
 
 		PROFILE;
 
 		DXGI_SWAP_CHAIN_DESC swChDesc;
-		ZeroMemory(&swChDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
-		swChDesc.Windowed = (fullscreen && !borderless)? FALSE : TRUE;
+		ZeroMemory( &swChDesc, sizeof( DXGI_SWAP_CHAIN_DESC ) );
+		swChDesc.Windowed = ( fullscreen && !borderless ) ? FALSE : TRUE;
 		swChDesc.BufferCount = bufferCount;
 		swChDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		swChDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
@@ -136,34 +137,35 @@ namespace Graphics
 		swChDesc.SampleDesc.Quality = 0;
 		swChDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 		swChDesc.OutputWindow = windowHandle;
-		
+
 		IDXGIDevice* dxgiDevice = 0;
-		HRESULT hr = gDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)& dxgiDevice);
-		RETURN_IF_HR_ERROR(hr, "Failed to query interface, DXGIDevice");
+
+		if ( auto hr = gDevice->QueryInterface( __uuidof( IDXGIDevice ), ( void** )&dxgiDevice ); FAILED( hr ) )
+			throw Could_Not_Create_SwapChain( "Failed to query interface, DXGIDevice", hr );
 
 		IDXGIAdapter* dxgiAdapter = 0;
-		hr = dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)& dxgiAdapter);
-		RETURN_IF_HR_ERROR(hr, "Failed to get DXGIAdapter");
+		if ( auto hr = dxgiDevice->GetParent( __uuidof( IDXGIAdapter ), ( void** )&dxgiAdapter ); FAILED( hr ) )
+			throw Could_Not_Create_SwapChain( "Failed to get DXGIAdapter", hr );
 
 		IDXGIFactory* dxgiFactory = 0;
-		hr = dxgiAdapter->GetParent(__uuidof(IDXGIFactory), (void**)& dxgiFactory);
-		RETURN_IF_HR_ERROR(hr, "Failed to get DXGI Factory");
+		if ( auto hr = dxgiAdapter->GetParent( __uuidof( IDXGIFactory ), ( void** )&dxgiFactory ); FAILED( hr ) )
+			throw Could_Not_Create_SwapChain( "Failed to get DXGI Factory", hr );
 
-		hr = dxgiFactory->CreateSwapChain(gDevice, &swChDesc, &gSwapChain);
-		RETURN_IF_HR_ERROR(hr, "Failed to create swap chain");
+		if ( auto hr = dxgiFactory->CreateSwapChain( gDevice, &swChDesc, &gSwapChain ); FAILED( hr ) )
+			throw Could_Not_Create_SwapChain( "Failed to create swap chain", hr );
 
-		Safe_Release(dxgiFactory);
-		Safe_Release(dxgiAdapter);
-		Safe_Release(dxgiDevice);
-		RETURN_SUCCESS;
+		Safe_Release( dxgiFactory );
+		Safe_Release( dxgiAdapter );
+		Safe_Release( dxgiDevice );
 	}
 
-	UERROR DeviceHandler::CreateBackBufferRTV() {
+	void DeviceHandler::CreateBackBufferRTV()
+	{
 
 		PROFILE;
 
-		HRESULT hr = gSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&gBackBuffer);
-		RETURN_IF_HR_ERROR(hr, "Could not get backbuffer texture");
+		if ( auto hr = gSwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&gBackBuffer ); FAILED( hr ) )
+			throw Could_Not_Create_Backbuffer_Resources( "GetBuffer failed", hr );
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
 		srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -171,24 +173,23 @@ namespace Graphics
 		srvd.Texture2D.MostDetailedMip = 0;
 		srvd.Texture2D.MipLevels = 1;
 
-		hr = gDevice->CreateShaderResourceView(gBackBuffer, &srvd, &gBBSRV);
-		RETURN_IF_HR_ERROR(hr, "Could not create shader resource view");
+		if ( auto hr = gDevice->CreateShaderResourceView( gBackBuffer, &srvd, &gBBSRV ); FAILED( hr ) )
+			throw Could_Not_Create_Backbuffer_Resources( "CreateShaderResourceView failed", hr );
 
 
-		hr = gDevice->CreateRenderTargetView(gBackBuffer, nullptr, &gBackbufferRTV);
-		RETURN_IF_HR_ERROR(hr, "Could not create render target view");
-	
-		RETURN_SUCCESS;
+		if ( auto hr = gDevice->CreateRenderTargetView( gBackBuffer, nullptr, &gBackbufferRTV ); FAILED( hr ) )
+			throw Could_Not_Create_Backbuffer_Resources( "CreateRenderTargetView failed", hr );
 	}
 
-	UERROR DeviceHandler::CreateDepthStencil() {
+	void DeviceHandler::CreateDepthStencil()
+	{
 
 		PROFILE;
 
-		gBackBuffer->GetDesc(&gBB_Desc);
+		gBackBuffer->GetDesc( &gBB_Desc );
 		D3D11_TEXTURE2D_DESC td;
-		td.Width = static_cast<UINT>(gBB_Desc.Width);
-		td.Height = static_cast<UINT>(gBB_Desc.Height);
+		td.Width = static_cast< UINT >( gBB_Desc.Width );
+		td.Height = static_cast< UINT >( gBB_Desc.Height );
 		td.ArraySize = 1;
 		td.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 		td.Format = DXGI_FORMAT_R24G8_TYPELESS;
@@ -200,8 +201,8 @@ namespace Graphics
 		td.CPUAccessFlags = 0;
 
 		ID3D11Texture2D* depthTexture;
-		HRESULT hr = gDevice->CreateTexture2D(&td, nullptr, &depthTexture);
-		RETURN_IF_HR_ERROR(hr, "Could not create depth texture");
+		if ( auto hr = gDevice->CreateTexture2D( &td, nullptr, &depthTexture ); FAILED( hr ) )
+			throw Could_Not_Create_Default_DepthStencil( "CreateTexture2D failed", hr );
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsvd;
 		dsvd.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -209,8 +210,8 @@ namespace Graphics
 		dsvd.Texture2D.MipSlice = 0;
 		dsvd.Flags = 0;
 
-		hr = gDevice->CreateDepthStencilView(depthTexture, &dsvd, &gDepthStencilView);
-		RETURN_IF_HR_ERROR(hr, "Could not create depth stencil view");
+		if ( auto hr = gDevice->CreateDepthStencilView( depthTexture, &dsvd, &gDepthStencilView ); FAILED( hr ) )
+			throw Could_Not_Create_Default_DepthStencil( "CreateDepthStencilView failed", hr );
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
 		srvd.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
@@ -218,8 +219,8 @@ namespace Graphics
 		srvd.Texture2D.MipLevels = td.MipLevels;
 		srvd.Texture2D.MostDetailedMip = 0;
 
-		hr = gDevice->CreateShaderResourceView(depthTexture, &srvd, &gDepthStencilSRV);
-		RETURN_IF_HR_ERROR(hr, "Could not create depth stencil SRV");
+		if ( auto hr = gDevice->CreateShaderResourceView( depthTexture, &srvd, &gDepthStencilSRV ); FAILED( hr ) )
+			throw Could_Not_Create_Default_DepthStencil( "CreateShaderResourceView failed", hr );
 
 		D3D11_DEPTH_STENCIL_DESC dsDesc;
 
@@ -246,60 +247,58 @@ namespace Graphics
 		dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 		// Create depth stencil state
-		hr =gDevice->CreateDepthStencilState(&dsDesc, &pDSState);
-		RETURN_IF_HR_ERROR(hr, "Could not create depth stencil state");
+		if ( auto hr = gDevice->CreateDepthStencilState( &dsDesc, &pDSState ); FAILED( hr ) )
+			throw Could_Not_Create_Default_DepthStencil( "Could not create depth stencil state", hr );
 
-		gDeviceContext->OMSetDepthStencilState(pDSState, 1);
-		Safe_Release(depthTexture);
-		
-		RETURN_SUCCESS;
+		gDeviceContext->OMSetDepthStencilState( pDSState, 1 );
+		Safe_Release( depthTexture );
 	}
 
-	void DeviceHandler::SetViewport() {
+	void DeviceHandler::SetViewport()noexcept
+	{
 		PROFILE;
-		ZeroMemory(&gViewportDefault, sizeof(D3D11_VIEWPORT));
+		ZeroMemory( &gViewportDefault, sizeof( D3D11_VIEWPORT ) );
 		gViewportDefault.TopLeftX = 0.0f;
 		gViewportDefault.TopLeftY = 0.0f;
 		gViewportDefault.MinDepth = 0.0f;
 		gViewportDefault.MaxDepth = 1.0f;
-		gViewportDefault.Width = (FLOAT)gBB_Desc.Width;
-		gViewportDefault.Height = (FLOAT)gBB_Desc.Height;
+		gViewportDefault.Width = ( FLOAT )gBB_Desc.Width;
+		gViewportDefault.Height = ( FLOAT )gBB_Desc.Height;
 
-		gDeviceContext->RSSetViewports(1, &gViewportDefault);
+		gDeviceContext->RSSetViewports( 1, &gViewportDefault );
 	}
 
 
 
-	HRESULT DeviceHandler::Present(UINT vsync) {
+	HRESULT DeviceHandler::Present( UINT vsync )noexcept
+	{
 
-		return gSwapChain->Present(vsync, 0);
+		return gSwapChain->Present( vsync, 0 );
 	}
 
-	UERROR DeviceHandler::ResizeSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount)
+	void DeviceHandler::ResizeSwapChain( HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount )
 	{
 		PROFILE;
-		Safe_Release(gDepthStencilSRV);
-		Safe_Release(gDepthStencilView);
-		Safe_Release(pDSState);
-		Safe_Release(gBackbufferRTV);
-		Safe_Release(gBBSRV);
-		Safe_Release(gBackBuffer);
-		Safe_Release(gSwapChain);
-		
-		PASS_IF_ERROR(CreateSwapChain(windowHandle, fullscreen, borderless, bufferCount));
-		PASS_IF_ERROR(CreateBackBufferRTV());
-		PASS_IF_ERROR(CreateDepthStencil());
-		SetViewport();
+		Safe_Release( gDepthStencilSRV );
+		Safe_Release( gDepthStencilView );
+		Safe_Release( pDSState );
+		Safe_Release( gBackbufferRTV );
+		Safe_Release( gBBSRV );
+		Safe_Release( gBackBuffer );
+		Safe_Release( gSwapChain );
 
-		RETURN_SUCCESS;
+		CreateSwapChain( windowHandle, fullscreen, borderless, bufferCount );
+		CreateBackBufferRTV();
+		CreateDepthStencil();
+		SetViewport();
 	}
 
-	UERROR DeviceHandler::CreateBlendState()
+	void DeviceHandler::CreateBlendState()
 	{
 		PROFILE;
 		// Transparency off
 		D3D11_RENDER_TARGET_BLEND_DESC rendTarBlendState[8];
-		for (auto& rtbs : rendTarBlendState)
+		for ( auto& rtbs : rendTarBlendState )
 		{
 			rtbs.BlendEnable = false;
 			rtbs.BlendOp = D3D11_BLEND_OP_ADD;
@@ -324,15 +323,15 @@ namespace Graphics
 		blendStateDesc.RenderTarget[6] = rendTarBlendState[6];
 		blendStateDesc.RenderTarget[7] = rendTarBlendState[7];
 
-		HRESULT hr = gDevice->CreateBlendState(&blendStateDesc, &blendSolidState);
-		RETURN_IF_HR_ERROR(hr, "Could not create blend state");
+		if ( auto hr = gDevice->CreateBlendState( &blendStateDesc, &blendSolidState ); FAILED( hr ) )
+			throw Could_Not_Create_Default_BlendState( "Could not create blend state", hr );
 
 		UINT sampleM = 0xffffffff;
-		gDeviceContext->OMSetBlendState(blendSolidState, NULL, sampleM);
+		gDeviceContext->OMSetBlendState( blendSolidState, NULL, sampleM );
 
 		// Transparency on
 		D3D11_RENDER_TARGET_BLEND_DESC rendTransBlendState[8];
-		for (auto& rtbs : rendTransBlendState)
+		for ( auto& rtbs : rendTransBlendState )
 		{
 			rtbs.BlendEnable = true;
 			rtbs.BlendOp = D3D11_BLEND_OP_ADD;
@@ -356,11 +355,9 @@ namespace Graphics
 		blendTransStateDesc.RenderTarget[6] = rendTransBlendState[6];
 		blendTransStateDesc.RenderTarget[7] = rendTransBlendState[7];
 
-		hr = gDevice->CreateBlendState(&blendTransStateDesc, &blendTransState);
-		RETURN_IF_HR_ERROR(hr, "Could not create blend state");
-
-		RETURN_SUCCESS;
+		if ( auto hr = gDevice->CreateBlendState( &blendTransStateDesc, &blendTransState ); FAILED( hr ) )
+			throw Could_Not_Create_Default_BlendState( "Could not create blend state", hr );
 	}
 
-	
+
 }

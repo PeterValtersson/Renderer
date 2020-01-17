@@ -9,14 +9,42 @@
 #include <Utilities/ErrorHandling.h>
 namespace Graphics
 {
+	struct Could_Not_Create_Device : Graphics_Exception{
+		Could_Not_Create_Device( std::string_view type, long error ) : Graphics_Exception( "Could not create rendering device.\nErrors: " + std::to_string( error )  + "\nType: " + std::string(type)), type( std::string(type) )
+		{}
+		std::string type;
+	};
+
+	struct Could_Not_Create_SwapChain : Graphics_Exception{
+		Could_Not_Create_SwapChain( std::string_view what, long error ) : Graphics_Exception( "Could not create SwapChain.\nErrors: " + std::to_string( error ) + "\n" + std::string( what ) )
+		{}
+	};
+
+	struct Could_Not_Create_Backbuffer_Resources : Graphics_Exception{
+		Could_Not_Create_Backbuffer_Resources( std::string_view what, long error ) : Graphics_Exception( "Could not create backbuffer resources.\nErrors: " + std::to_string( error ) + "\n" + std::string( what ) )
+		{}
+	};
+	
+	struct Could_Not_Create_Default_DepthStencil : Graphics_Exception{
+		Could_Not_Create_Default_DepthStencil( std::string_view what, long error ) : Graphics_Exception( "Could not create default depth stencil.\nErrors: " + std::to_string( error ) + "\n" + std::string( what ) )
+		{}
+	};
+
+	struct Could_Not_Create_Default_BlendState : Graphics_Exception{
+		Could_Not_Create_Default_BlendState( std::string_view what, long error ) : Graphics_Exception( "Could not create default depth stencil.\nErrors: " + std::to_string( error ) + "\n" + std::string( what ) )
+		{}
+	};
+
 	struct RenderJob_Exisits : Utilities::Exception{
 		RenderJob_Exisits( Utilities::GUID ID ) : Utilities::Exception( "RenderJob \"" + ID.to_string() + "\" already exists" )
 		{};
 	};
+
 	struct UpdateJob_Exisits : Utilities::Exception{
 		UpdateJob_Exisits( Utilities::GUID ID ) : Utilities::Exception( "UpdateJob \"" + ID.to_string() + "\" already exists" )
 		{};
 	};
+
 	enum class WindowState : uint8_t{
 		WINDOWED,
 		FULLSCREEN,
