@@ -195,12 +195,12 @@ namespace Graphics
 	{
 		return updateJobs.clientSide.IsRegistered(id);
 	}
-	void Renderer_DX11::Run()
+	void Renderer_DX11::Run()noexcept
 	{
 		PROFILE;
 		while (running)
 		{
-			StartProfileC("Run_While");
+			PROFILE_N("Run_While");
 			ResolveJobs();
 
 			clearColor[at][0] =fmodf(clearColor[at][0] + 0.01f, 1.0f);
@@ -212,38 +212,38 @@ namespace Graphics
 			EndFrame();
 		}
 	}
-	void Renderer_DX11::ResolveJobs()
+	void Renderer_DX11::ResolveJobs()noexcept
 	{
 		PROFILE;
 		{
 			pipeline->UpdatePipelineObjects();
 
 			{
-				StartProfileC("Remove Jobs");
+				PROFILE_N("Remove Jobs");
 				updateJobs.Remove();
 				renderJobs.Remove();
 			}
 			{
-				StartProfileC("Add Jobs");
+				PROFILE_N("Add Jobs");
 				updateJobs.Add();
 				renderJobs.Add();
 			}
 		}
 	}
-	void Renderer_DX11::BeginFrame()
+	void Renderer_DX11::BeginFrame()noexcept
 	{
 		PROFILE;
 		ID3D11RenderTargetView* views[] = { device_handler->GetRTV() };
-		device_handler->Getdevice_handlerContext()->OMSetRenderTargets(1, views, device_handler->GetDepthStencil());
+		device_handler->GetDeviceContext()->OMSetRenderTargets(1, views, device_handler->GetDepthStencil());
 
 		// Clear the primary render target view using the specified color
-		device_handler->Getdevice_handlerContext()->ClearRenderTargetView(device_handler->GetRTV(), clearColor[at]);
+		device_handler->GetDeviceContext()->ClearRenderTargetView(device_handler->GetRTV(), clearColor[at]);
 
 		// Clear the standard depth stencil view
-		device_handler->Getdevice_handlerContext()->ClearDepthStencilView(device_handler->GetDepthStencil(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+		device_handler->GetDeviceContext()->ClearDepthStencilView(device_handler->GetDepthStencil(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	}
-	void Renderer_DX11::Frame()
+	void Renderer_DX11::Frame()noexcept
 	{
 		PROFILE;
 		static std::vector<JobStuff<UpdateJob>::ToRemove> updateJobsToRemove;
@@ -263,7 +263,7 @@ namespace Graphics
 		for (auto toRemove : updateJobsToRemove)
 			updateJobs.renderSide.Remove(toRemove);
 	}
-	void Renderer_DX11::EndFrame()
+	void Renderer_DX11::EndFrame()noexcept
 	{
 		PROFILE;
 		device_handler->Present(settings.vsync);

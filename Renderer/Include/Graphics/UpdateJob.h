@@ -38,9 +38,9 @@ namespace Graphics
 
 	ENUM_FLAGS(Graphics::AccessFlag);
 
-	struct UpdateObject
+	struct UpdateObjectRef
 	{
-		virtual ~UpdateObject(){}
+		virtual ~UpdateObjectRef(){}
 
 		template<class T>
 		T& GetMapObject(AccessFlag flag = AccessFlag::READ)
@@ -94,9 +94,9 @@ namespace Graphics
 		Utilities::GUID objectToMap;
 		UpdateFrequency frequency;
 		PipelineObjectType type;
-		std::function<void(UpdateObject& obj)> updateCallback;
+		std::function<void(UpdateObjectRef& obj)> updateCallback;
 
-		static UpdateJob Buffer(Utilities::GUID id, UpdateFrequency freq, const std::function<void(UpdateObject& obj)>& cb)
+		static UpdateJob Buffer(Utilities::GUID id, UpdateFrequency freq, const std::function<void(UpdateObjectRef& obj)>& cb)
 		{
 			return { id, freq, PipelineObjectType::Buffer, cb };
 		}

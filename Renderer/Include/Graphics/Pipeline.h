@@ -129,7 +129,7 @@ namespace Graphics
 			R8G8B8A8_UNORM
 		};
 
-		enum class TargetFlags
+		enum class TextureFlags
 		{
 			NONE = 0,
 			SHADER_RESOURCE = 1 << 0,
@@ -137,25 +137,50 @@ namespace Graphics
 			UNORDERED_ACCESS = 1 << 2,
 			CPU_ACCESS_READ = 1 << 3
 		};
-		ENUM_FLAGS(Graphics::Pipeline::TargetFlags);
-		struct Target
+		ENUM_FLAGS(Graphics::Pipeline::TextureFlags);
+
+		enum class ViewDimension{
+			Texture_1D,
+			Texture_2D,
+			Texture_3D,
+			Cube
+		};
+		struct Texture
 		{
-			TargetFlags flags;
-			uint32_t width = -1;
-			uint32_t height = -1;
+			TextureFlags flags;
+			UINT width = -1;
+			UINT height = -1;
+			UINT mipLevels = 1;
+			UINT arraySize = 1;
 			float clearColor[4] = { 0.0f,0.0f,0.0f,1.0f };
 			TextureFormat format = TextureFormat::R32G32B32A32_FLOAT;
-			static Target RenderTarget(uint32_t width, uint32_t height, bool shaderResource = false, bool cpuread = false)
+			ViewDimension viewDimension = ViewDimension::Texture_2D;
+			void* data = nullptr;
+			UINT memPitch = 0;
+			UINT memSlicePitch = 0;
+			static Texture RenderTarget(uint32_t width, uint32_t height, bool shaderResource = false, bool cpuread = false)
 			{
-				return { TargetFlags::RENDER_TARGET | (shaderResource ? TargetFlags::SHADER_RESOURCE : TargetFlags::NONE)
-					| (cpuread ? TargetFlags::CPU_ACCESS_READ : TargetFlags::NONE)
+				return { TextureFlags::RENDER_TARGET | (shaderResource ? TextureFlags::SHADER_RESOURCE : TextureFlags::NONE)
+					| (cpuread ? TextureFlags::CPU_ACCESS_READ : TextureFlags::NONE)
 					, width, height };
 			}
-			static Target UnorderedAccessView(uint32_t width, uint32_t height, bool shaderResource = false, bool cpuread = false)
+			static Texture UnorderedAccessView(uint32_t width, uint32_t height, bool shaderResource = false, bool cpuread = false)
 			{
-				return { TargetFlags::UNORDERED_ACCESS | (shaderResource ? TargetFlags::SHADER_RESOURCE : TargetFlags::NONE)
-					| (cpuread ? TargetFlags::CPU_ACCESS_READ : TargetFlags::NONE)
-					, width, height, {0.0f,0.0f,0.0f,0.0f}, TextureFormat::R8G8B8A8_UNORM };
+				return { TextureFlags::UNORDERED_ACCESS | (shaderResource ? TextureFlags::SHADER_RESOURCE : TextureFlags::NONE)
+					| (cpuread ? TextureFlags::CPU_ACCESS_READ : TextureFlags::NONE)
+					, width, height, 1, 1, {0.0f,0.0f,0.0f,0.0f}, TextureFormat::R8G8B8A8_UNORM };
+			}
+			static Texture TextureFromData( void* data, uint32_t width, uint32_t height, UINT mipLevels = 1 )
+			{
+				Texture t;
+				t.flags = TextureFlags::SHADER_RESOURCE;
+				t.width = width;
+				t.height = height;
+				t.mipLevels = mipLevels;
+				t.format = TextureFormat::R8G8B8A8_UNORM;
+				t.data = data;
+				t.memPitch = width * 4;
+				return t;
 			}
 		};
 

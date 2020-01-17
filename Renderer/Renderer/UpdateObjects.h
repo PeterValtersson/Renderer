@@ -4,7 +4,7 @@
 #include <Graphics\UpdateJob.h>
 namespace Graphics
 {
-	struct Buffer_UO : public UpdateObject
+	struct Buffer_UO : public UpdateObjectRef
 	{
 		ID3D11DeviceContext* c;
 		ID3D11Buffer* bfr;

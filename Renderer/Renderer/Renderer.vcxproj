@@ -159,6 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\DLLExport.h" />
+    <ClInclude Include="..\Include\Graphics\Graphics_Exception.h" />
     <ClInclude Include="..\Include\Graphics\UpdateJob.h" />
     <ClInclude Include="..\Include\Graphics\Pipeline.h" />
     <ClInclude Include="..\Include\Graphics\PipelineHandler_Interface.h" />
