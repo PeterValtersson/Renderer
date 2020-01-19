@@ -49,11 +49,11 @@ namespace Graphics
 		std::thread myThread;
 		bool running;
 
-		void Run();
-		void ResolveJobs();
-		void BeginFrame();
-		void Frame();
-		void EndFrame();
+		void Run()noexcept;
+		void ResolveJobs()noexcept;
+		void BeginFrame()noexcept;
+		void Frame()noexcept;
+		void EndFrame()noexcept;
 
 		//***** Renderjob stuff ******//
 
@@ -76,20 +76,19 @@ namespace Graphics
 
 			void Add()
 			{
-				StartProfile;
-				while ( !jobsToAdd.wasEmpty() )
+				while ( !jobsToAdd.isEmpty() )
 				{
-					StartProfileC( "Add Job" );
+					//StartProfileC( "Add Job" );
 					renderSide.Add( jobsToAdd.top() );
 					jobsToAdd.pop();
 				}
 			}
 			void Remove()
 			{
-				StartProfile;
-				while ( !jobsToRemove.wasEmpty() )
+
+				while ( !jobsToRemove.isEmpty() )
 				{
-					StartProfileC( "Remove Render Job" );
+					//StartProfileC( "Remove Render Job" );
 					renderSide.Remove( jobsToRemove.top() );
 					jobsToRemove.pop();
 				}

@@ -8,23 +8,17 @@ namespace Graphics
 	{
 		ID3D11DeviceContext* c;
 		ID3D11Buffer* bfr;
-		D3D11_MAPPED_SUBRESOURCE msr;
+
 		const Pipeline::Buffer& info;
 		Buffer_UO(ID3D11DeviceContext* c, ID3D11Buffer* bfr, const Pipeline::Buffer& bf): c(c), bfr(bfr), info(bf)
 		{
 			_ASSERT(c);
 			_ASSERT(bfr);
 		}
-		void* Map(AccessFlag flag = AccessFlag::READ)override;
-		inline void Unmap()
-		{
-			c->Unmap(bfr, 0);
-		}
+		void Map( const std::function<void( void*, size_t row_pitch, size_t depth_pitch )>& callback, AccessFlag flag = AccessFlag::READ )override;
 		void WriteTo(void*data, size_t size)override;
 		void ReadFrom(void*data, size_t size)override;
-
-	private:
-		const void* GetInfo_()const override;
+		UpdateObjectInfoVariant GetInfo()const override;
 	};
 }
 #endif

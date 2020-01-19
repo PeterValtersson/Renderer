@@ -1,34 +1,46 @@
 #include "UpdateObjects.h"
+#include <Graphics/Graphics_Exception.h>
 namespace Graphics
 {
-	void * Buffer_UO::Map(AccessFlag flag)
+	struct UpdateObject_Exception : public Graphics_Exception {
+		UpdateObject_Exception( std::string_view what, long error )
+			: Graphics_Exception( "Exception in UpdateObject.\n" + std::to_string( error ) + "\n" + std::string( what ), error )
+		{}
+	};
+	void Buffer_UO::Map( const std::function<void( void*, size_t row_pitch, size_t depth_pitch )>& callback, AccessFlag flag )
 	{
+		D3D11_MAPPED_SUBRESOURCE msr;
 		D3D11_MAP mode;
-		if (flag & AccessFlag::READ && flag & AccessFlag::WRITE)
+		if ( flag_has( flag, AccessFlag::READ ) && flag_has( flag, AccessFlag::WRITE ) )
 			mode = D3D11_MAP::D3D11_MAP_READ_WRITE;
-		else if (flag & AccessFlag::READ)
+		else if ( flag_has( flag, AccessFlag::READ ) )
 			mode = D3D11_MAP::D3D11_MAP_READ;
-		else if (flag & AccessFlag::WRITE)
+		else if ( flag_has( flag, AccessFlag::WRITE ) )
 			mode = D3D11_MAP::D3D11_MAP_WRITE_DISCARD;
-		THROW_IF_HR_ERROR(c->Map(bfr, 0, mode, 0, &msr), "Could not map buffer");
-		return msr.pData;
+		if ( auto hr = c->Map( bfr, 0, mode, 0, &msr ); FAILED( hr ) )
+			throw UpdateObject_Exception( "Could not map buffer", hr );
+		callback( msr.pData, msr.RowPitch, msr.DepthPitch );
+		c->Unmap( bfr, 0 );
 	}
-	UERROR Buffer_UO::WriteTo(void * data, size_t size)
+	void Buffer_UO::WriteTo( void* data, size_t size )
 	{
-		RETURN_IF_HR_ERROR(c->Map(bfr, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &msr), "Could not map buffer");
-		memcpy(msr.pData, data, size);
-		c->Unmap(bfr, 0);
-		RETURN_SUCCESS;
+		D3D11_MAPPED_SUBRESOURCE msr;
+		if ( auto hr = c->Map( bfr, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &msr ); FAILED( hr ) )
+			throw UpdateObject_Exception( "Could not map buffer", hr );
+		memcpy( msr.pData, data, size );
+		c->Unmap( bfr, 0 );
 	}
-	UERROR Graphics::Buffer_UO::ReadFrom(void * data, size_t size)
+	void Graphics::Buffer_UO::ReadFrom( void* data, size_t size )
 	{
-		RETURN_IF_HR_ERROR(c->Map(bfr, 0, D3D11_MAP::D3D11_MAP_READ, 0, &msr), "Could not map buffer");
-		memcpy(data, msr.pData, size);
-		c->Unmap(bfr, 0);
-		RETURN_SUCCESS;
+		D3D11_MAPPED_SUBRESOURCE msr;
+		if ( auto hr = c->Map( bfr, 0, D3D11_MAP::D3D11_MAP_READ, 0, &msr ); FAILED( hr ) )
+			throw UpdateObject_Exception( "Could not map buffer", hr );
+		memcpy( data, msr.pData, size );
+		c->Unmap( bfr, 0 );
 	}
-	const void * Buffer_UO::GetInfo_() const
+	Graphics::UpdateObjectRef::UpdateObjectInfoVariant Buffer_UO::GetInfo() const
 	{
-		return &info;
+		return info;
 	}
+
 }

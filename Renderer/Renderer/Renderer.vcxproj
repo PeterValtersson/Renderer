@@ -105,6 +105,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);DLL_EXPORT_GRAPHICS</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -115,6 +116,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);DLL_EXPORT_GRAPHICS</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -127,6 +129,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);DLL_EXPORT_GRAPHICS</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -143,6 +146,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);DLL_EXPORT_GRAPHICS</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

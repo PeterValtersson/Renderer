@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <functional>
 #include <Utilities/Flags.h>
+typedef unsigned int UINT;
 
 namespace Graphics
 {
@@ -148,8 +149,8 @@ namespace Graphics
 		struct Texture
 		{
 			TextureFlags flags;
-			UINT width = -1;
-			UINT height = -1;
+			UINT width = 0;
+			UINT height = 0;
 			UINT mipLevels = 1;
 			UINT arraySize = 1;
 			float clearColor[4] = { 0.0f,0.0f,0.0f,1.0f };

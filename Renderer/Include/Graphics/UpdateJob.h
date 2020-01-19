@@ -4,79 +4,73 @@
 #include <functional>
 #include <vector>
 #include "RenderJob.h"
-#include <Utilities/ErrorHandling.h>
+#include "Graphics_Exception.h"
+#include <variant>
 
 namespace Graphics
 {
-	struct Map_Not_Implemented : public Utilities::Exception{
-		Map_Not_Implemented() : Utilities::Exception( "Map has not been implemented" )
+	struct Map_Not_Implemented : public Graphics_Exception {
+		Map_Not_Implemented() : Graphics_Exception( "Map has not been implemented" )
 		{};
 	};
-	struct WriteTo_Not_Implemented : public Utilities::Exception{
-		WriteTo_Not_Implemented() : Utilities::Exception( "WriteTo has not been implemented" )
+	struct WriteTo_Not_Implemented : public Graphics_Exception {
+		WriteTo_Not_Implemented() : Graphics_Exception( "WriteTo has not been implemented" )
 		{};
 	};
-	struct ReadFrom_Not_Implemented : public Utilities::Exception{
-		ReadFrom_Not_Implemented() : Utilities::Exception( "ReadFrom has not been implemented" )
+	struct ReadFrom_Not_Implemented : public Graphics_Exception {
+		ReadFrom_Not_Implemented() : Graphics_Exception( "ReadFrom has not been implemented" )
 		{};
 	};
-	struct GetInfo__Not_Implemented : public Utilities::Exception{
-		GetInfo__Not_Implemented() : Utilities::Exception( "GetInfo_ has not been implemented" )
+	struct GetInfo_Not_Implemented : public Graphics_Exception {
+		GetInfo_Not_Implemented() : Graphics_Exception( "GetInfo_ has not been implemented" )
 		{};
 	};
 
-	enum class UpdateFrequency : uint8_t
-	{
+	enum class UpdateFrequency : uint8_t {
 		EVERY_FRAME,
 		ONCE
 	};
-	enum class AccessFlag
-	{
+	enum class AccessFlag {
 		READ = 1 << 0,
 		WRITE = 1 << 1
 	};
 
-	ENUM_FLAGS(Graphics::AccessFlag);
+	ENUM_FLAGS( Graphics::AccessFlag );
 
-	struct UpdateObjectRef
-	{
-		virtual ~UpdateObjectRef(){}
+	struct UpdateObjectRef {
+		typedef std::variant<Pipeline::Buffer> UpdateObjectInfoVariant;
+		virtual ~UpdateObjectRef() {}
 
 		template<class T>
-		T& GetMapObject(AccessFlag flag = AccessFlag::READ)
+		void GetMapObject( const std::function<void( T& )>& callback, AccessFlag flag = AccessFlag::READ )
 		{
-			void* data = nullptr;
-			return *(T*)Map(flag);
+			Map( [&]( void* data, size_t row_pitch, size_t depth_pitch )
+			{
+				callback( *( T* )data );
+			}, flag );
 		}
-		virtual void* Map(AccessFlag flag = AccessFlag::READ)
+		virtual void Map( const std::function<void( void*, size_t row_pitch, size_t depth_pitch )>& callback, AccessFlag flag = AccessFlag::READ )
 		{
 			throw Map_Not_Implemented();
 		}
-		virtual void Unmap() {}
-		template<class T>
-		const T& GetInfo()const
+
+		virtual UpdateObjectInfoVariant GetInfo()const
 		{
-			return *(T*)GetInfo_();
+			throw GetInfo_Not_Implemented();
 		}
 
-		virtual void WriteTo(void*data, size_t size)
+		virtual void WriteTo( void* data, size_t size )
 		{
 			throw WriteTo_Not_Implemented();
 		}
-		virtual void ReadFrom(void*data, size_t size)
+		virtual void ReadFrom( void* data, size_t size )
 		{
 			throw ReadFrom_Not_Implemented();
-		}
-	protected:
-		virtual const void* GetInfo_()const
-		{
-			throw GetInfo__Not_Implemented();
 		}
 	};
 
 
-	enum class PipelineObjectType
-	{
+	enum class PipelineObjectType {
 		Buffer,
 
 		RenderTarget,
@@ -89,14 +83,13 @@ namespace Graphics
 
 
 
-	struct UpdateJob
-	{
+	struct UpdateJob {
 		Utilities::GUID objectToMap;
 		UpdateFrequency frequency;
 		PipelineObjectType type;
-		std::function<void(UpdateObjectRef& obj)> updateCallback;
+		std::function<void( UpdateObjectRef & obj )> updateCallback;
 
-		static UpdateJob Buffer(Utilities::GUID id, UpdateFrequency freq, const std::function<void(UpdateObjectRef& obj)>& cb)
+		static UpdateJob Buffer( Utilities::GUID id, UpdateFrequency freq, const std::function<void( UpdateObjectRef & obj )>& cb )
 		{
 			return { id, freq, PipelineObjectType::Buffer, cb };
 		}

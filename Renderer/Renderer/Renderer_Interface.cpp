@@ -1,6 +1,5 @@
 #include <Graphics\Renderer_Interface.h>
 #include "Renderer_DX11.h"
-#include "SecretPointer.h"
 //DECLDIR_GRAPHICS_C Graphics::Renderer_Interface * CreateRenderer(Renderer_Backend backend, const Graphics::RendererInitializationInfo & ii)
 //{
 //	switch (backend)
@@ -62,4 +61,5 @@ DECLDIR_GRAPHICS std::unique_ptr<Graphics::Renderer_Interface> Graphics::Rendere
 	default:
 		break;
 	}
+	return nullptr;
 }
