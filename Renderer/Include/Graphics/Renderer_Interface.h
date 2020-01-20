@@ -66,7 +66,7 @@ namespace Graphics
 	};
 	class Renderer_Interface{
 	public:
-		DECLDIR_GRAPHICS static std::unique_ptr<Renderer_Interface> Create_Renderer( Renderer_Backend backend, const RendererInitializationInfo& ii );
+		DECLDIR_GRAPHICS static std::shared_ptr<Renderer_Interface> Create_Renderer( Renderer_Backend backend, const RendererInitializationInfo& ii );
 
 		virtual ~Renderer_Interface()noexcept
 		{};

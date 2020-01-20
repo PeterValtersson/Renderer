@@ -51,12 +51,12 @@
 //	return renderer;
 //}
 
-DECLDIR_GRAPHICS std::unique_ptr<Graphics::Renderer_Interface> Graphics::Renderer_Interface::Create_Renderer( Renderer_Backend backend, const RendererInitializationInfo& ii )
+DECLDIR_GRAPHICS std::shared_ptr<Graphics::Renderer_Interface> Graphics::Renderer_Interface::Create_Renderer( Renderer_Backend backend, const RendererInitializationInfo& ii )
 {
 	switch ( backend )
 	{
 	case Renderer_Backend::DIRECTX11:
-		return std::make_unique<Renderer_DX11>( ii );
+		return std::make_shared<Renderer_DX11>( ii );
 		break;
 	default:
 		break;
