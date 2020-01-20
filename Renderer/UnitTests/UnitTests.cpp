@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <Graphics/Renderer_Interface.h>
 #include <thread>
+#include <Utilities/StringUtilities.h>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -91,20 +92,91 @@ namespace UnitTests
 			SetFocus( _hWnd );
 		}
 	}
-	TEST_CLASS(UnitTests)
+	TEST_CLASS( UnitTests ){
+public:
+
+	TEST_METHOD( Create )
 	{
-	public:
-		
-		TEST_METHOD(Create)
+		using namespace std::chrono_literals;
+		HWND w;
+		Window::InitWindow( w );
 		{
-			using namespace std::chrono_literals;
-			HWND w;
-			Window::InitWindow( w );
 			auto r = Graphics::Renderer_Interface::Create_Renderer( Graphics::Renderer_Backend::DIRECTX11, { w } );
 
 			r->Start();
 			std::this_thread::sleep_for( 1s );
+		}
+		DestroyWindow( w );
+	}
+	TEST_METHOD( CreateBuffer_16Byte_Mod )
+	{
+		using namespace std::chrono_literals;
+		HWND w;
+		Window::InitWindow( w );
+		try
+		{
+			auto r = Graphics::Renderer_Interface::Create_Renderer( Graphics::Renderer_Backend::DIRECTX11, { w } );
+
+			r->Start();
+			struct CBD{
+				int a = 1337;
+			};
+			r->UsePipelineHandler( []( Graphics::PipelineHandler_Interface& ph )
+			{
+				CBD d;
+				Assert::ExpectException<Graphics::Could_Not_Create_Buffer>( [&]
+				{
+					ph.CreateBuffer( "Buffer", Graphics::Pipeline::Buffer::ConstantBuffer( d ) );
+				} );
+			} );
 
 		}
+		catch ( Graphics::Graphics_Exception & e )
+		{
+			DestroyWindow( w );
+			Assert::IsTrue( false, Utilities::String::utf8_2_utf16( e.what() ).c_str() );
+		}
+		DestroyWindow( w );
+	}
+	TEST_METHOD( CreateBuffer )
+	{
+		using namespace std::chrono_literals;
+		HWND w;
+		Window::InitWindow( w );
+		try
+		{
+			auto r = Graphics::Renderer_Interface::Create_Renderer( Graphics::Renderer_Backend::DIRECTX11, { w } );
+
+			r->Start();
+			struct CBD{
+				int a = 1337;
+				int pad[3];
+			};
+			r->UsePipelineHandler( []( Graphics::PipelineHandler_Interface& ph )
+			{
+				CBD d;
+				ph.CreateBuffer( "Buffer", Graphics::Pipeline::Buffer::ConstantBuffer( d ) );
+
+			} );
+
+			int a = 1337;
+			r->AddUpdateJob( Graphics::UpdateJob::UpdateBuffer( "Buffer", Graphics::UpdateFrequency::EVERY_FRAME, [&]( Graphics::UpdateObjectRef& obj )
+			{
+				obj.Map<CBD>( [&]( CBD& d )
+				{
+					d.a = a++;
+				}, Graphics::AccessFlag::WRITE );
+
+			} ), Graphics::RenderGroup::PRE_PASS_0 );
+			
+			while ( a < 1400 );
+		}
+		catch ( Graphics::Graphics_Exception & e )
+		{
+			DestroyWindow( w );
+			Assert::IsTrue( false, Utilities::String::utf8_2_utf16( e.what() ).c_str() );
+		}
+		DestroyWindow( w );
+	}
 	};
 }

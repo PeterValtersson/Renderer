@@ -9,47 +9,41 @@ typedef unsigned int UINT;
 
 namespace Graphics
 {
-	static const Utilities::GUID Default_RenderTarget("Backbuffer");
-	static const Utilities::GUID Default_Viewport("FullscreenViewPort");
-	static const Utilities::GUID Default_DepthStencil("BackbufferDepthStencil");
-	static const Utilities::GUID Default_VertexShader_FullscreenQUAD("FullscreenQUADVS");
-	static const Utilities::GUID Default_PixelShader_POS_TEXTURE_MultiChannel("MultichannelPixelShader");
-	static const Utilities::GUID Default_PixelShader_POS_TEXTURE_SingleChannel("SinglechannelPixelShader");
+	static const Utilities::GUID Default_RenderTarget( "Backbuffer" );
+	static const Utilities::GUID Default_Viewport( "FullscreenViewPort" );
+	static const Utilities::GUID Default_DepthStencil( "BackbufferDepthStencil" );
+	static const Utilities::GUID Default_VertexShader_FullscreenQUAD( "FullscreenQUADVS" );
+	static const Utilities::GUID Default_PixelShader_POS_TEXTURE_MultiChannel( "MultichannelPixelShader" );
+	static const Utilities::GUID Default_PixelShader_POS_TEXTURE_SingleChannel( "SinglechannelPixelShader" );
 	namespace Pipeline
 	{
-		enum class CullMode
-		{
+		enum class CullMode{
 			CULL_FRONT,
 			CULL_BACK,
 			CULL_NONE
 		};
-		enum class WindingOrder
-		{
+		enum class WindingOrder{
 			CLOCKWISE,
 			COUNTERCLOCKWISE
 		};
-		enum class FillMode
-		{
+		enum class FillMode{
 			FILL_SOLID,
 			FILL_WIREFRAME
 		};
-		struct RasterizerState
-		{
+		struct RasterizerState{
 			CullMode cullMode;
 			WindingOrder windingOrder;
 			FillMode fillMode;
 		};
 
-		enum class BlendOperation
-		{
+		enum class BlendOperation{
 			ADD,
 			SUB,
 			MAX,
 			MIN
 		};
 
-		enum class Blend
-		{
+		enum class Blend{
 			ZERO,
 			ONE,
 			SRC_COLOR,
@@ -63,8 +57,7 @@ namespace Graphics
 			BLEND_FACTOR
 		};
 
-		struct BlendState
-		{
+		struct BlendState{
 			bool enable = false;
 			BlendOperation blendOperation = BlendOperation::ADD;
 			BlendOperation blendOperationAlpha = BlendOperation::ADD;
@@ -74,8 +67,7 @@ namespace Graphics
 			Blend dstBlendAlpha = Blend::DEST_ALPHA;
 		};
 
-		enum class ComparisonOperation
-		{
+		enum class ComparisonOperation{
 			LESS,
 			LESS_EQUAL,
 			EQUAL,
@@ -84,39 +76,33 @@ namespace Graphics
 			NO_COMPARISON
 		};
 
-		struct DepthStencilState
-		{
+		struct DepthStencilState{
 			bool enableDepth = true;
 			bool writeDepth = true;
 			ComparisonOperation comparisonOperation = ComparisonOperation::LESS;
 		};
-		enum class DepthStencilViewFlags
-		{
+		enum class DepthStencilViewFlags{
 			NONE = 0,
 			SHADER_RESOURCE = 1 << 0,
 			CUBE = 1 << 1
 		};
-		ENUM_FLAGS(Graphics::Pipeline::DepthStencilViewFlags);
-		struct DepthStencilView
-		{
+		ENUM_FLAGS( Graphics::Pipeline::DepthStencilViewFlags );
+		struct DepthStencilView{
 			uint32_t width = -1;
 			uint32_t height = -1;
 			DepthStencilViewFlags flags = DepthStencilViewFlags::NONE;
 		};
-		enum class AddressingMode
-		{
+		enum class AddressingMode{
 			WRAP,
 			MIRROR,
 			CLAMP
 		};
-		enum class Filter
-		{
+		enum class Filter{
 			ANISOTROPIC,
 			LINEAR,
 			POINT
 		};
-		struct SamplerState
-		{
+		struct SamplerState{
 			AddressingMode addressU = AddressingMode::WRAP;
 			AddressingMode addressV = AddressingMode::WRAP;
 			AddressingMode addressW = AddressingMode::WRAP;
@@ -124,21 +110,19 @@ namespace Graphics
 			int maxAnisotropy = 1;
 		};
 
-		enum class TextureFormat
-		{
+		enum class TextureFormat{
 			R32G32B32A32_FLOAT,
 			R8G8B8A8_UNORM
 		};
 
-		enum class TextureFlags
-		{
+		enum class TextureFlags{
 			NONE = 0,
 			SHADER_RESOURCE = 1 << 0,
 			RENDER_TARGET = 1 << 1,
 			UNORDERED_ACCESS = 1 << 2,
 			CPU_ACCESS_READ = 1 << 3
 		};
-		ENUM_FLAGS(Graphics::Pipeline::TextureFlags);
+		ENUM_FLAGS( Graphics::Pipeline::TextureFlags );
 
 		enum class ViewDimension{
 			Texture_1D,
@@ -146,8 +130,7 @@ namespace Graphics
 			Texture_3D,
 			Cube
 		};
-		struct Texture
-		{
+		struct Texture{
 			TextureFlags flags;
 			UINT width = 0;
 			UINT height = 0;
@@ -159,16 +142,16 @@ namespace Graphics
 			void* data = nullptr;
 			UINT memPitch = 0;
 			UINT memSlicePitch = 0;
-			static Texture RenderTarget(uint32_t width, uint32_t height, bool shaderResource = false, bool cpuread = false)
+			static Texture RenderTarget( uint32_t width, uint32_t height, bool shaderResource = false, bool cpuread = false )
 			{
-				return { TextureFlags::RENDER_TARGET | (shaderResource ? TextureFlags::SHADER_RESOURCE : TextureFlags::NONE)
-					| (cpuread ? TextureFlags::CPU_ACCESS_READ : TextureFlags::NONE)
+				return { TextureFlags::RENDER_TARGET | ( shaderResource ? TextureFlags::SHADER_RESOURCE : TextureFlags::NONE )
+					| ( cpuread ? TextureFlags::CPU_ACCESS_READ : TextureFlags::NONE )
 					, width, height };
 			}
-			static Texture UnorderedAccessView(uint32_t width, uint32_t height, bool shaderResource = false, bool cpuread = false)
+			static Texture UnorderedAccessView( uint32_t width, uint32_t height, bool shaderResource = false, bool cpuread = false )
 			{
-				return { TextureFlags::UNORDERED_ACCESS | (shaderResource ? TextureFlags::SHADER_RESOURCE : TextureFlags::NONE)
-					| (cpuread ? TextureFlags::CPU_ACCESS_READ : TextureFlags::NONE)
+				return { TextureFlags::UNORDERED_ACCESS | ( shaderResource ? TextureFlags::SHADER_RESOURCE : TextureFlags::NONE )
+					| ( cpuread ? TextureFlags::CPU_ACCESS_READ : TextureFlags::NONE )
 					, width, height, 1, 1, {0.0f,0.0f,0.0f,0.0f}, TextureFormat::R8G8B8A8_UNORM };
 			}
 			static Texture TextureFromData( void* data, uint32_t width, uint32_t height, UINT mipLevels = 1 )
@@ -185,16 +168,14 @@ namespace Graphics
 			}
 		};
 
-		enum class PrimitiveTopology : uint8_t
-		{
+		enum class PrimitiveTopology : uint8_t{
 			POINT_LIST,
 			LINE_LIST,
 			LINE_STRIP,
 			TRIANGLE_LIST,
 			TRIANGLE_STRIP
 		};
-		enum class BufferFlags
-		{
+		enum class BufferFlags{
 			NONE = 0 << 0,
 			BIND_VERTEX = 1 << 0,
 			BIND_INDEX = 1 << 1,
@@ -206,34 +187,37 @@ namespace Graphics
 			DYNAMIC = 1 << 8,
 			IMMUTABLE = 1 << 9,
 			STRUCTURED = 1 << 10,
-			RAW			= 1 << 11
+			RAW = 1 << 11
 		};
 
-		ENUM_FLAGS(Graphics::Pipeline::BufferFlags);
-		struct Buffer
-		{
+		ENUM_FLAGS( Graphics::Pipeline::BufferFlags );
+		struct Buffer{
 			void* data = nullptr;
 			uint32_t elementCount = 0;
 			uint16_t elementStride = 0;
 			uint32_t maxElements = 0;
 			BufferFlags flags = BufferFlags::NONE;
 
-			static Buffer ConstantBuffer(uint16_t size, void* data = nullptr)
+			static Buffer ConstantBuffer( uint16_t size, void* data = nullptr, BufferFlags flags = BufferFlags::BIND_CONSTANT | BufferFlags::CPU_WRITE | BufferFlags::DYNAMIC )
 			{
-				return { data, 1, size, 1, BufferFlags::BIND_CONSTANT | BufferFlags::CPU_WRITE | BufferFlags::DYNAMIC };
+				return { data, 1, size, 1,  flags };
 			}
-			static Buffer VertexBuffer(void* data, uint16_t byteWidth, uint32_t numVerts, bool dynamic = false)
+			template<typename T>
+			static Buffer ConstantBuffer( const T& t, BufferFlags flags = BufferFlags::BIND_CONSTANT | BufferFlags::CPU_WRITE | BufferFlags::DYNAMIC )
 			{
-				return { data, numVerts, byteWidth, numVerts, BufferFlags::BIND_VERTEX | (dynamic ? BufferFlags::DYNAMIC : BufferFlags::DEFAULT) };
+				return ConstantBuffer( sizeof( T ), ( void* )&t, flags );
 			}
-			static Buffer StructuredBuffer(void* data, uint16_t byteWidth, uint32_t count)
+			static Buffer VertexBuffer( void* data, uint16_t byteWidth, uint32_t numVerts, bool dynamic = false )
 			{
-				return {data, count, byteWidth, count, BufferFlags::STRUCTURED | BufferFlags::DEFAULT};
+				return { data, numVerts, byteWidth, numVerts, BufferFlags::BIND_VERTEX | ( dynamic ? BufferFlags::DYNAMIC : BufferFlags::DEFAULT ) };
+			}
+			static Buffer StructuredBuffer( void* data, uint16_t byteWidth, uint32_t count )
+			{
+				return { data, count, byteWidth, count, BufferFlags::STRUCTURED | BufferFlags::DEFAULT };
 			}
 		};
 
-		struct InputAssemblerStage
-		{
+		struct InputAssemblerStage{
 			Utilities::GUID vertexBuffer;
 			Utilities::GUID indexBuffer;
 			PrimitiveTopology topology = PrimitiveTopology::TRIANGLE_LIST;
@@ -245,8 +229,7 @@ namespace Graphics
 			}
 		};
 
-		struct StreamOutStage
-		{
+		struct StreamOutStage{
 			Utilities::GUID streamOutTarget;
 			Utilities::GUID GetID()const
 			{
@@ -254,8 +237,7 @@ namespace Graphics
 			}
 		};
 
-		enum class ShaderType
-		{
+		enum class ShaderType{
 			VERTEX,
 			HULL,
 			DOMAIN_,
@@ -265,8 +247,7 @@ namespace Graphics
 			COMPUTE
 		};
 
-		struct ShaderStage
-		{
+		struct ShaderStage{
 			static const size_t maxTextures = 4;
 			static const size_t maxSamplers = 2;
 			static const size_t maxUAVs = 4;
@@ -289,8 +270,7 @@ namespace Graphics
 			}
 		};
 
-		struct ComputeShaderStage
-		{
+		struct ComputeShaderStage{
 			static const size_t maxTextures = 4;
 			static const size_t maxUnorderedAccessViews = 4;
 			Utilities::GUID shader;
@@ -299,8 +279,7 @@ namespace Graphics
 
 		};
 
-		struct OutputMergerStage
-		{
+		struct OutputMergerStage{
 			static const size_t maxRenderTargets = 4;
 			Utilities::GUID blendState;
 			Utilities::GUID depthStencilState;
@@ -313,8 +292,7 @@ namespace Graphics
 				return blendState + depthStencilState + depthStencilView + renderTargets[0] + renderTargets[1] + renderTargets[2] + renderTargets[3];
 			}
 		};
-		struct Viewport
-		{
+		struct Viewport{
 			float width = 0.0f;
 			float height = 0.0f;
 			float maxDepth = 0.0f;
@@ -323,8 +301,7 @@ namespace Graphics
 			float topLeftY = 0.0f;
 		};
 
-		struct RasterizerStage
-		{
+		struct RasterizerStage{
 			Utilities::GUID rasterizerState;
 			Utilities::GUID viewport;
 
@@ -334,21 +311,19 @@ namespace Graphics
 			}
 		};
 
-		struct Pipeline_Mutable
-		{
-			InputAssemblerStage &IAStage;
-			ShaderStage			&VSStage;
-			ShaderStage			&GSStage;
-			StreamOutStage		&SOStage;
-			RasterizerStage		&RStage;
-			ShaderStage			&PSStage;
-			OutputMergerStage	&OMStage;
+		struct Pipeline_Mutable{
+			InputAssemblerStage& IAStage;
+			ShaderStage& VSStage;
+			ShaderStage& GSStage;
+			StreamOutStage& SOStage;
+			RasterizerStage& RStage;
+			ShaderStage& PSStage;
+			OutputMergerStage& OMStage;
 
-			ShaderStage			&CSStage;
+			ShaderStage& CSStage;
 		};
 
-		class Pipeline
-		{
+		class Pipeline{
 			InputAssemblerStage IAStage_;
 			ShaderStage	VSStage_;
 			ShaderStage	GSStage_;
@@ -362,25 +337,32 @@ namespace Graphics
 			Utilities::GUID id;
 
 		public:
-			inline const InputAssemblerStage&			IAStage()const {
+			inline const InputAssemblerStage& IAStage()const
+			{
 				return IAStage_;
 			}
-			inline const ShaderStage			&VSStage()const {
+			inline const ShaderStage& VSStage()const
+			{
 				return VSStage_;
 			}
-			inline const ShaderStage			&GSStage()const {
+			inline const ShaderStage& GSStage()const
+			{
 				return GSStage_;
 			}
-			inline const StreamOutStage		&SOStage()const {
+			inline const StreamOutStage& SOStage()const
+			{
 				return SOStage_;
 			}
-			inline const RasterizerStage		&RStage()const {
+			inline const RasterizerStage& RStage()const
+			{
 				return RStage_;
 			}
-			inline const ShaderStage			&PSStage()const {
+			inline const ShaderStage& PSStage()const
+			{
 				return PSStage_;
 			}
-			inline const OutputMergerStage	&OMStage()const {
+			inline const OutputMergerStage& OMStage()const
+			{
 				return OMStage_;
 			}
 			inline const ShaderStage& CSStage()const
@@ -392,14 +374,14 @@ namespace Graphics
 				return id;
 			}
 
-			inline bool operator==(const Pipeline& other)const
+			inline bool operator==( const Pipeline& other )const
 			{
 				return this->id == other.id;
 			}
 
-			void Edit(const std::function<void(Pipeline_Mutable)>& callback)
+			void Edit( const std::function<void( Pipeline_Mutable )>& callback )
 			{
-				callback({ IAStage_, VSStage_ ,GSStage_, SOStage_ , RStage_, PSStage_ ,OMStage_,CSStage_ });
+				callback( { IAStage_, VSStage_ ,GSStage_, SOStage_ , RStage_, PSStage_ ,OMStage_,CSStage_ } );
 				id = IAStage_.GetID() + VSStage_.GetID() +
 					GSStage_.GetID() + SOStage_.GetID() +
 					RStage_.GetID() + PSStage_.GetID() +

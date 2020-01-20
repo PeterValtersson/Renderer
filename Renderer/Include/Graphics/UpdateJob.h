@@ -42,7 +42,7 @@ namespace Graphics
 		virtual ~UpdateObjectRef() {}
 
 		template<class T>
-		void GetMapObject( const std::function<void( T& )>& callback, AccessFlag flag = AccessFlag::READ )
+		inline void Map( const std::function<void( T& )>& callback, AccessFlag flag = AccessFlag::READ )
 		{
 			Map( [&]( void* data, size_t row_pitch, size_t depth_pitch )
 			{
@@ -89,7 +89,7 @@ namespace Graphics
 		PipelineObjectType type;
 		std::function<void( UpdateObjectRef & obj )> updateCallback;
 
-		static UpdateJob Buffer( Utilities::GUID id, UpdateFrequency freq, const std::function<void( UpdateObjectRef & obj )>& cb )
+		static UpdateJob UpdateBuffer( Utilities::GUID id, UpdateFrequency freq, const std::function<void( UpdateObjectRef & obj )>& cb )
 		{
 			return { id, freq, PipelineObjectType::Buffer, cb };
 		}

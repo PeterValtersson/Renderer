@@ -62,7 +62,6 @@ namespace Graphics
 		
 		std::array<std::unordered_map<Utilities::GUID, PipelineObject, Utilities::GUID::Hasher>, PipelineObjects::NUM_TYPES> objects_RenderSide;
 		std::array<std::set<Utilities::GUID, Utilities::GUID::Compare>, PipelineObjects::NUM_TYPES> objects_ClientSide;
-		PipelineObject o;
 		struct ToAdd
 		{
 			Utilities::GUID id;

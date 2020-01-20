@@ -4,11 +4,23 @@
 #include <d3d11.h>
 #include <variant>
 #include <Graphics\Pipeline.h>
+
+template <>
+struct ::std::default_delete<ID3D11Buffer>{
+	default_delete() = default;
+	template <class U, class = std::enable_if_t<std::is_convertible<U*, ID3D11Buffer*>()>>
+	constexpr default_delete( default_delete<U> ) noexcept\
+	{}
+	void operator()( ID3D11Buffer* p ) const noexcept
+	{
+		p->Release();
+	}
+};
 #define MAKE_RELEASEABLE_STRUCT(name, objtype, ...)\
 static constexpr uint32_t name = __COUNTER__ - offset - 1;\
 struct name##_\
 {\
-objtype * obj = nullptr;\
+objtype* obj;\
 void Release()\
 {\
 if (obj)\
@@ -73,33 +85,32 @@ if (t == PipelineObjects::##name)\
 
 namespace Graphics
 {
-	struct ShaderResourceToAndBindSlot
-	{
+	struct ShaderResourceToAndBindSlot{
 		Utilities::GUID id;
 		UINT binding;
 	};
-	struct PipelineObjects
-	{
+	struct PipelineObjects{
 		static constexpr uint32_t offset = __COUNTER__;
 
-		MAKE_RELEASEABLE_STRUCT(Buffer, ID3D11Buffer, Pipeline::Buffer buffer;);
 
-		MAKE_RELEASEABLE_STRUCT_DOUBLE(VertexShader, ID3D11VertexShader, ID3D11InputLayout, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
-		MAKE_RELEASEABLE_STRUCT(GeometryShader, ID3D11GeometryShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
-		MAKE_RELEASEABLE_STRUCT(PixelShader, ID3D11PixelShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
-		MAKE_RELEASEABLE_STRUCT(ComputeShader, ID3D11ComputeShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_RELEASEABLE_STRUCT( Buffer, ID3D11Buffer, Pipeline::Buffer buffer;);
 
-		MAKE_RELEASEABLE_STRUCT(RenderTarget, ID3D11RenderTargetView, float clearColor[4];);
-		MAKE_RELEASEABLE_STRUCT(UnorderedAccessView, ID3D11UnorderedAccessView, float clearColor[4];);
-		MAKE_RELEASEABLE_STRUCT(ShaderResourceView, ID3D11ShaderResourceView);
-		MAKE_RELEASEABLE_STRUCT(DepthStencilView, ID3D11DepthStencilView);
+		MAKE_RELEASEABLE_STRUCT_DOUBLE( VertexShader, ID3D11VertexShader, ID3D11InputLayout, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_RELEASEABLE_STRUCT( GeometryShader, ID3D11GeometryShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_RELEASEABLE_STRUCT( PixelShader, ID3D11PixelShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_RELEASEABLE_STRUCT( ComputeShader, ID3D11ComputeShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
 
-		MAKE_RELEASEABLE_STRUCT(SamplerState, ID3D11SamplerState);
-		MAKE_RELEASEABLE_STRUCT(BlendState, ID3D11BlendState);
-		MAKE_RELEASEABLE_STRUCT(RasterizerState, ID3D11RasterizerState);
-		MAKE_RELEASEABLE_STRUCT(DepthStencilState, ID3D11DepthStencilState);
+		MAKE_RELEASEABLE_STRUCT( RenderTarget, ID3D11RenderTargetView, float clearColor[4];);
+		MAKE_RELEASEABLE_STRUCT( UnorderedAccessView, ID3D11UnorderedAccessView, float clearColor[4];);
+		MAKE_RELEASEABLE_STRUCT( ShaderResourceView, ID3D11ShaderResourceView );
+		MAKE_RELEASEABLE_STRUCT( DepthStencilView, ID3D11DepthStencilView );
 
-		MAKE_SIMPLE_STRUCT(Viewport, D3D11_VIEWPORT);
+		MAKE_RELEASEABLE_STRUCT( SamplerState, ID3D11SamplerState );
+		MAKE_RELEASEABLE_STRUCT( BlendState, ID3D11BlendState );
+		MAKE_RELEASEABLE_STRUCT( RasterizerState, ID3D11RasterizerState );
+		MAKE_RELEASEABLE_STRUCT( DepthStencilState, ID3D11DepthStencilState );
+
+		MAKE_SIMPLE_STRUCT( Viewport, D3D11_VIEWPORT );
 
 		static constexpr uint32_t NUM_TYPES = __COUNTER__ - offset - 1;
 
@@ -108,20 +119,20 @@ namespace Graphics
 	};
 
 	using PipelineObject = std::variant<
-	PipelineObjects::Buffer_,
-	PipelineObjects::VertexShader_,
-	PipelineObjects::GeometryShader_,
-	PipelineObjects::PixelShader_,
-	PipelineObjects::ComputeShader_,
-	PipelineObjects::RenderTarget_,
-	PipelineObjects::UnorderedAccessView_,
-	PipelineObjects::ShaderResourceView_,
-	PipelineObjects::DepthStencilView_,
-	PipelineObjects::SamplerState_,
-	PipelineObjects::BlendState_,
-	PipelineObjects::RasterizerState_,
-	PipelineObjects::DepthStencilState_,
-	PipelineObjects::Viewport_
+		PipelineObjects::Buffer_,
+		PipelineObjects::VertexShader_,
+		PipelineObjects::GeometryShader_,
+		PipelineObjects::PixelShader_,
+		PipelineObjects::ComputeShader_,
+		PipelineObjects::RenderTarget_,
+		PipelineObjects::UnorderedAccessView_,
+		PipelineObjects::ShaderResourceView_,
+		PipelineObjects::DepthStencilView_,
+		PipelineObjects::SamplerState_,
+		PipelineObjects::BlendState_,
+		PipelineObjects::RasterizerState_,
+		PipelineObjects::DepthStencilState_,
+		PipelineObjects::Viewport_
 	>;
 
 	/*struct PipelineObject

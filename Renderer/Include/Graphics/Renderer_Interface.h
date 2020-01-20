@@ -77,7 +77,7 @@ namespace Graphics
 		virtual void UpdateSettings( const RendererInitializationInfo& ii ) = 0;
 		virtual const RendererInitializationInfo& GetSettings()const noexcept = 0;
 
-		virtual void UsePipelineHandler( const std::function<void( PipelineHandler_Interface & pipeline_handler )>& callback )noexcept = 0;
+		virtual void UsePipelineHandler( const std::function<void( PipelineHandler_Interface & pipeline_handler )>& callback ) = 0;
 
 		virtual void AddRenderJob( Utilities::GUID id, const RenderJob& job, RenderGroup renderGroup ) = 0;
 		// Will use the id of the pipeline

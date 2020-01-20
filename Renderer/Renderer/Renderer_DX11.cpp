@@ -64,9 +64,9 @@ namespace Graphics
 		return settings;
 	}
 
-	void Renderer_DX11::UsePipelineHandler( const std::function<void( PipelineHandler_Interface & pipeline_handler )>& callback ) noexcept
+	void Renderer_DX11::UsePipelineHandler( const std::function<void( PipelineHandler_Interface & pipeline_handler )>& callback ) 
 	{
-		callback( *pipeline );
+		callback( *pipeline );	
 	}
 
 	void Renderer_DX11::AddRenderJob( Utilities::GUID id, const RenderJob& job, RenderGroup renderGroup )

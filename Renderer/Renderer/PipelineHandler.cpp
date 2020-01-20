@@ -86,7 +86,7 @@ namespace Graphics
 	}
 
 
-#define RELEASE_PLO(type) if(o.second.index() == type) std::get<type##_>(o.second).Release()
+#define RELEASE_PLO(type) if(o.second.index() == type) std::get<type##_>(o.second).Release();
 	PipelineHandler::~PipelineHandler()noexcept
 	{
 		objects_RenderSide[PipelineObjects::RenderTarget].erase( Default_RenderTarget );
@@ -98,21 +98,21 @@ namespace Graphics
 		for ( auto& ot : objects_RenderSide )
 			for ( auto& o : ot )
 			{
-				RELEASE_PLO( PipelineObjects::Buffer );
+				RELEASE_PLO( PipelineObjects::Buffer )
 
-else RELEASE_PLO( PipelineObjects::VertexShader );
-				else RELEASE_PLO( PipelineObjects::GeometryShader );
-				else RELEASE_PLO( PipelineObjects::PixelShader );
-				else RELEASE_PLO( PipelineObjects::ComputeShader );
+else RELEASE_PLO( PipelineObjects::VertexShader )
+				else RELEASE_PLO( PipelineObjects::GeometryShader )
+				else RELEASE_PLO( PipelineObjects::PixelShader )
+				else RELEASE_PLO( PipelineObjects::ComputeShader )
 
-				else RELEASE_PLO( PipelineObjects::RenderTarget );
-				else RELEASE_PLO( PipelineObjects::UnorderedAccessView );
-				else RELEASE_PLO( PipelineObjects::ShaderResourceView );
-				else RELEASE_PLO( PipelineObjects::DepthStencilView );
+				else RELEASE_PLO( PipelineObjects::RenderTarget )
+				else RELEASE_PLO( PipelineObjects::UnorderedAccessView )
+				else RELEASE_PLO( PipelineObjects::ShaderResourceView )
+				else RELEASE_PLO( PipelineObjects::DepthStencilView )
 
-				else RELEASE_PLO( PipelineObjects::SamplerState );
-				else RELEASE_PLO( PipelineObjects::BlendState );
-				else RELEASE_PLO( PipelineObjects::RasterizerState );
+				else RELEASE_PLO( PipelineObjects::SamplerState )
+				else RELEASE_PLO( PipelineObjects::BlendState )
+				else RELEASE_PLO( PipelineObjects::RasterizerState )
 				else RELEASE_PLO( PipelineObjects::DepthStencilState );
 			}
 	}
@@ -143,6 +143,8 @@ else RELEASE_PLO( PipelineObjects::VertexShader );
 		if ( flag_has( buffer.flags, Pipeline::BufferFlags::BIND_STREAMOUT ) ) bd.BindFlags |= D3D11_BIND_STREAM_OUTPUT;
 		bd.ByteWidth = buffer.maxElements * buffer.elementStride;
 		bd.CPUAccessFlags = 0;
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::CPU_READ ) && flag_has( buffer.flags, Pipeline::BufferFlags::BIND_CONSTANT ) )
+			throw Could_Not_Create_Buffer( "Constant buffer can not have read access", id, buffer );
 		if ( flag_has( buffer.flags, Pipeline::BufferFlags::CPU_WRITE ) ) bd.CPUAccessFlags |= D3D11_CPU_ACCESS_WRITE;
 		if ( flag_has( buffer.flags, Pipeline::BufferFlags::CPU_READ ) ) bd.CPUAccessFlags |= D3D11_CPU_ACCESS_READ;
 		bd.Usage = D3D11_USAGE_DEFAULT;
@@ -171,8 +173,8 @@ else RELEASE_PLO( PipelineObjects::VertexShader );
 		{
 			hr = device->CreateBuffer( &bd, nullptr, &pBuffer );
 		}
-
-		throw Could_Not_Create_Buffer( "'CreateBuffer' failed", id, buffer, hr );
+		if ( FAILED( hr ) )
+			throw Could_Not_Create_Buffer( "'CreateBuffer' failed", id, buffer, hr );
 
 		toAdd.push( { id, PipelineObjects::Buffer_{ pBuffer, buffer } } );
 
@@ -1032,7 +1034,7 @@ else RELEASE_PLO( PipelineObjects::VertexShader );
 		case Graphics::PipelineObjectType::Buffer:
 			if ( auto find = objects_RenderSide[PipelineObjects::Buffer].find( id ); find != objects_RenderSide[PipelineObjects::Buffer].end() )
 			{
-				Buffer_UO obj(context, std::get<PipelineObjects::Buffer_>( find->second ).obj, std::get<PipelineObjects::Buffer_>( find->second ).buffer);
+				Buffer_UO obj( context, std::get<PipelineObjects::Buffer_>( find->second ).obj, std::get<PipelineObjects::Buffer_>( find->second ).buffer );
 				cb( obj );
 			}
 			break;
@@ -1049,6 +1051,6 @@ else RELEASE_PLO( PipelineObjects::VertexShader );
 		default:
 			break;
 		}
-			
+
 	}
 }

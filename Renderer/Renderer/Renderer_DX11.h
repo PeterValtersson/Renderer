@@ -21,7 +21,7 @@ namespace Graphics
 		virtual void UpdateSettings( const RendererInitializationInfo& ii ) override;
 		virtual const RendererInitializationInfo& GetSettings()const noexcept override;
 
-		virtual void UsePipelineHandler( const std::function<void( PipelineHandler_Interface & pipeline_handler )>& callback )noexcept override;
+		virtual void UsePipelineHandler( const std::function<void( PipelineHandler_Interface & pipeline_handler )>& callback ) override;
 
 		virtual void AddRenderJob( Utilities::GUID id, const RenderJob& job, RenderGroup renderGroup ) override;
 		// Will use the id of the pipeline
