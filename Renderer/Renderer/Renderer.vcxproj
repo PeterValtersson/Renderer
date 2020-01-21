@@ -174,7 +174,6 @@
     <ClInclude Include="PipelineHandler.h" />
     <ClInclude Include="PipelineObjects.h" />
     <ClInclude Include="Renderer_DX11.h" />
-    <ClInclude Include="Safe_Release.h" />
     <ClInclude Include="UpdateObjects.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

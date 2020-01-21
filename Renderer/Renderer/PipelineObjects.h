@@ -4,6 +4,8 @@
 #include <d3d11.h>
 #include <variant>
 #include <Graphics\Pipeline.h>
+#include <wrl.h>
+using Microsoft::WRL::ComPtr;
 
 template <>
 struct ::std::default_delete<ID3D11Buffer>{
@@ -16,41 +18,18 @@ struct ::std::default_delete<ID3D11Buffer>{
 		p->Release();
 	}
 };
-#define MAKE_RELEASEABLE_STRUCT(name, objtype, ...)\
+#define MAKE_PIPELINE_OBJECT(name, objtype, ...)\
 static constexpr uint32_t name = __COUNTER__ - offset - 1;\
 struct name##_\
 {\
-objtype* obj;\
-void Release()\
-{\
-if (obj)\
-obj->Release();\
-obj=nullptr;\
-this->~##name##_();\
-}\
-~name##_()\
-{\
-}\
+ComPtr<objtype> obj;\
  __VA_ARGS__  }
-#define MAKE_RELEASEABLE_STRUCT_DOUBLE(name, objtype, objtype2, ...)\
+#define MAKE_PIPELINE_OBJECT_TWO(name, objtype, objtype2, ...)\
 static constexpr uint32_t name = __COUNTER__ - offset - 1;\
 struct name##_\
 {\
-objtype * obj = nullptr;\
-objtype2 * obj2 = nullptr;\
-void Release()\
-{\
-if (obj)\
-obj->Release();\
-obj=nullptr;\
-if (obj2)\
-obj2->Release();\
-obj2=nullptr;\
-this->~##name##_();\
-}\
-~name##_()\
-{\
-}\
+ComPtr<objtype> obj = nullptr;\
+ComPtr<objtype2> obj2 = nullptr;\
  __VA_ARGS__  }
 #define MAKE_SIMPLE_STRUCT(name, objtype)\
 static constexpr uint32_t name = __COUNTER__ - offset - 1;\
@@ -93,22 +72,22 @@ namespace Graphics
 		static constexpr uint32_t offset = __COUNTER__;
 
 
-		MAKE_RELEASEABLE_STRUCT( Buffer, ID3D11Buffer, Pipeline::Buffer buffer;);
+		MAKE_PIPELINE_OBJECT( Buffer, ID3D11Buffer, Pipeline::Buffer buffer;);
 
-		MAKE_RELEASEABLE_STRUCT_DOUBLE( VertexShader, ID3D11VertexShader, ID3D11InputLayout, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
-		MAKE_RELEASEABLE_STRUCT( GeometryShader, ID3D11GeometryShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
-		MAKE_RELEASEABLE_STRUCT( PixelShader, ID3D11PixelShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
-		MAKE_RELEASEABLE_STRUCT( ComputeShader, ID3D11ComputeShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_PIPELINE_OBJECT_TWO( VertexShader, ID3D11VertexShader, ID3D11InputLayout, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_PIPELINE_OBJECT( GeometryShader, ID3D11GeometryShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_PIPELINE_OBJECT( PixelShader, ID3D11PixelShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_PIPELINE_OBJECT( ComputeShader, ID3D11ComputeShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
 
-		MAKE_RELEASEABLE_STRUCT( RenderTarget, ID3D11RenderTargetView, float clearColor[4];);
-		MAKE_RELEASEABLE_STRUCT( UnorderedAccessView, ID3D11UnorderedAccessView, float clearColor[4];);
-		MAKE_RELEASEABLE_STRUCT( ShaderResourceView, ID3D11ShaderResourceView );
-		MAKE_RELEASEABLE_STRUCT( DepthStencilView, ID3D11DepthStencilView );
+		MAKE_PIPELINE_OBJECT( RenderTarget, ID3D11RenderTargetView, float clearColor[4];);
+		MAKE_PIPELINE_OBJECT( UnorderedAccessView, ID3D11UnorderedAccessView, float clearColor[4];);
+		MAKE_PIPELINE_OBJECT( ShaderResourceView, ID3D11ShaderResourceView );
+		MAKE_PIPELINE_OBJECT( DepthStencilView, ID3D11DepthStencilView );
 
-		MAKE_RELEASEABLE_STRUCT( SamplerState, ID3D11SamplerState );
-		MAKE_RELEASEABLE_STRUCT( BlendState, ID3D11BlendState );
-		MAKE_RELEASEABLE_STRUCT( RasterizerState, ID3D11RasterizerState );
-		MAKE_RELEASEABLE_STRUCT( DepthStencilState, ID3D11DepthStencilState );
+		MAKE_PIPELINE_OBJECT( SamplerState, ID3D11SamplerState );
+		MAKE_PIPELINE_OBJECT( BlendState, ID3D11BlendState );
+		MAKE_PIPELINE_OBJECT( RasterizerState, ID3D11RasterizerState );
+		MAKE_PIPELINE_OBJECT( DepthStencilState, ID3D11DepthStencilState );
 
 		MAKE_SIMPLE_STRUCT( Viewport, D3D11_VIEWPORT );
 

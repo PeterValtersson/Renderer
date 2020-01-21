@@ -225,14 +225,14 @@ namespace Graphics
 	void Renderer_DX11::BeginFrame()noexcept
 	{
 		PROFILE;
-		ID3D11RenderTargetView* views[] = { device_handler->GetRTV() };
-		device_handler->GetDeviceContext()->OMSetRenderTargets( 1, views, device_handler->GetDepthStencil() );
+		ID3D11RenderTargetView* views[] = { device_handler->GetRTV().Get() };
+		device_handler->GetDeviceContext()->OMSetRenderTargets( 1, views, device_handler->GetDepthStencil().Get() );
 
 		// Clear the primary render target view using the specified color
-		device_handler->GetDeviceContext()->ClearRenderTargetView( device_handler->GetRTV(), clearColor[at] );
+		device_handler->GetDeviceContext()->ClearRenderTargetView( device_handler->GetRTV().Get(), clearColor[at] );
 
 		// Clear the standard depth stencil view
-		device_handler->GetDeviceContext()->ClearDepthStencilView( device_handler->GetDepthStencil(), D3D11_CLEAR_DEPTH, 1.0f, 0 );
+		device_handler->GetDeviceContext()->ClearDepthStencilView( device_handler->GetDepthStencil().Get(), D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
 	}
 	void Renderer_DX11::Frame()noexcept

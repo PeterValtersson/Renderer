@@ -43,9 +43,6 @@
     <ClInclude Include="DeviceHandler.h">
       <Filter>DX11Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Safe_Release.h">
-      <Filter>DX11Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\Graphics\PipelineHandler_Interface.h">
       <Filter>Renderer</Filter>
     </ClInclude>

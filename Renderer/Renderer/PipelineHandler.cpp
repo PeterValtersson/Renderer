@@ -41,9 +41,9 @@ float4 PS_main(float4 posH : SV_POSITION, float2 texC : TEXCOORD) : SV_TARGET \
 
 namespace Graphics
 {
-	PipelineHandler::PipelineHandler( ID3D11Device* device, ID3D11DeviceContext* context,
-									  ID3D11RenderTargetView* backbuffer, ID3D11ShaderResourceView* bbsrv,
-									  ID3D11DepthStencilView* dsv, ID3D11ShaderResourceView* dsvsrv,
+	PipelineHandler::PipelineHandler( ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context,
+									  ComPtr<ID3D11RenderTargetView> backbuffer, ComPtr<ID3D11ShaderResourceView> bbsrv,
+									  ComPtr<ID3D11DepthStencilView> dsv, ComPtr<ID3D11ShaderResourceView> dsvsrv,
 									  const D3D11_VIEWPORT& vp ) : device( device ), context( context )
 	{
 		objects_RenderSide[PipelineObjects::RenderTarget].emplace( Default_RenderTarget, PipelineObjects::RenderTarget_{ backbuffer,{ 0.0f, 0.0f,1.0f,0.0f } } );
@@ -93,28 +93,6 @@ namespace Graphics
 		objects_RenderSide[PipelineObjects::DepthStencilView].erase( Default_DepthStencil );
 		objects_RenderSide[PipelineObjects::ShaderResourceView].erase( Default_RenderTarget );
 		objects_RenderSide[PipelineObjects::ShaderResourceView].erase( Default_DepthStencil );
-
-
-		for ( auto& ot : objects_RenderSide )
-			for ( auto& o : ot )
-			{
-				RELEASE_PLO( PipelineObjects::Buffer )
-
-else RELEASE_PLO( PipelineObjects::VertexShader )
-				else RELEASE_PLO( PipelineObjects::GeometryShader )
-				else RELEASE_PLO( PipelineObjects::PixelShader )
-				else RELEASE_PLO( PipelineObjects::ComputeShader )
-
-				else RELEASE_PLO( PipelineObjects::RenderTarget )
-				else RELEASE_PLO( PipelineObjects::UnorderedAccessView )
-				else RELEASE_PLO( PipelineObjects::ShaderResourceView )
-				else RELEASE_PLO( PipelineObjects::DepthStencilView )
-
-				else RELEASE_PLO( PipelineObjects::SamplerState )
-				else RELEASE_PLO( PipelineObjects::BlendState )
-				else RELEASE_PLO( PipelineObjects::RasterizerState )
-				else RELEASE_PLO( PipelineObjects::DepthStencilState );
-			}
 	}
 
 
@@ -157,7 +135,7 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 		};
 		if ( flag_has( buffer.flags, Pipeline::BufferFlags::RAW ) ) bd.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
 
-		ID3D11Buffer* pBuffer;
+		ComPtr<ID3D11Buffer> pBuffer;
 		PipelineObject object;
 		HRESULT hr;
 
@@ -205,40 +183,13 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 	void PipelineHandler::CreateShader( Utilities::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel )
 	{
 		PROFILE;
-		ID3DBlob* blob;
-		ID3DBlob* error;
+		ComPtr<ID3DBlob> blob;
+		ComPtr<ID3DBlob> error;
 		if ( auto hr = D3DCompile( sourceCode, size, NULL, NULL, NULL, entryPoint, shaderModel, 0, 0, &blob, &error ); FAILED( hr ) )
-			throw Could_Not_Create_Shader( "Could not compile shader. \n" + std::string( ( char* )error ), id, type, hr );
+			throw Could_Not_Create_Shader( "Could not compile shader. \n" + std::string( ( char* )error.Get() ), id, type, hr );
 		return CreateShader( id, type, blob->GetBufferPointer(), blob->GetBufferSize() );
 	}
-	template<class T>
-	struct SafeDXP{
-		T* operator->()
-		{
-			return obj;
-		}
-		T** Create()
-		{
-			return &obj;
-		}
-		T* Get()
-		{
-			return obj;
-		}
-		T* Done()
-		{
-			T* t = obj;
-			obj = nullptr;
-			return t;
-		}
-		~SafeDXP()
-		{
-			if ( obj )
-				obj->Release();
-		}
-	private:
-		T* obj = nullptr;
-	};
+
 	void PipelineHandler::CreateShader( Utilities::GUID id, Pipeline::ShaderType type, void* data, size_t size )
 	{
 		PROFILE;
@@ -267,9 +218,9 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 		}
 
 		//Create the input layout with the help of shader reflection
-		SafeDXP<ID3D11ShaderReflection> reflection;
+		ComPtr<ID3D11ShaderReflection> reflection;
 
-		if ( auto hr = D3DReflect( data, size, IID_ID3D11ShaderReflection, ( void** )reflection.Create() ); FAILED( hr ) )
+		if ( auto hr = D3DReflect( data, size, IID_ID3D11ShaderReflection, &reflection ); FAILED( hr ) )
 			throw Could_Not_Create_Shader( "D3DReflect failed", id, type, hr );
 
 		D3D11_SHADER_DESC shaderDesc;
@@ -304,11 +255,11 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 		{
 		case Graphics::Pipeline::ShaderType::VERTEX:
 		{
-			SafeDXP<ID3D11InputLayout> inputLayout;
-			SafeDXP<ID3D11VertexShader> vs;
+			ComPtr<ID3D11InputLayout> inputLayout;
+			ComPtr<ID3D11VertexShader> vs;
 
 
-			if ( auto hr = device->CreateVertexShader( data, size, nullptr, vs.Create() ); FAILED( hr ) )
+			if ( auto hr = device->CreateVertexShader( data, size, nullptr, &vs ); FAILED( hr ) )
 				throw Could_Not_Create_Shader( "CreateVertexShader failed", id, type, hr );
 
 
@@ -375,21 +326,21 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 				inputElementDescs.push_back( inputElementDesc );
 			}
 			if ( inputElementDescs.size() > 0 )
-				if ( auto hr = device->CreateInputLayout( inputElementDescs.data(), UINT( inputElementDescs.size() ), data, size, inputLayout.Create() ); FAILED( hr ) )
+				if ( auto hr = device->CreateInputLayout( inputElementDescs.data(), UINT( inputElementDescs.size() ), data, size, &inputLayout ); FAILED( hr ) )
 					throw  Could_Not_Create_Shader( "CreateInputLayout failed", id, type, hr );
 
-			toAdd.push( { id, PipelineObjects::VertexShader_{vs.Done(), inputLayout.Done(), cbuffers} } );
+			toAdd.push( { id, PipelineObjects::VertexShader_{vs, inputLayout, cbuffers} } );
 			objects_ClientSide[PipelineObjects::VertexShader].emplace( id );
 			break;
 		}
 		case Graphics::Pipeline::ShaderType::GEOMETRY:
 		{
 
-			SafeDXP<ID3D11GeometryShader> s;
-			if ( auto hr = device->CreateGeometryShader( data, size, nullptr, s.Create() ); FAILED( hr ) )
+			ComPtr<ID3D11GeometryShader> s;
+			if ( auto hr = device->CreateGeometryShader( data, size, nullptr, &s ); FAILED( hr ) )
 				throw Could_Not_Create_Shader( "CreateGeometryShader failed", id, type, hr );
 
-			toAdd.push( { id, PipelineObjects::GeometryShader_{ s.Done(), cbuffers } } );
+			toAdd.push( { id, PipelineObjects::GeometryShader_{ s, cbuffers } } );
 			objects_ClientSide[PipelineObjects::GeometryShader].emplace( id );
 			break;
 		}
@@ -422,31 +373,31 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 			for ( auto& e : SOEntries )
 				bufferStrides += e.ComponentCount * 4;
 
-			SafeDXP<ID3D11GeometryShader> s;
-			if ( auto hr = device->CreateGeometryShaderWithStreamOutput( data, size, SOEntries.data(), UINT( SOEntries.size() ), &bufferStrides, 1, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, s.Create() ); FAILED( hr ) )
+			ComPtr<ID3D11GeometryShader> s;
+			if ( auto hr = device->CreateGeometryShaderWithStreamOutput( data, size, SOEntries.data(), UINT( SOEntries.size() ), &bufferStrides, 1, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, &s ); FAILED( hr ) )
 				throw Could_Not_Create_Shader( "CreateGeometryShaderWithStreamOutput failed", id, type, hr );
 
-			toAdd.push( { id, PipelineObjects::GeometryShader_{ s.Done(), cbuffers } } );
+			toAdd.push( { id, PipelineObjects::GeometryShader_{ s, cbuffers } } );
 			objects_ClientSide[PipelineObjects::GeometryShader].emplace( id );
 			break;
 		}
 		case Graphics::Pipeline::ShaderType::PIXEL:
 		{
-			SafeDXP<ID3D11PixelShader> s;
-			if ( auto hr = device->CreatePixelShader( data, size, nullptr, s.Create() ); FAILED( hr ) )
+			ComPtr<ID3D11PixelShader> s;
+			if ( auto hr = device->CreatePixelShader( data, size, nullptr, &s ); FAILED( hr ) )
 				throw Could_Not_Create_Shader( "Could not create pixel shader", id, type, hr );
 
-			toAdd.push( { id, PipelineObjects::PixelShader_{ s.Done(), cbuffers } } );
+			toAdd.push( { id, PipelineObjects::PixelShader_{ s, cbuffers } } );
 			objects_ClientSide[PipelineObjects::PixelShader].emplace( id );
 			break;
 		}
 		case Graphics::Pipeline::ShaderType::COMPUTE:
 		{
-			SafeDXP<ID3D11ComputeShader> s;
-			if ( auto hr = device->CreateComputeShader( data, size, nullptr, s.Create() ); FAILED( hr ) )
+			ComPtr<ID3D11ComputeShader> s;
+			if ( auto hr = device->CreateComputeShader( data, size, nullptr, &s ); FAILED( hr ) )
 				throw Could_Not_Create_Shader( "Could not create compute shader", id, type, hr );
 
-			toAdd.push( { id, PipelineObjects::ComputeShader_{ s.Done(), cbuffers } } );
+			toAdd.push( { id, PipelineObjects::ComputeShader_{ s, cbuffers } } );
 			objects_ClientSide[PipelineObjects::ComputeShader].emplace( id );
 			break;
 		}
@@ -553,7 +504,7 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 		rd.ScissorEnable = false;
 		rd.SlopeScaledDepthBias = 0;
 
-		ID3D11RasterizerState* rs;
+		ComPtr<ID3D11RasterizerState> rs;
 		if ( auto hr = device->CreateRasterizerState( &rd, &rs ); FAILED( hr ) )
 			throw Could_Not_Create_RasterizerState( "CreateRasterizerState failed", id, state, hr );
 
@@ -662,7 +613,7 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 		bd.AlphaToCoverageEnable = false;
 		bd.RenderTarget[0] = rtbd[0];
 
-		ID3D11BlendState* blendState;
+		ComPtr<ID3D11BlendState> blendState;
 		if ( auto hr = device->CreateBlendState( &bd, &blendState ); FAILED( hr ) )
 			throw Could_Not_Create_BlendState( "CreateBlendState failed", id, state, hr );
 
@@ -713,7 +664,7 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 		dsd.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 		dsd.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 
-		ID3D11DepthStencilState* dss;
+		ComPtr<ID3D11DepthStencilState> dss;
 		if ( auto hr = device->CreateDepthStencilState( &dsd, &dss ); FAILED( hr ) )
 			throw Could_Not_Create_DepthStencilState( "Could not create DepthStencilState", id, state, hr );
 
@@ -766,7 +717,7 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 		sd.MinLOD = 0;
 		sd.MaxLOD = D3D11_FLOAT32_MAX;
 		sd.MaxAnisotropy = state.maxAnisotropy;
-		ID3D11SamplerState* samplerState;
+		ComPtr<ID3D11SamplerState> samplerState;
 		if ( auto hr = device->CreateSamplerState( &sd, &samplerState ); FAILED( hr ) )
 			throw Could_Not_Create_SamplerState( "Could not create SamplerState", id, state, hr );
 
@@ -808,18 +759,18 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
 
-		SafeDXP<ID3D11Texture2D> texture;
+		ComPtr<ID3D11Texture2D> texture;
 		if ( info.data )
 		{
 			D3D11_SUBRESOURCE_DATA d;
 			d.pSysMem = info.data;
 			d.SysMemPitch = info.memPitch;
 			d.SysMemSlicePitch = info.memSlicePitch;
-			if ( auto hr = device->CreateTexture2D( &desc, &d, texture.Create() ); FAILED( hr ) )
+			if ( auto hr = device->CreateTexture2D( &desc, &d, &texture ); FAILED( hr ) )
 				throw Could_Not_Create_Texture( "CreateTexture2D failed", id, info, hr );
 		}
 		else
-			if ( auto hr = device->CreateTexture2D( &desc, nullptr, texture.Create() ); FAILED( hr ) )
+			if ( auto hr = device->CreateTexture2D( &desc, nullptr, &texture ); FAILED( hr ) )
 				throw Could_Not_Create_Texture( "CreateTexture2D failed", id, info, hr );
 
 
@@ -828,7 +779,7 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 			if ( auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find( id ); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end() )
 				throw Could_Not_Create_Texture( "Texture already exists", id, info );
 
-			ID3D11ShaderResourceView* srv;
+			ComPtr<ID3D11ShaderResourceView> srv;
 			D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 			srvDesc.Format = desc.Format;
 			switch ( info.viewDimension )
@@ -879,7 +830,7 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 			}
 			description.Texture2D.MipSlice = 0;
 
-			ID3D11UnorderedAccessView* unorderedAccessView;
+			ComPtr<ID3D11UnorderedAccessView> unorderedAccessView;
 			if ( auto hr = device->CreateUnorderedAccessView( texture.Get(), &description, &unorderedAccessView ); FAILED( hr ) )
 				throw Could_Not_Create_Texture( "CreateUnorderedAccessView failed", id, info, hr );
 
@@ -909,7 +860,7 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 			default: throw Could_Not_Create_Texture( "View Dimention unsupported", id, info ); break;
 			}
 			rtvd.Texture2D.MipSlice = 0;
-			ID3D11RenderTargetView* rtv;
+			ComPtr<ID3D11RenderTargetView> rtv;
 			if ( auto hr = device->CreateRenderTargetView( texture.Get(), &rtvd, &rtv ); FAILED( hr ) )
 				throw Could_Not_Create_Texture( "CreateRenderTargetView failed", id, info, hr );
 
@@ -964,9 +915,9 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 		dsvd.Texture2D.MipSlice = 0;
 		dsvd.Flags = 0;
 
-		SafeDXP<ID3D11Texture2D> texture;
+		ComPtr<ID3D11Texture2D> texture;
 
-		if ( auto hr = device->CreateTexture2D( &desc, nullptr, texture.Create() ); FAILED( hr ) )
+		if ( auto hr = device->CreateTexture2D( &desc, nullptr, &texture ); FAILED( hr ) )
 			throw Could_Not_Create_DepthStencilView( "CreateTexture2D failed", id, view, hr );
 
 		if ( flag_has( view.flags, Pipeline::DepthStencilViewFlags::SHADER_RESOURCE ) )
@@ -979,7 +930,7 @@ else RELEASE_PLO( PipelineObjects::VertexShader )
 			srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 			srvd.Texture2D.MostDetailedMip = 0;
 			srvd.Texture2D.MipLevels = 1;
-			ID3D11ShaderResourceView* srv;
+			ComPtr<ID3D11ShaderResourceView> srv;
 			if ( auto hr = device->CreateShaderResourceView( texture.Get(), &srvd, &srv ); FAILED( hr ) )
 				throw Could_Not_Create_DepthStencilView( "Could not create ShaderResourceView", id, view, hr );
 			objects_ClientSide[PipelineObjects::ShaderResourceView].emplace( id );

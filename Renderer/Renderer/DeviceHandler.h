@@ -6,6 +6,8 @@
 #include <DirectXMath.h>
 #include <Windows.h>
 #include <Graphics/Graphics_Exception.h>
+#include <wrl.h>
+using Microsoft::WRL::ComPtr;
 
 namespace Graphics {
 
@@ -65,30 +67,30 @@ namespace Graphics {
 		*/
 		void CreateBlendState();
 
-		inline ID3D11Device*           GetDevice() { return gDevice; };
-		inline ID3D11DeviceContext*    GetDeviceContext() { return gDeviceContext; };
-		inline ID3D11DeviceContext*    GetSecondaryDeviceContext() { return gSecDeviceContext; };
-		inline ID3D11RenderTargetView* GetRTV() const { return gBackbufferRTV; };
-		inline ID3D11ShaderResourceView* GetSRV() const { return gBBSRV; };
-		inline ID3D11DepthStencilView* GetDepthStencil() { return gDepthStencilView; };
-		inline ID3D11ShaderResourceView* GetDepthSRV() const { return gDepthStencilSRV; };
-		inline ID3D11BlendState*	   GetBlendState() { return blendTransState; };
+		inline ComPtr <ID3D11Device>           GetDevice() { return gDevice; };
+		inline ComPtr <ID3D11DeviceContext>    GetDeviceContext() { return gDeviceContext; };
+		inline ComPtr <ID3D11DeviceContext>    GetSecondaryDeviceContext() { return gSecDeviceContext; };
+		inline ComPtr <ID3D11RenderTargetView> GetRTV() const { return gBackbufferRTV; };
+		inline ComPtr <ID3D11ShaderResourceView> GetSRV() const { return gBBSRV; };
+		inline ComPtr <ID3D11DepthStencilView> GetDepthStencil() { return gDepthStencilView; };
+		inline ComPtr <ID3D11ShaderResourceView> GetDepthSRV() const { return gDepthStencilSRV; };
+		inline ComPtr<ID3D11BlendState>    GetBlendState() { return blendTransState; };
 		inline const D3D11_VIEWPORT&   GetViewport()const { return gViewportDefault; }
 		inline void SetDepthStencilStateAndRS()noexcept
 		{
-			gDeviceContext->RSSetState(rasterSolidState);
-			gDeviceContext->OMSetDepthStencilState(pDSState, 1);
+			gDeviceContext->RSSetState(rasterSolidState.Get());
+			gDeviceContext->OMSetDepthStencilState(pDSState.Get(), 1);
 		}
 
 		inline void SetRasterStateFill(uint8_t fillSolid)noexcept
 		{
 			if (fillSolid == 1)
 			{
-				gDeviceContext->RSSetState(rasterSolidState);
+				gDeviceContext->RSSetState(rasterSolidState.Get());
 			}
 			else
 			{
-				gDeviceContext->RSSetState(rasterWireState);
+				gDeviceContext->RSSetState(rasterWireState.Get());
 			}
 		}
 
@@ -97,12 +99,12 @@ namespace Graphics {
 			if (transparency == 1)
 			{
 				UINT sampleM = 0xFF;
-				gDeviceContext->OMSetBlendState(blendTransState, NULL, sampleM);
+				gDeviceContext->OMSetBlendState(blendTransState.Get(), NULL, sampleM);
 			}
 			else
 			{
 				UINT sampleM = 0xFF;
-				gDeviceContext->OMSetBlendState(blendSolidState, NULL, sampleM);
+				gDeviceContext->OMSetBlendState(blendSolidState.Get(), NULL, sampleM);
 			}
 		}
 
@@ -111,35 +113,35 @@ namespace Graphics {
 			return gBB_Desc;
 		}
 
-		inline ID3D11ShaderResourceView* GetDepthStencilSRV()noexcept
+		inline ComPtr <ID3D11ShaderResourceView> GetDepthStencilSRV()noexcept
 		{
 			return gDepthStencilSRV;
 		}
 
-		inline ID3D11Texture2D* GetBackBufferTexture()noexcept
+		inline ComPtr <ID3D11Texture2D> GetBackBufferTexture()noexcept
 		{
 			return gBackBuffer;
 		}
 	private:
 
-		ID3D11Device * gDevice;
-		ID3D11DeviceContext*	gDeviceContext;
-		ID3D11DeviceContext*	gSecDeviceContext;
-		IDXGISwapChain*			gSwapChain;
+		ComPtr<ID3D11Device> gDevice;
+		ComPtr<ID3D11DeviceContext> gDeviceContext;
+		ComPtr<ID3D11DeviceContext> gSecDeviceContext;
+		ComPtr<IDXGISwapChain> 		gSwapChain;
 
-		ID3D11Texture2D*		gBackBuffer;
-		ID3D11RenderTargetView*	gBackbufferRTV;
-		ID3D11ShaderResourceView* gBBSRV;
+		ComPtr<ID3D11Texture2D> 	gBackBuffer;
+		ComPtr<ID3D11RenderTargetView> gBackbufferRTV;
+		ComPtr<ID3D11ShaderResourceView> gBBSRV;
 
-		ID3D11Texture2D*		gDepthStencil;
-		ID3D11DepthStencilView*	gDepthStencilView;
-		ID3D11ShaderResourceView* gDepthStencilSRV;
-		ID3D11DepthStencilState * pDSState;
+		ComPtr<ID3D11Texture2D> 	gDepthStencil;
+		ComPtr<ID3D11DepthStencilView> gDepthStencilView;
+		ComPtr<ID3D11ShaderResourceView> gDepthStencilSRV;
+		ComPtr<ID3D11DepthStencilState > pDSState;
 
-		ID3D11BlendState*		blendSolidState;
-		ID3D11BlendState*		blendTransState;
-		ID3D11RasterizerState * rasterSolidState;
-		ID3D11RasterizerState * rasterWireState;
+		ComPtr<ID3D11BlendState> 	blendSolidState;
+		ComPtr<ID3D11BlendState> 	blendTransState;
+		ComPtr<ID3D11RasterizerState > rasterSolidState;
+		ComPtr<ID3D11RasterizerState > rasterWireState;
 
 		D3D11_TEXTURE2D_DESC	gBB_Desc;
 		D3D_FEATURE_LEVEL		gFeatureLevel;

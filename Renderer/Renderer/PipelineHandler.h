@@ -12,12 +12,11 @@
 
 namespace Graphics
 {
-	class PipelineHandler : public PipelineHandler_Interface
-	{
+	class PipelineHandler : public PipelineHandler_Interface{
 	public:
-		PipelineHandler( ID3D11Device* device, ID3D11DeviceContext* context,
-						 ID3D11RenderTargetView* backbuffer, ID3D11ShaderResourceView* bbsrv,
-						 ID3D11DepthStencilView* dsv, ID3D11ShaderResourceView* dsvsrv,
+		PipelineHandler( ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context,
+						 ComPtr<ID3D11RenderTargetView> backbuffer, ComPtr<ID3D11ShaderResourceView> bbsrv,
+						 ComPtr<ID3D11DepthStencilView> dsv, ComPtr<ID3D11ShaderResourceView> dsvsrv,
 						 const D3D11_VIEWPORT& vp );
 		virtual ~PipelineHandler()noexcept;
 
@@ -55,27 +54,25 @@ namespace Graphics
 
 		virtual void UpdatePipelineObjects()noexcept;
 
-		virtual void UpdateObject(Utilities::GUID id, PipelineObjectType type, const std::function<void( UpdateObjectRef & obj )>& cb );
+		virtual void UpdateObject( Utilities::GUID id, PipelineObjectType type, const std::function<void( UpdateObjectRef & obj )>& cb );
 	protected:
-		ID3D11Device * device;
-		ID3D11DeviceContext* context;
-		
+		ComPtr<ID3D11Device> device;
+		ComPtr<ID3D11DeviceContext> context;
+
 		std::array<std::unordered_map<Utilities::GUID, PipelineObject, Utilities::GUID::Hasher>, PipelineObjects::NUM_TYPES> objects_RenderSide;
 		std::array<std::set<Utilities::GUID, Utilities::GUID::Compare>, PipelineObjects::NUM_TYPES> objects_ClientSide;
-		struct ToAdd
-		{
+		struct ToAdd{
 			Utilities::GUID id;
 			PipelineObject obj;
-			ToAdd& operator=(ToAdd&& other)
+			ToAdd& operator=( ToAdd&& other )noexcept
 			{
 				id = other.id;
-				obj = std::move(other.obj);
+				obj = std::move( other.obj );
 				return *this;
 			}
 		};
 		Utilities::CircularFiFo<ToAdd> toAdd;
-		struct ToRemove
-		{
+		struct ToRemove{
 			Utilities::GUID id;
 			uint32_t type;
 		};

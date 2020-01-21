@@ -6,11 +6,11 @@ namespace Graphics
 {
 	struct Buffer_UO : public UpdateObjectRef
 	{
-		ID3D11DeviceContext* c;
-		ID3D11Buffer* bfr;
+		ComPtr<ID3D11DeviceContext> c;
+		ComPtr<ID3D11Buffer> bfr;
 
 		const Pipeline::Buffer& info;
-		Buffer_UO(ID3D11DeviceContext* c, ID3D11Buffer* bfr, const Pipeline::Buffer& bf): c(c), bfr(bfr), info(bf)
+		Buffer_UO( ComPtr<ID3D11DeviceContext> c, ComPtr<ID3D11Buffer> bfr, const Pipeline::Buffer& bf): c(c), bfr(bfr), info(bf)
 		{
 			_ASSERT(c);
 			_ASSERT(bfr);
