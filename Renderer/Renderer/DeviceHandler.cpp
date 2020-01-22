@@ -8,9 +8,12 @@
 using namespace DirectX;
 namespace Graphics
 {
-	DeviceHandler::DeviceHandler( HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount ) 
+	DeviceHandler::DeviceHandler( HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount )
 	{
 		CreateDeviceResources();
+
+		if ( !windowHandle )
+			return;
 
 		CreateSwapChain( windowHandle, fullscreen, borderless, bufferCount );
 
@@ -20,36 +23,36 @@ namespace Graphics
 
 		SetViewport();
 
-		CreateBlendState();
+		//CreateBlendState();
 
 
-		D3D11_RASTERIZER_DESC rasterizerState;
-		rasterizerState.FillMode = D3D11_FILL_SOLID;
-		rasterizerState.CullMode = D3D11_CULL_NONE;
-		rasterizerState.FrontCounterClockwise = false;
-		rasterizerState.DepthBias = false;
-		rasterizerState.DepthBiasClamp = 0;
-		rasterizerState.SlopeScaledDepthBias = 0;
-		rasterizerState.DepthClipEnable = true;
-		rasterizerState.ScissorEnable = false;
-		rasterizerState.MultisampleEnable = false;
-		rasterizerState.AntialiasedLineEnable = false;
+		//D3D11_RASTERIZER_DESC rasterizerState;
+		//rasterizerState.FillMode = D3D11_FILL_SOLID;
+		//rasterizerState.CullMode = D3D11_CULL_NONE;
+		//rasterizerState.FrontCounterClockwise = false;
+		//rasterizerState.DepthBias = false;
+		//rasterizerState.DepthBiasClamp = 0;
+		//rasterizerState.SlopeScaledDepthBias = 0;
+		//rasterizerState.DepthClipEnable = true;
+		//rasterizerState.ScissorEnable = false;
+		//rasterizerState.MultisampleEnable = false;
+		//rasterizerState.AntialiasedLineEnable = false;
 
-		if ( auto hr = gDevice->CreateRasterizerState( &rasterizerState, &rasterSolidState ); FAILED( hr ) )
-			throw Could_Not_Create_RasterizerState( "CreateRasterizerState failed", "Rasterizer_Solid", {}, hr );
+		//if ( auto hr = gDevice->CreateRasterizerState( &rasterizerState, &rasterSolidState ); FAILED( hr ) )
+		//	throw Could_Not_Create_RasterizerState( "CreateRasterizerState failed", "Rasterizer_Solid", {}, hr );
 
-		gDeviceContext->RSSetState( rasterSolidState.Get() );
+		//gDeviceContext->RSSetState( rasterSolidState.Get() );
 
-		rasterizerState.FillMode = D3D11_FILL_WIREFRAME;
+		//rasterizerState.FillMode = D3D11_FILL_WIREFRAME;
 
-		if ( auto hr = gDevice->CreateRasterizerState( &rasterizerState, &rasterWireState ); FAILED( hr ) )
-			throw Could_Not_Create_RasterizerState( "CreateRasterizerState failed", "Rasterizer_Wired", {}, hr );
+		//if ( auto hr = gDevice->CreateRasterizerState( &rasterizerState, &rasterWireState ); FAILED( hr ) )
+		//	throw Could_Not_Create_RasterizerState( "CreateRasterizerState failed", "Rasterizer_Wired", {}, hr );
 
 	}
 
 	DeviceHandler::~DeviceHandler()
 	{
-		
+
 	}
 
 	void DeviceHandler::CreateDeviceResources()
@@ -236,8 +239,9 @@ namespace Graphics
 
 	HRESULT DeviceHandler::Present( UINT vsync )noexcept
 	{
-
-		return gSwapChain->Present( vsync, 0 );
+		if ( gSwapChain )
+			return gSwapChain->Present( vsync, 0 );
+		return 0;
 	}
 
 	void DeviceHandler::ResizeSwapChain( HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount )
@@ -251,77 +255,80 @@ namespace Graphics
 		gBackBuffer.Reset();
 		gSwapChain.Reset();
 
+		if ( !windowHandle )
+			return;
+
 		CreateSwapChain( windowHandle, fullscreen, borderless, bufferCount );
 		CreateBackBufferRTV();
 		CreateDepthStencil();
 		SetViewport();
 	}
 
-	void DeviceHandler::CreateBlendState()
-	{
-		PROFILE;
-		// Transparency off
-		D3D11_RENDER_TARGET_BLEND_DESC rendTarBlendState[8];
-		for ( auto& rtbs : rendTarBlendState )
-		{
-			rtbs.BlendEnable = false;
-			rtbs.BlendOp = D3D11_BLEND_OP_ADD;
-			rtbs.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			rtbs.DestBlend = D3D11_BLEND_ZERO;
-			rtbs.DestBlendAlpha = D3D11_BLEND_ZERO;
-			rtbs.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-			rtbs.SrcBlend = D3D11_BLEND_ONE;
-			rtbs.SrcBlendAlpha = D3D11_BLEND_ONE;
-		}
+	//void DeviceHandler::CreateBlendState()
+	//{
+	//	PROFILE;
+	//	// Transparency off
+	//	D3D11_RENDER_TARGET_BLEND_DESC rendTarBlendState[8];
+	//	for ( auto& rtbs : rendTarBlendState )
+	//	{
+	//		rtbs.BlendEnable = false;
+	//		rtbs.BlendOp = D3D11_BLEND_OP_ADD;
+	//		rtbs.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	//		rtbs.DestBlend = D3D11_BLEND_ZERO;
+	//		rtbs.DestBlendAlpha = D3D11_BLEND_ZERO;
+	//		rtbs.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	//		rtbs.SrcBlend = D3D11_BLEND_ONE;
+	//		rtbs.SrcBlendAlpha = D3D11_BLEND_ONE;
+	//	}
 
-		// just default values right now
-		D3D11_BLEND_DESC blendStateDesc;
-		blendStateDesc.AlphaToCoverageEnable = false;
-		blendStateDesc.IndependentBlendEnable = false;
-		blendStateDesc.RenderTarget[0] = rendTarBlendState[0];
-		blendStateDesc.RenderTarget[1] = rendTarBlendState[1];
-		blendStateDesc.RenderTarget[2] = rendTarBlendState[2];
-		blendStateDesc.RenderTarget[3] = rendTarBlendState[3];
-		blendStateDesc.RenderTarget[4] = rendTarBlendState[4];
-		blendStateDesc.RenderTarget[5] = rendTarBlendState[5];
-		blendStateDesc.RenderTarget[6] = rendTarBlendState[6];
-		blendStateDesc.RenderTarget[7] = rendTarBlendState[7];
+	//	// just default values right now
+	//	D3D11_BLEND_DESC blendStateDesc;
+	//	blendStateDesc.AlphaToCoverageEnable = false;
+	//	blendStateDesc.IndependentBlendEnable = false;
+	//	blendStateDesc.RenderTarget[0] = rendTarBlendState[0];
+	//	blendStateDesc.RenderTarget[1] = rendTarBlendState[1];
+	//	blendStateDesc.RenderTarget[2] = rendTarBlendState[2];
+	//	blendStateDesc.RenderTarget[3] = rendTarBlendState[3];
+	//	blendStateDesc.RenderTarget[4] = rendTarBlendState[4];
+	//	blendStateDesc.RenderTarget[5] = rendTarBlendState[5];
+	//	blendStateDesc.RenderTarget[6] = rendTarBlendState[6];
+	//	blendStateDesc.RenderTarget[7] = rendTarBlendState[7];
 
-		if ( auto hr = gDevice->CreateBlendState( &blendStateDesc, &blendSolidState ); FAILED( hr ) )
-			throw Could_Not_Create_Default_BlendState( "Could not create blend state", hr );
+	//	if ( auto hr = gDevice->CreateBlendState( &blendStateDesc, &blendSolidState ); FAILED( hr ) )
+	//		throw Could_Not_Create_Default_BlendState( "Could not create blend state", hr );
 
-		UINT sampleM = 0xffffffff;
-		gDeviceContext->OMSetBlendState( blendSolidState.Get(), NULL, sampleM );
+	//	UINT sampleM = 0xffffffff;
+	//	gDeviceContext->OMSetBlendState( blendSolidState.Get(), NULL, sampleM );
 
-		// Transparency on
-		D3D11_RENDER_TARGET_BLEND_DESC rendTransBlendState[8];
-		for ( auto& rtbs : rendTransBlendState )
-		{
-			rtbs.BlendEnable = true;
-			rtbs.BlendOp = D3D11_BLEND_OP_ADD;
-			rtbs.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			rtbs.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-			rtbs.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-			rtbs.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-			rtbs.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-			rtbs.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-		}
+	//	// Transparency on
+	//	D3D11_RENDER_TARGET_BLEND_DESC rendTransBlendState[8];
+	//	for ( auto& rtbs : rendTransBlendState )
+	//	{
+	//		rtbs.BlendEnable = true;
+	//		rtbs.BlendOp = D3D11_BLEND_OP_ADD;
+	//		rtbs.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	//		rtbs.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	//		rtbs.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+	//		rtbs.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	//		rtbs.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	//		rtbs.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	//	}
 
-		D3D11_BLEND_DESC blendTransStateDesc;
-		blendTransStateDesc.AlphaToCoverageEnable = false;
-		blendTransStateDesc.IndependentBlendEnable = false;
-		blendTransStateDesc.RenderTarget[0] = rendTransBlendState[0];
-		blendTransStateDesc.RenderTarget[1] = rendTransBlendState[1];
-		blendTransStateDesc.RenderTarget[2] = rendTransBlendState[2];
-		blendTransStateDesc.RenderTarget[3] = rendTransBlendState[3];
-		blendTransStateDesc.RenderTarget[4] = rendTransBlendState[4];
-		blendTransStateDesc.RenderTarget[5] = rendTransBlendState[5];
-		blendTransStateDesc.RenderTarget[6] = rendTransBlendState[6];
-		blendTransStateDesc.RenderTarget[7] = rendTransBlendState[7];
+	//	D3D11_BLEND_DESC blendTransStateDesc;
+	//	blendTransStateDesc.AlphaToCoverageEnable = false;
+	//	blendTransStateDesc.IndependentBlendEnable = false;
+	//	blendTransStateDesc.RenderTarget[0] = rendTransBlendState[0];
+	//	blendTransStateDesc.RenderTarget[1] = rendTransBlendState[1];
+	//	blendTransStateDesc.RenderTarget[2] = rendTransBlendState[2];
+	//	blendTransStateDesc.RenderTarget[3] = rendTransBlendState[3];
+	//	blendTransStateDesc.RenderTarget[4] = rendTransBlendState[4];
+	//	blendTransStateDesc.RenderTarget[5] = rendTransBlendState[5];
+	//	blendTransStateDesc.RenderTarget[6] = rendTransBlendState[6];
+	//	blendTransStateDesc.RenderTarget[7] = rendTransBlendState[7];
 
-		if ( auto hr = gDevice->CreateBlendState( &blendTransStateDesc, &blendTransState ); FAILED( hr ) )
-			throw Could_Not_Create_Default_BlendState( "Could not create blend state", hr );
-	}
+	//	if ( auto hr = gDevice->CreateBlendState( &blendTransStateDesc, &blendTransState ); FAILED( hr ) )
+	//		throw Could_Not_Create_Default_BlendState( "Could not create blend state", hr );
+	//}
 
 
 }

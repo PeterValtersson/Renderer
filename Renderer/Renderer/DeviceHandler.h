@@ -65,7 +65,7 @@ namespace Graphics {
 		* @brief Creates a blend state
 		* @endcode
 		*/
-		void CreateBlendState();
+		//void CreateBlendState();
 
 		inline ComPtr <ID3D11Device>           GetDevice() { return gDevice; };
 		inline ComPtr <ID3D11DeviceContext>    GetDeviceContext() { return gDeviceContext; };
@@ -74,15 +74,15 @@ namespace Graphics {
 		inline ComPtr <ID3D11ShaderResourceView> GetSRV() const { return gBBSRV; };
 		inline ComPtr <ID3D11DepthStencilView> GetDepthStencil() { return gDepthStencilView; };
 		inline ComPtr <ID3D11ShaderResourceView> GetDepthSRV() const { return gDepthStencilSRV; };
-		inline ComPtr<ID3D11BlendState>    GetBlendState() { return blendTransState; };
+		//inline ComPtr<ID3D11BlendState>    GetBlendState() { return blendTransState; };
 		inline const D3D11_VIEWPORT&   GetViewport()const { return gViewportDefault; }
-		inline void SetDepthStencilStateAndRS()noexcept
+		/*inline void SetDepthStencilStateAndRS()noexcept
 		{
 			gDeviceContext->RSSetState(rasterSolidState.Get());
 			gDeviceContext->OMSetDepthStencilState(pDSState.Get(), 1);
-		}
+		}*/
 
-		inline void SetRasterStateFill(uint8_t fillSolid)noexcept
+		/*inline void SetRasterStateFill(uint8_t fillSolid)noexcept
 		{
 			if (fillSolid == 1)
 			{
@@ -106,7 +106,7 @@ namespace Graphics {
 				UINT sampleM = 0xFF;
 				gDeviceContext->OMSetBlendState(blendSolidState.Get(), NULL, sampleM);
 			}
-		}
+		}*/
 
 		inline D3D11_TEXTURE2D_DESC GetTexDesc()noexcept
 		{
@@ -138,10 +138,10 @@ namespace Graphics {
 		ComPtr<ID3D11ShaderResourceView> gDepthStencilSRV;
 		ComPtr<ID3D11DepthStencilState > pDSState;
 
-		ComPtr<ID3D11BlendState> 	blendSolidState;
+		/*ComPtr<ID3D11BlendState> 	blendSolidState;
 		ComPtr<ID3D11BlendState> 	blendTransState;
 		ComPtr<ID3D11RasterizerState > rasterSolidState;
-		ComPtr<ID3D11RasterizerState > rasterWireState;
+		ComPtr<ID3D11RasterizerState > rasterWireState;*/
 
 		D3D11_TEXTURE2D_DESC	gBB_Desc;
 		D3D_FEATURE_LEVEL		gFeatureLevel;

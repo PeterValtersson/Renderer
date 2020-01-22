@@ -70,5 +70,8 @@
     <ClInclude Include="..\Include\Graphics\Graphics_Exception.h">
       <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Job.h">
+      <Filter>DX11Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -170,6 +170,7 @@
     <ClInclude Include="..\Include\Graphics\Renderer_Interface.h" />
     <ClInclude Include="..\Include\Graphics\RenderJob.h" />
     <ClInclude Include="DeviceHandler.h" />
+    <ClInclude Include="Job.h" />
     <ClInclude Include="PipelineAssigner.h" />
     <ClInclude Include="PipelineHandler.h" />
     <ClInclude Include="PipelineObjects.h" />

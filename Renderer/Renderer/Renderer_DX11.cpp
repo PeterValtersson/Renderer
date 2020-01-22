@@ -64,9 +64,9 @@ namespace Graphics
 		return settings;
 	}
 
-	void Renderer_DX11::UsePipelineHandler( const std::function<void( PipelineHandler_Interface & pipeline_handler )>& callback ) 
+	void Renderer_DX11::UsePipelineHandler( const std::function<void( PipelineHandler_Interface & pipeline_handler )>& callback )
 	{
-		callback( *pipeline );	
+		callback( *pipeline );
 	}
 
 	void Renderer_DX11::AddRenderJob( Utilities::GUID id, const RenderJob& job, RenderGroup renderGroup )
@@ -195,7 +195,7 @@ namespace Graphics
 			PROFILE_N( "Run_While" );
 			ResolveJobs();
 
-			clearColor[at][0] = fmodf( clearColor[at][0] + 0.01f, 1.0f );
+		//	clearColor[at][0] = fmodf( clearColor[at][0] + 0.01f, 1.0f );
 
 			BeginFrame();
 
@@ -225,20 +225,20 @@ namespace Graphics
 	void Renderer_DX11::BeginFrame()noexcept
 	{
 		PROFILE;
-		ID3D11RenderTargetView* views[] = { device_handler->GetRTV().Get() };
-		device_handler->GetDeviceContext()->OMSetRenderTargets( 1, views, device_handler->GetDepthStencil().Get() );
+		//ID3D11RenderTargetView* views[] = { device_handler->GetRTV().Get() };
+		//device_handler->GetDeviceContext()->OMSetRenderTargets( 1, views, device_handler->GetDepthStencil().Get() );
 
-		// Clear the primary render target view using the specified color
-		device_handler->GetDeviceContext()->ClearRenderTargetView( device_handler->GetRTV().Get(), clearColor[at] );
+		//// Clear the primary render target view using the specified color
+		//device_handler->GetDeviceContext()->ClearRenderTargetView( device_handler->GetRTV().Get(), clearColor[at] );
 
-		// Clear the standard depth stencil view
-		device_handler->GetDeviceContext()->ClearDepthStencilView( device_handler->GetDepthStencil().Get(), D3D11_CLEAR_DEPTH, 1.0f, 0 );
+		//// Clear the standard depth stencil view
+		//device_handler->GetDeviceContext()->ClearDepthStencilView( device_handler->GetDepthStencil().Get(), D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
 	}
 	void Renderer_DX11::Frame()noexcept
 	{
 		PROFILE;
-		static std::vector<JobStuff<UpdateJob>::ToRemove> updateJobsToRemove;
+		std::vector<Job<UpdateJob>::ToRemove> updateJobsToRemove;
 		for ( uint8_t i = 0; i <= uint8_t( RenderGroup::FINAL_PASS ); i++ )
 		{
 			auto& uj = updateJobs.renderSide.GetJobs( RenderGroup( i ) );
@@ -256,10 +256,26 @@ namespace Graphics
 					updateJobsToRemove.push_back( { job.objectToMap,RenderGroup( i ) } );
 			}
 
+			auto& rj = renderJobs.renderSide.GetJobs( RenderGroup( i ) );
+			for ( auto& job : rj )
+			{
+				job.
+				try
+				{
+					pipeline->UpdateObject( job.objectToMap, job.type, job.updateCallback );
+				}
+				catch ( ... )
+				{
+					// Do something with that.
+				}
+				if ( job.frequency == UpdateFrequency::ONCE )
+					updateJobsToRemove.push_back( { job.objectToMap,RenderGroup( i ) } );
+			}
+
 
 		}
 
-		for ( auto toRemove : updateJobsToRemove )
+		for ( auto& toRemove : updateJobsToRemove )
 			updateJobs.renderSide.Remove( toRemove );
 	}
 	void Renderer_DX11::EndFrame()noexcept
