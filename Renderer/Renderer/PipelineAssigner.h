@@ -8,14 +8,22 @@ namespace Graphics
 	class PipelineAssigner : public PipelineHandler
 	{
 	public:
-		PipelineAssigner( ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context,
-						  ComPtr<ID3D11RenderTargetView> backbuffer, ComPtr<ID3D11ShaderResourceView> bbsrv,
-						  ComPtr<ID3D11DepthStencilView> dsv, ComPtr<ID3D11ShaderResourceView> dsvsrv,
-						  const D3D11_VIEWPORT& vp );
+		PipelineAssigner( ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context);
+
 		virtual ~PipelineAssigner()noexcept;
 
 
-		void Set_Pipeline(const Pipeline::Pipeline& pl)
+		void Set_Pipeline( const Pipeline::Pipeline& pipeline )noexcept;
+		void Clear_Pipeline()noexcept;
+
+	private:
+		void Set_InputAssemblerStage( const Pipeline::InputAssemblerStage& pIA )noexcept;
+		void Set_VertexShaderStage( const Pipeline::ShaderStage& vss )noexcept;
+		void Set_GeometryShaderStage( const Pipeline::ShaderStage& gss )noexcept;
+		void Set_RasterizerStage( const Pipeline::RasterizerStage& rs )noexcept;
+		void Set_PixelShaderStage( const Pipeline::ShaderStage& pss )noexcept;
+		void Set_OutputMergerStage( const Pipeline::OutputMergerStage& oms )noexcept;
+		void Set_ComputeShaderStage( const Pipeline::ShaderStage& css )noexcept;
 	};
 }
 #endif

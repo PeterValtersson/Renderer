@@ -43,6 +43,8 @@ namespace Graphics
 		// Returns the number of groups this job is registered under.
 		virtual size_t IsUpdateJobRegistered( Utilities::GUID id )const noexcept override;
 	private:
+		void PerformRenderJob( const RenderJob& job )noexcept;
+	private:
 		RendererInitializationInfo settings;
 		std::unique_ptr<DeviceHandler> device_handler;
 		std::unique_ptr<PipelineAssigner> pipeline;

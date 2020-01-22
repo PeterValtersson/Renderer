@@ -14,10 +14,8 @@ namespace Graphics
 {
 	class PipelineHandler : public PipelineHandler_Interface{
 	public:
-		PipelineHandler( ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context,
-						 ComPtr<ID3D11RenderTargetView> backbuffer, ComPtr<ID3D11ShaderResourceView> bbsrv,
-						 ComPtr<ID3D11DepthStencilView> dsv, ComPtr<ID3D11ShaderResourceView> dsvsrv,
-						 const D3D11_VIEWPORT& vp );
+		PipelineHandler( ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context);
+
 		virtual ~PipelineHandler()noexcept;
 
 		virtual void CreateBuffer( Utilities::GUID id, const Pipeline::Buffer& buffer ) override;
@@ -46,9 +44,12 @@ namespace Graphics
 		virtual void CreateSamplerState( Utilities::GUID id, const Pipeline::SamplerState& state ) override;
 		virtual void DestroySamplerState( Utilities::GUID id )noexcept override;
 
-		virtual void CreateTexture( Utilities::GUID id, const Pipeline::Texture& target ) override;
+		void AddTexture( Utilities::GUID id, ComPtr<ID3D11ShaderResourceView> srv );
+		void AddTexture( Utilities::GUID id, ComPtr<ID3D11RenderTargetView> rtv );
+		virtual void CreateTexture( Utilities::GUID id, const Pipeline::Texture& texture ) override;
 		virtual void DestroyTexture( Utilities::GUID id )noexcept override;
 
+		void AddDepthStencilView( Utilities::GUID id, ComPtr<ID3D11DepthStencilView> dsv );
 		virtual void CreateDepthStencilView( Utilities::GUID id, const Pipeline::DepthStencilView& view ) override;
 		virtual void DestroyDepthStencilView( Utilities::GUID id )noexcept override;
 

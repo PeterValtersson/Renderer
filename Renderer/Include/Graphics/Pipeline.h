@@ -286,6 +286,7 @@ namespace Graphics
 			Utilities::GUID renderTargets[maxRenderTargets];
 			Utilities::GUID depthStencilView;
 			uint8_t renderTargetCount = 0;
+			bool clearTargets = false;
 
 			Utilities::GUID GetID()const
 			{

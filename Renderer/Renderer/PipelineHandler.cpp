@@ -41,22 +41,19 @@ float4 PS_main(float4 posH : SV_POSITION, float2 texC : TEXCOORD) : SV_TARGET \
 
 namespace Graphics
 {
-	PipelineHandler::PipelineHandler( ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context,
-									  ComPtr<ID3D11RenderTargetView> backbuffer, ComPtr<ID3D11ShaderResourceView> bbsrv,
-									  ComPtr<ID3D11DepthStencilView> dsv, ComPtr<ID3D11ShaderResourceView> dsvsrv,
-									  const D3D11_VIEWPORT& vp ) : device( device ), context( context )
+	PipelineHandler::PipelineHandler( ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context ) : device( device ), context( context )
 	{
-		objects_RenderSide[PipelineObjects::RenderTarget].emplace( Default_RenderTarget, PipelineObjects::RenderTarget_{ backbuffer,{ 0.0f, 0.0f,1.0f,0.0f } } );
+		/*objects_RenderSide[PipelineObjects::RenderTarget].emplace( Default_RenderTarget, PipelineObjects::RenderTarget_{ backbuffer,{ 0.0f, 0.0f,1.0f,0.0f } } );
 		objects_RenderSide[PipelineObjects::DepthStencilView].emplace( Default_DepthStencil, PipelineObjects::DepthStencilView_{ dsv } );
 		objects_RenderSide[PipelineObjects::ShaderResourceView].emplace( Default_RenderTarget, PipelineObjects::ShaderResourceView_{ bbsrv } );
 		objects_RenderSide[PipelineObjects::ShaderResourceView].emplace( Default_DepthStencil, PipelineObjects::ShaderResourceView_{ dsvsrv } );
-		objects_RenderSide[PipelineObjects::Viewport].emplace( Default_Viewport, PipelineObjects::Viewport_{ vp } );
+		objects_RenderSide[PipelineObjects::Viewport].emplace( Default_Viewport, PipelineObjects::Viewport_{ vp } );*/
 
-		objects_ClientSide[PipelineObjects::RenderTarget].emplace( Default_RenderTarget );
-		objects_ClientSide[PipelineObjects::DepthStencilView].emplace( Default_DepthStencil );
-		objects_ClientSide[PipelineObjects::ShaderResourceView].emplace( Default_RenderTarget );
-		objects_ClientSide[PipelineObjects::ShaderResourceView].emplace( Default_DepthStencil );
-		objects_ClientSide[PipelineObjects::Viewport].emplace( Default_Viewport );
+		//objects_ClientSide[PipelineObjects::RenderTarget].emplace( Default_RenderTarget );
+		//objects_ClientSide[PipelineObjects::DepthStencilView].emplace( Default_DepthStencil );
+		//objects_ClientSide[PipelineObjects::ShaderResourceView].emplace( Default_RenderTarget );
+		//objects_ClientSide[PipelineObjects::ShaderResourceView].emplace( Default_DepthStencil );
+		//objects_ClientSide[PipelineObjects::Viewport].emplace( Default_Viewport );
 
 		EMPLACE_NULL( PipelineObjects::Buffer );
 
@@ -80,9 +77,6 @@ namespace Graphics
 		CreateShader( Default_VertexShader_FullscreenQUAD, Pipeline::ShaderType::VERTEX, fullscreenQuadVS, strlen( fullscreenQuadVS ), "VS_main", "vs_5_0" );
 		CreateShader( Default_PixelShader_POS_TEXTURE_MultiChannel, Pipeline::ShaderType::PIXEL, MultiPS, strlen( MultiPS ), "PS_main", "ps_5_0" );
 		CreateShader( Default_PixelShader_POS_TEXTURE_SingleChannel, Pipeline::ShaderType::PIXEL, SinglePS, strlen( SinglePS ), "PS_main", "ps_5_0" );
-
-
-
 	}
 
 
@@ -733,6 +727,21 @@ namespace Graphics
 			toRemove.push( { id, PipelineObjects::SamplerState } );
 		}
 	}
+	void PipelineHandler::AddTexture( Utilities::GUID id, ComPtr<ID3D11ShaderResourceView> srv )
+	{
+		if ( auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find( id ); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end() )
+			throw Could_Not_Add_Texture( "Texture already exists", id );
+		objects_ClientSide[PipelineObjects::ShaderResourceView].emplace( id );
+		toAdd.push( { id, PipelineObjects::ShaderResourceView_{ srv} } );
+	}
+	void PipelineHandler::AddTexture( Utilities::GUID id, ComPtr<ID3D11RenderTargetView> rtv )
+	{
+		if ( auto find = objects_ClientSide[PipelineObjects::RenderTarget].find( id ); find != objects_ClientSide[PipelineObjects::RenderTarget].end() )
+			throw Could_Not_Add_Texture( "RenderTarget already exists", id );
+
+		objects_ClientSide[PipelineObjects::RenderTarget].emplace( id );
+		toAdd.push( { id, PipelineObjects::RenderTarget_{ rtv,{ 0.0f,0.0f,0.0f,0.0f } } } );
+	}
 	void PipelineHandler::CreateTexture( Utilities::GUID id, const Pipeline::Texture& info )
 	{
 		PROFILE;
@@ -888,6 +897,14 @@ namespace Graphics
 			toRemove.push( { id, PipelineObjects::ShaderResourceView } );
 		}
 	}
+	void PipelineHandler::AddDepthStencilView( Utilities::GUID id, ComPtr<ID3D11DepthStencilView> dsv )
+	{
+		if ( auto find = objects_ClientSide[PipelineObjects::DepthStencilView].find( id ); find != objects_ClientSide[PipelineObjects::DepthStencilView].end() )
+			throw Could_Not_Add_DepthStencilView( "DepthStencilView already exists", id );
+
+		objects_ClientSide[PipelineObjects::DepthStencilView].emplace( id );
+		toAdd.push( { id, PipelineObjects::DepthStencilView_{ dsv } } );
+	}
 	void PipelineHandler::CreateDepthStencilView( Utilities::GUID id, const Pipeline::DepthStencilView& view )
 	{
 		PROFILE;
@@ -937,7 +954,7 @@ namespace Graphics
 			toAdd.push( { id, PipelineObjects::ShaderResourceView_{ srv } } );
 		}
 
-		ID3D11DepthStencilView* dsv;
+		ComPtr<ID3D11DepthStencilView> dsv;
 		if ( auto hr = device->CreateDepthStencilView( texture.Get(), &dsvd, &dsv ); FAILED( hr ) )
 			throw Could_Not_Create_DepthStencilView( "Could not create depthstencilview", id, view, hr );
 

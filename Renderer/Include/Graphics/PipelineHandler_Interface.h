@@ -63,7 +63,13 @@ namespace Graphics
 		Pipeline::DepthStencilState info;
 		Utilities::GUID ID;
 	};
-
+	struct Could_Not_Add_DepthStencilView : Graphics_Exception{
+		Could_Not_Add_DepthStencilView( const std::string& what, Utilities::GUID ID )
+			: Graphics_Exception( "DepthStencilView with ID " + ID.to_string() + " could not be added.\n Error: " + what, error ), ID( ID )
+		{}
+	
+		Utilities::GUID ID;
+	};
 	struct Could_Not_Create_SamplerState : Graphics_Exception{
 		Could_Not_Create_SamplerState( const std::string& what, Utilities::GUID ID, const Pipeline::SamplerState& info, long error )
 			: Graphics_Exception( "SamplerState with ID " + ID.to_string() + " could not be created.\n Error: " + std::to_string( error ) + "\n" + what, error ), ID( ID ), info( info )
@@ -85,7 +91,12 @@ namespace Graphics
 		Pipeline::Texture info;
 		Utilities::GUID ID;
 	};
-
+	struct Could_Not_Add_Texture : Graphics_Exception{
+		Could_Not_Add_Texture( const std::string& what, Utilities::GUID ID )
+			: Graphics_Exception( "Texture with ID " + ID.to_string() + " could not be added.\n Error: " + what ), ID( ID )
+		{}
+		Utilities::GUID ID;
+	};
 	struct Could_Not_Create_DepthStencilView : Graphics_Exception{
 		Could_Not_Create_DepthStencilView( const std::string& what, Utilities::GUID ID, const Pipeline::DepthStencilView& info, long error )
 			: Graphics_Exception( "DepthStencilView with ID " + ID.to_string() + " could not be created.\n Error: " + std::to_string( error ) + "\n" + what, error ), ID( ID ), info( info )
@@ -136,7 +147,7 @@ namespace Graphics
 		virtual void CreateSamplerState( Utilities::GUID id, const Pipeline::SamplerState& state ) = 0;
 		virtual void DestroySamplerState( Utilities::GUID id )noexcept = 0;
 
-		virtual void CreateTexture( Utilities::GUID id, const Pipeline::Texture& target ) = 0;
+		virtual void CreateTexture( Utilities::GUID id, const Pipeline::Texture& texture ) = 0;
 		virtual void DestroyTexture( Utilities::GUID id )noexcept = 0;
 
 		virtual void CreateDepthStencilView( Utilities::GUID id, const Pipeline::DepthStencilView& view ) = 0;
