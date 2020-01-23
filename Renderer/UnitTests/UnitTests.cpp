@@ -58,8 +58,8 @@ namespace UnitTests
 			wc.lpszClassName = L"TEST";
 			wc.cbSize = sizeof( WNDCLASSEX );
 
-			LONG windowWidth = 300;
-			LONG windowHeight = 300;
+			LONG windowWidth = 1280;
+			LONG windowHeight = 720;
 
 
 			// Register the window class.
