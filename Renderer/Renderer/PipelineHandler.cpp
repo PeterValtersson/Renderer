@@ -92,62 +92,7 @@ namespace Graphics
 
 	void PipelineHandler::CreateBuffer( Utilities::GUID id, const Pipeline::Buffer& buffer )
 	{
-		PROFILE;
-		if ( buffer.elementCount == 0 )
-			throw Could_Not_Create_Buffer( "Buffer element count can not be zero", id, buffer );
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::BIND_CONSTANT ) )
-		{
-			if ( buffer.elementStride % 16 != 0 )
-				throw Could_Not_Create_Buffer( "Constant buffer memory must be a multiple of 16 bytes", id, buffer );
-		}
-
-		if ( auto find = objects_ClientSide[PipelineObjects::Buffer].find( id ); find != objects_ClientSide[PipelineObjects::Buffer].end() )
-		{
-			throw Could_Not_Create_Buffer( "Buffer already exists", id, buffer );
-		}
-
-		D3D11_BUFFER_DESC bd;
-		ZeroMemory( &bd, sizeof( bd ) );
-		bd.BindFlags = 0;
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::BIND_CONSTANT ) ) bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::BIND_VERTEX ) ) bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::BIND_INDEX ) ) bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::BIND_STREAMOUT ) ) bd.BindFlags |= D3D11_BIND_STREAM_OUTPUT;
-		bd.ByteWidth = buffer.maxElements * buffer.elementStride;
-		bd.CPUAccessFlags = 0;
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::CPU_READ ) && flag_has( buffer.flags, Pipeline::BufferFlags::BIND_CONSTANT ) )
-			throw Could_Not_Create_Buffer( "Constant buffer can not have read access", id, buffer );
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::CPU_WRITE ) ) bd.CPUAccessFlags |= D3D11_CPU_ACCESS_WRITE;
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::CPU_READ ) ) bd.CPUAccessFlags |= D3D11_CPU_ACCESS_READ;
-		bd.Usage = D3D11_USAGE_DEFAULT;
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::DYNAMIC ) ) bd.Usage = D3D11_USAGE_DYNAMIC;
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::IMMUTABLE ) ) bd.Usage = D3D11_USAGE_IMMUTABLE;
-		bd.MiscFlags = 0;
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::STRUCTURED ) )
-		{
-			bd.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED; bd.StructureByteStride = buffer.elementStride;
-		};
-		if ( flag_has( buffer.flags, Pipeline::BufferFlags::RAW ) ) bd.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
-
-		ComPtr<ID3D11Buffer> pBuffer;
-		PipelineObject object;
-		HRESULT hr;
-
-		if ( buffer.data )
-		{
-			D3D11_SUBRESOURCE_DATA d;
-			d.pSysMem = buffer.data;
-			d.SysMemPitch = 0;
-			d.SysMemSlicePitch = 0;
-			hr = device->CreateBuffer( &bd, &d, &pBuffer );
-		}
-		else
-		{
-			hr = device->CreateBuffer( &bd, nullptr, &pBuffer );
-		}
-		if ( FAILED( hr ) )
-			throw Could_Not_Create_Buffer( "'CreateBuffer' failed", id, buffer, hr );
-
+		auto pBuffer = _CreateBuffer( id, buffer );
 		toAdd.push( { id, PipelineObjects::Buffer_{ pBuffer, buffer } } );
 
 		objects_ClientSide[PipelineObjects::Buffer].emplace( id );
@@ -184,7 +129,7 @@ namespace Graphics
 		return CreateShader( id, type, blob->GetBufferPointer(), blob->GetBufferSize() );
 	}
 
-	void PipelineHandler::CreateShader( Utilities::GUID id, Pipeline::ShaderType type, void* data, size_t size )
+	void PipelineHandler::CreateShader( Utilities::GUID id, Pipeline::ShaderType type, const void* data, size_t size )
 	{
 		PROFILE;
 		switch ( type )
@@ -219,7 +164,8 @@ namespace Graphics
 
 		D3D11_SHADER_DESC shaderDesc;
 		reflection->GetDesc( &shaderDesc );
-		std::vector<ShaderResourceToAndBindSlot> cbuffers;
+		std::vector<ShaderResourceToAndBindSlotAndObject> cbuffers;
+		std::vector<ShaderResourceToAndBindSlot> textures;
 		for ( unsigned int i = 0; i < shaderDesc.BoundResources; ++i )
 		{
 			D3D11_SHADER_INPUT_BIND_DESC sibd;
@@ -237,12 +183,22 @@ namespace Graphics
 					Utilities::GUID name = std::string_view( sbd.Name );
 					if ( name == sibdName )
 					{
-						CreateBuffer( name, Pipeline::Buffer::ConstantBuffer( uint16_t( sbd.Size ) ) );
-						cbuffers.push_back( { name, sibd.BindPoint } );
+						auto buffer = Pipeline::Buffer::ConstantBuffer( uint16_t( sbd.Size ) );
+						auto pBuffer = _CreateBuffer( id, buffer );
+						toAdd.push( { id, PipelineObjects::Buffer_{ pBuffer, buffer } } );
+						objects_ClientSide[PipelineObjects::Buffer].emplace( id );
+
+						cbuffers.push_back( { name,  pBuffer, sibd.BindPoint } );
 
 						break;
 					}
 				}
+			}
+			else if ( sibd.Type == D3D_SIT_TEXTURE )
+			{
+				const Utilities::GUID bindGuid( sibd.Name );
+				const Utilities::GUID combinedGuid = id + bindGuid;
+				textures.push_back( { combinedGuid, sibd.BindPoint } );
 			}
 		}
 		switch ( type )
@@ -379,9 +335,9 @@ namespace Graphics
 		{
 			ComPtr<ID3D11PixelShader> s;
 			if ( auto hr = device->CreatePixelShader( data, size, nullptr, &s ); FAILED( hr ) )
-				throw Could_Not_Create_Shader( "Could not create pixel shader", id, type, hr );
+				throw Could_Not_Create_Shader( "CreatePixelShader failed", id, type, hr );
 
-			toAdd.push( { id, PipelineObjects::PixelShader_{ s, cbuffers } } );
+			toAdd.push( { id, PipelineObjects::PixelShader_{ s, cbuffers, textures } } );
 			objects_ClientSide[PipelineObjects::PixelShader].emplace( id );
 			break;
 		}
@@ -1002,7 +958,7 @@ namespace Graphics
 		case Graphics::PipelineObjectType::Buffer:
 			if ( auto find = objects_RenderSide[PipelineObjects::Buffer].find( id ); find != objects_RenderSide[PipelineObjects::Buffer].end() )
 			{
-				Buffer_UO obj( context, std::get<PipelineObjects::Buffer_>( find->second ).obj, std::get<PipelineObjects::Buffer_>( find->second ).buffer );
+				Buffer_UO obj( context, std::get<PipelineObjects::Buffer_>( find->second ).obj, std::get<PipelineObjects::Buffer_>( find->second ).info );
 				cb( obj );
 			}
 			break;
@@ -1020,5 +976,65 @@ namespace Graphics
 			break;
 		}
 
+	}
+	ComPtr<ID3D11Buffer> PipelineHandler::_CreateBuffer( Utilities::GUID id, const Pipeline::Buffer& buffer )
+	{
+		PROFILE;
+		if ( buffer.elementCount == 0 )
+			throw Could_Not_Create_Buffer( "Buffer element count can not be zero", id, buffer );
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::BIND_CONSTANT ) )
+		{
+			if ( buffer.elementStride % 16 != 0 )
+				throw Could_Not_Create_Buffer( "Constant buffer memory must be a multiple of 16 bytes", id, buffer );
+		}
+
+		if ( auto find = objects_ClientSide[PipelineObjects::Buffer].find( id ); find != objects_ClientSide[PipelineObjects::Buffer].end() )
+		{
+			throw Could_Not_Create_Buffer( "Buffer already exists", id, buffer );
+		}
+
+		D3D11_BUFFER_DESC bd;
+		ZeroMemory( &bd, sizeof( bd ) );
+		bd.BindFlags = 0;
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::BIND_CONSTANT ) ) bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::BIND_VERTEX ) ) bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::BIND_INDEX ) ) bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::BIND_STREAMOUT ) ) bd.BindFlags |= D3D11_BIND_STREAM_OUTPUT;
+		bd.ByteWidth = buffer.maxElements * buffer.elementStride;
+		bd.CPUAccessFlags = 0;
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::CPU_READ ) && flag_has( buffer.flags, Pipeline::BufferFlags::BIND_CONSTANT ) )
+			throw Could_Not_Create_Buffer( "Constant buffer can not have read access", id, buffer );
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::CPU_WRITE ) ) bd.CPUAccessFlags |= D3D11_CPU_ACCESS_WRITE;
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::CPU_READ ) ) bd.CPUAccessFlags |= D3D11_CPU_ACCESS_READ;
+		bd.Usage = D3D11_USAGE_DEFAULT;
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::DYNAMIC ) ) bd.Usage = D3D11_USAGE_DYNAMIC;
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::IMMUTABLE ) ) bd.Usage = D3D11_USAGE_IMMUTABLE;
+		bd.MiscFlags = 0;
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::STRUCTURED ) )
+		{
+			bd.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED; bd.StructureByteStride = buffer.elementStride;
+		};
+		if ( flag_has( buffer.flags, Pipeline::BufferFlags::RAW ) ) bd.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+
+		ComPtr<ID3D11Buffer> pBuffer;
+		PipelineObject object;
+		HRESULT hr;
+
+		if ( buffer.data )
+		{
+			D3D11_SUBRESOURCE_DATA d;
+			d.pSysMem = buffer.data;
+			d.SysMemPitch = 0;
+			d.SysMemSlicePitch = 0;
+			hr = device->CreateBuffer( &bd, &d, &pBuffer );
+		}
+		else
+		{
+			hr = device->CreateBuffer( &bd, nullptr, &pBuffer );
+		}
+		if ( FAILED( hr ) )
+			throw Could_Not_Create_Buffer( "'CreateBuffer' failed", id, buffer, hr );
+	
+		return pBuffer;
 	}
 }

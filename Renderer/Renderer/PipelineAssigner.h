@@ -20,10 +20,14 @@ namespace Graphics
 		void Set_InputAssemblerStage( const Pipeline::InputAssemblerStage& pIA )noexcept;
 		void Set_VertexShaderStage( const Pipeline::ShaderStage& vss )noexcept;
 		void Set_GeometryShaderStage( const Pipeline::ShaderStage& gss )noexcept;
+		void Set_StreamOutputStage( const Pipeline::StreamOutStage& sos )noexcept;
 		void Set_RasterizerStage( const Pipeline::RasterizerStage& rs )noexcept;
 		void Set_PixelShaderStage( const Pipeline::ShaderStage& pss )noexcept;
 		void Set_OutputMergerStage( const Pipeline::OutputMergerStage& oms )noexcept;
 		void Set_ComputeShaderStage( const Pipeline::ShaderStage& css )noexcept;
+
+	private:
+		Pipeline::Pipeline current_pipeline;
 	};
 }
 #endif

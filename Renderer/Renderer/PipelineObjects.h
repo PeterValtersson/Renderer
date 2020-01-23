@@ -68,16 +68,21 @@ namespace Graphics
 		Utilities::GUID id;
 		UINT binding;
 	};
+	struct ShaderResourceToAndBindSlotAndObject{
+		Utilities::GUID id;
+		ComPtr<ID3D11Buffer> obj;
+		UINT binding;
+	};
 	struct PipelineObjects{
 		static constexpr uint32_t offset = __COUNTER__;
 
 
-		MAKE_PIPELINE_OBJECT( Buffer, ID3D11Buffer, Pipeline::Buffer buffer;);
+		MAKE_PIPELINE_OBJECT( Buffer, ID3D11Buffer, Pipeline::Buffer info;);
 
-		MAKE_PIPELINE_OBJECT_TWO( VertexShader, ID3D11VertexShader, ID3D11InputLayout, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
-		MAKE_PIPELINE_OBJECT( GeometryShader, ID3D11GeometryShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
-		MAKE_PIPELINE_OBJECT( PixelShader, ID3D11PixelShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
-		MAKE_PIPELINE_OBJECT( ComputeShader, ID3D11ComputeShader, std::vector<ShaderResourceToAndBindSlot> constantBuffers;);
+		MAKE_PIPELINE_OBJECT_TWO( VertexShader, ID3D11VertexShader, ID3D11InputLayout, std::vector<ShaderResourceToAndBindSlotAndObject> constantBuffers;);
+		MAKE_PIPELINE_OBJECT( GeometryShader, ID3D11GeometryShader, std::vector<ShaderResourceToAndBindSlotAndObject> constantBuffers;);
+		MAKE_PIPELINE_OBJECT( PixelShader, ID3D11PixelShader, std::vector<ShaderResourceToAndBindSlotAndObject> constantBuffers; std::vector<ShaderResourceToAndBindSlot> textures;);
+		MAKE_PIPELINE_OBJECT( ComputeShader, ID3D11ComputeShader, std::vector<ShaderResourceToAndBindSlotAndObject> constantBuffers;);
 
 		MAKE_PIPELINE_OBJECT( RenderTarget, ID3D11RenderTargetView, float clearColor[4];);
 		MAKE_PIPELINE_OBJECT( UnorderedAccessView, ID3D11UnorderedAccessView, float clearColor[4];);

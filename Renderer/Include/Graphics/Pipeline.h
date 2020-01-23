@@ -194,7 +194,7 @@ namespace Graphics
 		struct Buffer{
 			void* data = nullptr;
 			uint32_t elementCount = 0;
-			uint16_t elementStride = 0;
+			uint32_t elementStride = 0;
 			uint32_t maxElements = 0;
 			BufferFlags flags = BufferFlags::NONE;
 
@@ -221,11 +221,11 @@ namespace Graphics
 			Utilities::GUID vertexBuffer;
 			Utilities::GUID indexBuffer;
 			PrimitiveTopology topology = PrimitiveTopology::TRIANGLE_LIST;
-			Utilities::GUID inputLayout;
+			//Utilities::GUID inputLayout; Determined by shader reflection
 
 			Utilities::GUID GetID()const
 			{
-				return vertexBuffer + indexBuffer + inputLayout;
+				return vertexBuffer + indexBuffer;// +inputLayout;
 			}
 		};
 
@@ -287,7 +287,7 @@ namespace Graphics
 			Utilities::GUID depthStencilView;
 			uint8_t renderTargetCount = 0;
 			bool clearTargets = false;
-
+			bool clearDepthStencilView = false;
 			Utilities::GUID GetID()const
 			{
 				return blendState + depthStencilState + depthStencilView + renderTargets[0] + renderTargets[1] + renderTargets[2] + renderTargets[3];
@@ -379,7 +379,6 @@ namespace Graphics
 			{
 				return this->id == other.id;
 			}
-
 			void Edit( const std::function<void( Pipeline_Mutable )>& callback )
 			{
 				callback( { IAStage_, VSStage_ ,GSStage_, SOStage_ , RStage_, PSStage_ ,OMStage_,CSStage_ } );

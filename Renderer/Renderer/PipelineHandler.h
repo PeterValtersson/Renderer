@@ -26,7 +26,7 @@ namespace Graphics
 		virtual void CreateViewport( Utilities::GUID id, const Pipeline::Viewport& viewport ) override;
 
 		virtual void CreateShader( Utilities::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel ) override;
-		virtual void CreateShader( Utilities::GUID id, Pipeline::ShaderType type, void* data, size_t size ) override;
+		virtual void CreateShader( Utilities::GUID id, Pipeline::ShaderType type, const void* data, size_t size ) override;
 		virtual void DestroyShader( Utilities::GUID id, Pipeline::ShaderType type )noexcept override;
 
 		//virtual void CreateTexture( Utilities::GUID id, void* data, size_t width, size_t height ) override;
@@ -56,6 +56,9 @@ namespace Graphics
 		virtual void UpdatePipelineObjects()noexcept;
 
 		virtual void UpdateObject( Utilities::GUID id, PipelineObjectType type, const std::function<void( UpdateObjectRef & obj )>& cb );
+	private:
+		ComPtr<ID3D11Buffer> _CreateBuffer( Utilities::GUID id, const Pipeline::Buffer& buffer );
+
 	protected:
 		ComPtr<ID3D11Device> device;
 		ComPtr<ID3D11DeviceContext> context;
