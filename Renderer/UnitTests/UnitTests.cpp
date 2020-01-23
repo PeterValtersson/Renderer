@@ -185,8 +185,8 @@ public:
 
 		struct VertexInputType
 		{
-			float4 position : POSITION;
-			float4 color : COLOR;
+			float3 position : POSITION;
+			float3 color : COLOR;
 		};
 
 		struct PixelInputType
@@ -201,13 +201,13 @@ public:
     
 
 			// Change the position vector to be 4 units for proper matrix calculations.
-			input.position.w = 1.0f;
+			output.position.w = 1.0f;
 
-			output.position = input.position;
+			output.position.xyz = input.position;
 
 			// Store the input color for the pixel shader to use.
-			output.color = input.color;
-    
+			output.color.rgb = input.color;
+			output.color.a = 1.0f;
 			return output;
 		}
 
