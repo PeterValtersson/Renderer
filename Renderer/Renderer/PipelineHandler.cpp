@@ -184,9 +184,9 @@ namespace Graphics
 					if ( name == sibdName )
 					{
 						auto buffer = Pipeline::Buffer::ConstantBuffer( uint16_t( sbd.Size ) );
-						auto pBuffer = _CreateBuffer( id, buffer );
-						toAdd.push( { id, PipelineObjects::Buffer_{ pBuffer, buffer } } );
-						objects_ClientSide[PipelineObjects::Buffer].emplace( id );
+						auto pBuffer = _CreateBuffer( name, buffer );
+						toAdd.push( { name, PipelineObjects::Buffer_{ pBuffer, buffer } } );
+						objects_ClientSide[PipelineObjects::Buffer].emplace( name );
 
 						cbuffers.push_back( { name,  pBuffer, sibd.BindPoint } );
 
