@@ -7,6 +7,7 @@
 #include <Windows.h>
 #include <Graphics/Graphics_Exception.h>
 #include <wrl.h>
+#include <Graphics/Renderer_Interface.h>
 using Microsoft::WRL::ComPtr;
 
 namespace Graphics {
@@ -21,7 +22,7 @@ namespace Graphics {
 		* @exception
 		* @endcode
 		*/
-		DeviceHandler( HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount );
+		DeviceHandler( const RendererInitializationInfo& ii );
 		/**
 		* @brief Shutdown releases the DirectX components
 		* @details Releases the pointers
@@ -32,7 +33,7 @@ namespace Graphics {
 		void CreateDeviceResources();
 
 
-		void CreateSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
+		void CreateSwapChain( const RendererInitializationInfo& ii );
 
 
 		void CreateBackBufferRTV();
@@ -59,7 +60,7 @@ namespace Graphics {
 		* @param[in] windowHandle A window handle.
 		* @endcode
 		*/
-		void ResizeSwapChain(HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount);
+		void ResizeSwapChain( const RendererInitializationInfo& ii );
 
 		/**
 		* @brief Creates a blend state

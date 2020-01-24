@@ -146,7 +146,7 @@ int main()
 	HWND w;
 	Window::InitWindow( w );
 	{
-		auto r = Graphics::Renderer_Interface::Create_Renderer( Graphics::Renderer_Backend::DIRECTX11, { w } );
+		auto r = Graphics::Renderer_Interface::Create_Renderer( Graphics::Renderer_Backend::DIRECTX11, { w ,Graphics::WindowState::FULLSCREEN } );
 		struct Vertex{
 			float x, y, z;
 			float r, g, b;
@@ -186,7 +186,7 @@ int main()
 		r->AddRenderJob( "HelloTriangle", job, Graphics::RenderGroup::RENDER_PASS_0 );
 
 		r->Start();
-		while ( true );
+		std::this_thread::sleep_for( 1s );
 	}
 	DestroyWindow( w );
 }

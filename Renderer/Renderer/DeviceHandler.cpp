@@ -1,21 +1,19 @@
 #include "DeviceHandler.h"
 #include <Utilities/Profiler/Profiler.h>
-#include <Graphics/PipelineHandler_Interface.h>
-#include <Graphics/Renderer_Interface.h>
 
 #pragma comment(lib, "d3d11.lib")
 
 using namespace DirectX;
 namespace Graphics
 {
-	DeviceHandler::DeviceHandler( HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount )
+	DeviceHandler::DeviceHandler( const RendererInitializationInfo& ii )
 	{
 		CreateDeviceResources();
 
-		if ( !windowHandle )
+		if ( !ii.windowHandle )
 			return;
 
-		CreateSwapChain( windowHandle, fullscreen, borderless, bufferCount );
+		CreateSwapChain( ii );
 
 		CreateBackBufferRTV();
 
@@ -52,7 +50,8 @@ namespace Graphics
 
 	DeviceHandler::~DeviceHandler()
 	{
-
+		if ( gSwapChain )
+			gSwapChain->SetFullscreenState( false, nullptr );
 	}
 
 	void DeviceHandler::CreateDeviceResources()
@@ -94,21 +93,21 @@ namespace Graphics
 
 	}
 
-	void DeviceHandler::CreateSwapChain( HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount )
+	void DeviceHandler::CreateSwapChain( const RendererInitializationInfo& ii )
 	{
 
 		PROFILE;
 
 		DXGI_SWAP_CHAIN_DESC swChDesc;
 		ZeroMemory( &swChDesc, sizeof( DXGI_SWAP_CHAIN_DESC ) );
-		swChDesc.Windowed = ( fullscreen && !borderless ) ? FALSE : TRUE;
-		swChDesc.BufferCount = bufferCount;
+		swChDesc.Windowed = ii.windowState == WindowState::FULLSCREEN ? false : true;
+		swChDesc.BufferCount = ii.bufferCount;
 		swChDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		swChDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
 		swChDesc.SampleDesc.Count = 1;
 		swChDesc.SampleDesc.Quality = 0;
 		swChDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-		swChDesc.OutputWindow = windowHandle;
+		swChDesc.OutputWindow = (HWND) ii.windowHandle;
 
 		ComPtr<IDXGIDevice> dxgiDevice = 0;
 
@@ -122,6 +121,47 @@ namespace Graphics
 		ComPtr<IDXGIFactory> dxgiFactory = 0;
 		if ( auto hr = dxgiAdapter->GetParent( __uuidof( IDXGIFactory ), &dxgiFactory ); FAILED( hr ) )
 			throw Could_Not_Create_SwapChain( "Failed to get DXGI Factory", hr );
+
+		swChDesc.BufferDesc.RefreshRate.Numerator = 0;
+		swChDesc.BufferDesc.RefreshRate.Denominator = 1;
+		if ( ii.vsync )
+		{
+			ComPtr<IDXGIOutput> adapterOutput;
+			// Enumerate the primary adapter output (monitor).
+			if (auto hr = dxgiAdapter->EnumOutputs( 0, &adapterOutput ); FAILED(hr))
+				throw Could_Not_Create_SwapChain( "EnumOutputs failed when trying to configure vertical sync", hr );
+
+			UINT numModes;
+			// Get the number of modes that fit the DXGI_FORMAT_R8G8B8A8_UNORM display format for the adapter output (monitor).
+			if ( auto hr = adapterOutput->GetDisplayModeList( DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, NULL ); FAILED(hr))
+				throw Could_Not_Create_SwapChain( "GetDisplayModeList failed when trying to configure vertical sync", hr );
+
+
+			// Create a list to hold all the possible display modes for this monitor/video card combination.
+			std::vector<DXGI_MODE_DESC> modes(numModes);
+
+			// Now fill the display mode list structures.
+			if ( auto hr = adapterOutput->GetDisplayModeList( DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, modes.data() ); FAILED(hr))
+				throw Could_Not_Create_SwapChain( "GetDisplayModeList failed when trying to configure vertical sync", hr );
+
+
+			// Now go through all the display modes and find the one that matches the screen width and height.
+			// When a match is found store the numerator and denominator of the refresh rate for that monitor.
+			for ( auto m : modes )
+			{
+				if ( m.Width == ii.resolution.width )
+				{
+					if ( m.Height == ii.resolution.height )
+					{
+						swChDesc.BufferDesc.RefreshRate.Numerator = m.RefreshRate.Numerator;
+						swChDesc.BufferDesc.RefreshRate.Denominator = m.RefreshRate.Denominator;
+					}
+				}
+			}
+		}
+
+
+
 
 		if ( auto hr = dxgiFactory->CreateSwapChain( gDevice.Get(), &swChDesc, &gSwapChain ); FAILED( hr ) )
 			throw Could_Not_Create_SwapChain( "Failed to create swap chain", hr );
@@ -244,7 +284,7 @@ namespace Graphics
 		return 0;
 	}
 
-	void DeviceHandler::ResizeSwapChain( HWND windowHandle, bool fullscreen, bool borderless, UINT bufferCount )
+	void DeviceHandler::ResizeSwapChain( const RendererInitializationInfo& ii )
 	{
 		PROFILE;
 		gDepthStencilSRV.Reset();
@@ -255,10 +295,10 @@ namespace Graphics
 		gBackBuffer.Reset();
 		gSwapChain.Reset();
 
-		if ( !windowHandle )
+		if ( !ii.windowHandle )
 			return;
 
-		CreateSwapChain( windowHandle, fullscreen, borderless, bufferCount );
+		CreateSwapChain( ii );
 		CreateBackBufferRTV();
 		CreateDepthStencil();
 		SetViewport();

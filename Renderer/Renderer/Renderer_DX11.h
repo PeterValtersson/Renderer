@@ -46,8 +46,8 @@ namespace Graphics
 		void PerformRenderJob( const RenderJob& job )noexcept;
 	private:
 		RendererInitializationInfo settings;
-		std::unique_ptr<DeviceHandler> device_handler;
-		std::unique_ptr<PipelineAssigner> pipeline;
+		DeviceHandler device_handler;
+		PipelineAssigner pipeline;
 
 		//***** Threading stuff and safety ******//
 		std::thread myThread;

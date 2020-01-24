@@ -5,27 +5,26 @@
 namespace Graphics
 {
 
-	Renderer_DX11::Renderer_DX11( const RendererInitializationInfo& ii )
-		: settings( ii ), running( false )
+	Renderer_DX11::Renderer_DX11( const RendererInitializationInfo& ii ) : 
+		device_handler( ii ), 
+		pipeline( device_handler.GetDevice(), device_handler.GetDeviceContext() ),
+		settings( ii ), running( false )
 	{
-		device_handler = std::make_unique<DeviceHandler>( ( HWND )settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount );
-
-		pipeline = std::make_unique<PipelineAssigner>( device_handler->GetDevice(), device_handler->GetDeviceContext());
 		if ( !settings.windowHandle )
 			return;
 
 
-		pipeline->AddTexture( Default_RenderTarget, device_handler->GetRTV() );
-		pipeline->AddTexture( Default_RenderTarget, device_handler->GetSRV() );
-		pipeline->AddTexture( Default_DepthStencil, device_handler->GetDepthSRV() );
-		pipeline->AddDepthStencilView( Default_DepthStencil, device_handler->GetDepthStencil() );
-	
+		pipeline.AddTexture( Default_RenderTarget, device_handler.GetRTV() );
+		pipeline.AddTexture( Default_RenderTarget, device_handler.GetSRV() );
+		pipeline.AddTexture( Default_DepthStencil, device_handler.GetDepthSRV() );
+		pipeline.AddDepthStencilView( Default_DepthStencil, device_handler.GetDepthStencil() );
+
 		Pipeline::Viewport vp;
 		vp.width = static_cast< float >( settings.resolution.width );
 		vp.height = static_cast< float >( settings.resolution.height );
 		vp.maxDepth = 1.0f;
 
-		pipeline->CreateViewport( Default_Viewport, vp );
+		pipeline.CreateViewport( Default_Viewport, vp );
 	}
 
 
@@ -74,22 +73,22 @@ namespace Graphics
 		if ( !settings.windowHandle )
 			return;
 
-		device_handler->ResizeSwapChain( ( HWND )settings.windowHandle, settings.windowState == WindowState::FULLSCREEN, settings.windowState == WindowState::FULLSCREEN_BORDERLESS, settings.bufferCount );
+		device_handler.ResizeSwapChain( ii );
 
-		pipeline->DestroyTexture( Default_RenderTarget );
-		pipeline->DestroyDepthStencilState( Default_DepthStencil );
+		pipeline.DestroyTexture( Default_RenderTarget );
+		pipeline.DestroyDepthStencilState( Default_DepthStencil );
 
-		pipeline->AddTexture( Default_RenderTarget, device_handler->GetRTV() );
-		pipeline->AddTexture( Default_RenderTarget, device_handler->GetSRV() );
-		pipeline->AddTexture( Default_DepthStencil, device_handler->GetDepthSRV() );
-		pipeline->AddDepthStencilView( Default_DepthStencil, device_handler->GetDepthStencil() );
+		pipeline.AddTexture( Default_RenderTarget, device_handler.GetRTV() );
+		pipeline.AddTexture( Default_RenderTarget, device_handler.GetSRV() );
+		pipeline.AddTexture( Default_DepthStencil, device_handler.GetDepthSRV() );
+		pipeline.AddDepthStencilView( Default_DepthStencil, device_handler.GetDepthStencil() );
 
 		Pipeline::Viewport vp;
 		vp.width = static_cast< float >( settings.resolution.width );
 		vp.height = static_cast< float >( settings.resolution.height );
 		vp.maxDepth = 1.0f;
 
-		pipeline->CreateViewport( Default_Viewport, vp );
+		pipeline.CreateViewport( Default_Viewport, vp );
 	}
 	const RendererInitializationInfo& Renderer_DX11::GetSettings() const noexcept
 	{
@@ -98,7 +97,7 @@ namespace Graphics
 
 	void Renderer_DX11::UsePipelineHandler( const std::function<void( PipelineHandler_Interface & pipeline_handler )>& callback )
 	{
-		callback( *pipeline );
+		callback( pipeline );
 	}
 
 	void Renderer_DX11::AddRenderJob( Utilities::GUID id, const RenderJob& job, RenderGroup renderGroup )
@@ -221,29 +220,29 @@ namespace Graphics
 	}
 	void Renderer_DX11::PerformRenderJob( const RenderJob& job ) noexcept
 	{
-		pipeline->Set_Pipeline( job.pipeline );
-	
+		pipeline.Set_Pipeline( job.pipeline );
+
 		if ( job.indexCount == 0 && job.instanceCount == 0 && job.vertexCount != 0 )
 		{
 			for ( auto& mf : job.mappingFunctions )
 				mf( 0, 0 );
-			device_handler->GetDeviceContext()->Draw( job.vertexCount, job.vertexOffset );
+			device_handler.GetDeviceContext()->Draw( job.vertexCount, job.vertexOffset );
 		}
 		else if ( job.indexCount != 0 && job.instanceCount == 0 )
 		{
 			for ( auto& mf : job.mappingFunctions )
 				mf( 0, 0 );
-			device_handler->GetDeviceContext()->DrawIndexed( job.indexCount, job.indexOffset, job.vertexOffset );
+			device_handler.GetDeviceContext()->DrawIndexed( job.indexCount, job.indexOffset, job.vertexOffset );
 		}
 		else if ( job.indexCount == 0 && job.instanceCount != 0 )
 		{
 			uint32_t drawn = 0;
 			while ( drawn < job.instanceCount )
-			{		
+			{
 				const uint32_t toDraw = std::min( job.maxInstances, job.instanceCount - drawn );
 				for ( auto& mf : job.mappingFunctions )
 					mf( toDraw, drawn );
-				device_handler->GetDeviceContext()->DrawInstanced( job.vertexCount, toDraw, job.vertexOffset, job.instanceOffset );
+				device_handler.GetDeviceContext()->DrawInstanced( job.vertexCount, toDraw, job.vertexOffset, job.instanceOffset );
 				drawn += toDraw;
 			}
 		}
@@ -255,19 +254,19 @@ namespace Graphics
 				const uint32_t toDraw = std::min( job.maxInstances, job.instanceCount - drawn );
 				for ( auto& mf : job.mappingFunctions )
 					mf( toDraw, drawn );
-				device_handler->GetDeviceContext()->DrawIndexedInstanced( job.indexCount, toDraw, job.indexOffset, job.vertexOffset, job.instanceOffset );
+				device_handler.GetDeviceContext()->DrawIndexedInstanced( job.indexCount, toDraw, job.indexOffset, job.vertexOffset, job.instanceOffset );
 				drawn += toDraw;
 			}
 		}
 		else if ( job.ThreadGroupCountX != 0 || job.ThreadGroupCountY != 0 || job.ThreadGroupCountZ != 0 )
 		{
-			device_handler->GetDeviceContext()->Dispatch( job.ThreadGroupCountX, job.ThreadGroupCountY, job.ThreadGroupCountZ );
+			device_handler.GetDeviceContext()->Dispatch( job.ThreadGroupCountX, job.ThreadGroupCountY, job.ThreadGroupCountZ );
 		}
 		else if ( job.vertexCount == 0 )
 		{
 			for ( auto& mf : job.mappingFunctions )
 				mf( 0, 0 );
-			device_handler->GetDeviceContext()->DrawAuto();
+			device_handler.GetDeviceContext()->DrawAuto();
 		}
 	}
 
@@ -292,7 +291,7 @@ namespace Graphics
 	{
 		PROFILE;
 		{
-			pipeline->UpdatePipelineObjects();
+			pipeline.UpdatePipelineObjects();
 
 			{
 				PROFILE_N( "Remove Jobs" );
@@ -309,14 +308,14 @@ namespace Graphics
 	void Renderer_DX11::BeginFrame()noexcept
 	{
 		PROFILE;
-		//ID3D11RenderTargetView* views[] = { device_handler->GetRTV().Get() };
-		//device_handler->GetDeviceContext()->OMSetRenderTargets( 1, views, device_handler->GetDepthStencil().Get() );
+		//ID3D11RenderTargetView* views[] = { device_handler.GetRTV().Get() };
+		//device_handler.GetDeviceContext()->OMSetRenderTargets( 1, views, device_handler.GetDepthStencil().Get() );
 
 		//// Clear the primary render target view using the specified color
-		//device_handler->GetDeviceContext()->ClearRenderTargetView( device_handler->GetRTV().Get(), clearColor[at] );
+		//device_handler.GetDeviceContext()->ClearRenderTargetView( device_handler.GetRTV().Get(), clearColor[at] );
 
 		//// Clear the standard depth stencil view
-		//device_handler->GetDeviceContext()->ClearDepthStencilView( device_handler->GetDepthStencil().Get(), D3D11_CLEAR_DEPTH, 1.0f, 0 );
+		//device_handler.GetDeviceContext()->ClearDepthStencilView( device_handler.GetDepthStencil().Get(), D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
 	}
 	void Renderer_DX11::Frame()noexcept
@@ -330,7 +329,7 @@ namespace Graphics
 			{
 				try
 				{
-					pipeline->UpdateObject( job.objectToMap, job.type, job.updateCallback );
+					pipeline.UpdateObject( job.objectToMap, job.type, job.updateCallback );
 				}
 				catch ( ... )
 				{
@@ -355,7 +354,8 @@ namespace Graphics
 	void Renderer_DX11::EndFrame()noexcept
 	{
 		PROFILE;
-		device_handler->Present( settings.vsync );
+		device_handler.Present( settings.vsync );
+		pipeline.Clear_Pipeline(); // Present unbinds all instances of backbuffer. So for now we just force setting of pipeline for the first job.
 	}
 
 }
