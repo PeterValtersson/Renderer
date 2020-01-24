@@ -281,5 +281,122 @@ public:
 		}
 		DestroyWindow( w );
 	}
+
+
+	TEST_METHOD( MovingTriangle )
+	{
+		static const char* vs = R"(
+
+		cbuffer ExtraPosBuffer
+		{
+			float extra_pos;
+		};
+
+		struct VertexInputType
+		{
+			float3 position : POSITION;
+			float3 color : COLOR;
+		};
+
+		struct PixelInputType
+		{
+			float4 position : SV_POSITION;
+			float4 color : COLOR;
+		};	
+
+		PixelInputType ColorVertexShader(VertexInputType input)
+		{
+			PixelInputType output;
+    
+
+			// Change the position vector to be 4 units for proper matrix calculations.
+			output.position.w = 1.0f;
+
+			output.position.xyz = input.position;
+			output.position.x += extra_pos;
+
+			// Store the input color for the pixel shader to use.
+			output.color.rgb = input.color;
+			output.color.a = 1.0f;
+			return output;
+		}
+
+
+		)";
+		static const char* ps = R"(
+
+		struct PixelInputType
+		{
+			float4 position : SV_POSITION;
+			float4 color : COLOR;
+		};
+
+
+		////////////////////////////////////////////////////////////////////////////////
+		// Pixel Shader
+		////////////////////////////////////////////////////////////////////////////////
+		float4 ColorPixelShader(PixelInputType input) : SV_TARGET
+		{
+			return input.color;
+		}
+
+
+		)";
+
+		using namespace std::chrono_literals;
+		HWND w;
+		Window::InitWindow( w );
+		{
+			auto r = Graphics::Renderer_Interface::Create_Renderer( Graphics::Renderer_Backend::DIRECTX11, { w } );
+			struct Vertex {
+				float x, y, z;
+				float r, g, b;
+			};
+			Vertex triangleData[] = {
+				{-0.5f, -0.5f, 0, 1.0f, 0.0f, 0.0f},
+				{0, 0.5f, 0, 1.0f, 0.0f, 0.0f},
+				{0.5f, -0.5f, 0, 1.0f, 0.0f, 0.0f}
+			};
+			r->UsePipelineHandler( [&]( Graphics::PipelineHandler_Interface& ph )
+			{
+				ph.CreateBuffer( "Triangle", Graphics::Pipeline::Buffer::VertexBuffer( triangleData, sizeof( Vertex ), 3 ) );
+				ph.CreateShader( "VertexShader", Graphics::Pipeline::ShaderType::VERTEX, vs, strlen( vs ), "ColorVertexShader", "vs_5_0" );
+				ph.CreateShader( "PixelShader", Graphics::Pipeline::ShaderType::PIXEL, ps, strlen( ps ), "ColorPixelShader", "ps_5_0" );
+				Graphics::Pipeline::RasterizerState rs;
+				rs.cullMode = Graphics::Pipeline::CullMode::CULL_NONE;
+				rs.fillMode = Graphics::Pipeline::FillMode::FILL_SOLID;
+				rs.windingOrder = Graphics::Pipeline::WindingOrder::CLOCKWISE;
+				ph.CreateRasterizerState( "Rasterizer", rs );
+			} );
+
+			Graphics::RenderJob job;
+			job.pipeline.Edit( []( Graphics::Pipeline::Pipeline_Mutable pl )
+			{
+				pl.IAStage.vertexBuffer = "Triangle";
+				pl.IAStage.topology = Graphics::Pipeline::PrimitiveTopology::TRIANGLE_LIST;
+				pl.VSStage.shader = "VertexShader";
+				pl.RStage.viewport = Graphics::Default_Viewport;
+				pl.RStage.rasterizerState = "Rasterizer";
+				pl.PSStage.shader = "PixelShader";
+				pl.OMStage.clearTargets = true;
+				pl.OMStage.renderTargetCount = 1;
+				pl.OMStage.renderTargets[0] = Graphics::Default_RenderTarget;
+			} );
+			job.vertexCount = 3;
+
+			r->AddRenderJob( "HelloTriangle", job, Graphics::RenderGroup::RENDER_PASS_0 );
+			float pos = 0.0f;
+			r->AddUpdateJob( Graphics::UpdateJob::UpdateBuffer( "ExtraPosBuffer", Graphics::UpdateFrequency::EVERY_FRAME, [&]( Graphics::UpdateObjectRef& obj ) 
+			{
+				obj.WriteTo( &pos, sizeof( pos ) );
+				pos += 0.01f;
+			} ), Graphics::RenderGroup::PRE_PASS_0);
+			
+
+			r->Start();
+			while ( pos < 1.0f );
+		}
+		DestroyWindow( w );
+	}
 	};
 }
