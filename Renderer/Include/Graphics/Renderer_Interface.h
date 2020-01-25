@@ -9,6 +9,7 @@
 #include <Utilities/ErrorHandling.h>
 namespace Graphics
 {
+
 	struct Could_Not_Create_Device : Graphics_Exception{
 		Could_Not_Create_Device( std::string_view type, long error ) : Graphics_Exception( "Could not create rendering device.\nErrors: " + std::to_string( error )  + "\nType: " + std::string(type)), type( std::string(type) )
 		{}

@@ -7,7 +7,10 @@
 
 namespace Graphics
 {
-
+	struct Pipeline_Object_Exists : Graphics_Exception {
+		Pipeline_Object_Exists( const std::string& type, Utilities::GUID ID ) : Graphics_Exception( type + " with ID: " + ID.to_string() + " already exists")
+		{}
+	};
 	struct Could_Not_Create_Buffer : Graphics_Exception{
 		Could_Not_Create_Buffer( const std::string& what, Utilities::GUID ID, const Pipeline::Buffer& info, long error )
 			: Graphics_Exception( "Buffer with ID " + ID.to_string() + " could not be created.\n Error: " + std::to_string( error ) + "\n" + what, error ), ID( ID ), info( info )

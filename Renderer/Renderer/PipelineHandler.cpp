@@ -112,7 +112,7 @@ namespace Graphics
 	{
 		PROFILE;
 		if ( auto find = objects_ClientSide[PipelineObjects::Viewport].find( id ); find != objects_ClientSide[PipelineObjects::Viewport].end() )
-			throw Could_Not_Create_Viewport( "Viewport with ID already exists", id, viewport );
+			throw Pipeline_Object_Exists( "Viewport", id );
 
 
 		objects_ClientSide[PipelineObjects::Viewport].emplace( id );
@@ -136,20 +136,20 @@ namespace Graphics
 		{
 		case Graphics::Pipeline::ShaderType::VERTEX:
 			if ( auto find = objects_ClientSide[PipelineObjects::VertexShader].find( id ); find != objects_ClientSide[PipelineObjects::VertexShader].end() )
-				throw Could_Not_Create_Shader( "Vertex shader with id already exists", id, type );
+				throw Pipeline_Object_Exists( "Vertex shader", id );
 			break;
 		case Graphics::Pipeline::ShaderType::GEOMETRY:
 		case Graphics::Pipeline::ShaderType::GEOMETRY_STREAM_OUT:
 			if ( auto find = objects_ClientSide[PipelineObjects::GeometryShader].find( id ); find != objects_ClientSide[PipelineObjects::GeometryShader].end() )
-				throw Could_Not_Create_Shader( "Geometry shader with id already exists", id, type );
+				throw Pipeline_Object_Exists( "Geometry shader", id );
 			break;
 		case Graphics::Pipeline::ShaderType::PIXEL:
 			if ( auto find = objects_ClientSide[PipelineObjects::PixelShader].find( id ); find != objects_ClientSide[PipelineObjects::PixelShader].end() )
-				throw Could_Not_Create_Shader( "Pixel shader with id already exists", id, type );
+				throw Pipeline_Object_Exists( "Pixel shader", id );
 			break;
 		case Graphics::Pipeline::ShaderType::COMPUTE:
 			if ( auto find = objects_ClientSide[PipelineObjects::ComputeShader].find( id ); find != objects_ClientSide[PipelineObjects::ComputeShader].end() )
-				throw Could_Not_Create_Shader( "Compute shader with id already exists", id, type );
+				throw Pipeline_Object_Exists( "Compute shader", id);
 			break;
 		default:
 			throw Could_Not_Create_Shader( "Shader type not supported", id, type );
@@ -184,11 +184,22 @@ namespace Graphics
 					if ( name == sibdName )
 					{
 						auto buffer = Pipeline::Buffer::ConstantBuffer( uint16_t( sbd.Size ) );
-						auto pBuffer = _CreateBuffer( name, buffer );
-						toAdd.push( { name, PipelineObjects::Buffer_{ pBuffer, buffer } } );
-						objects_ClientSide[PipelineObjects::Buffer].emplace( name );
+						try
+						{
+							auto pBuffer = _CreateBuffer( name, buffer );
+							toAdd.push( { name, PipelineObjects::Buffer_{ pBuffer, buffer } } );
+							objects_ClientSide[PipelineObjects::Buffer].emplace( name );
 
-						cbuffers.push_back( { name,  pBuffer, sibd.BindPoint } );
+							cbuffers.push_back( { name,  pBuffer, sibd.BindPoint } );
+						}
+						catch ( Pipeline_Object_Exists & e )
+						{
+							auto pBuffer = std::get<PipelineObjects::Buffer_>( objects_RenderSide[PipelineObjects::Buffer][name] );
+							if ( pBuffer.info.elementStride != sbd.Size )
+								throw e;
+							cbuffers.push_back( { name,  pBuffer.obj, sibd.BindPoint } );
+						}
+						
 
 						break;
 					}
@@ -427,7 +438,7 @@ namespace Graphics
 	{
 		PROFILE;
 		if ( auto find = objects_ClientSide[PipelineObjects::RasterizerState].find( id ); find != objects_ClientSide[PipelineObjects::RasterizerState].end() )
-			throw Could_Not_Create_RasterizerState( "Rasterizer already exists", id, state );
+			throw Pipeline_Object_Exists( "Rasterizer", id );
 
 		D3D11_RASTERIZER_DESC rd;
 		rd.AntialiasedLineEnable = false;
@@ -475,7 +486,7 @@ namespace Graphics
 	{
 		PROFILE;
 		if ( auto find = objects_ClientSide[PipelineObjects::BlendState].find( id ); find != objects_ClientSide[PipelineObjects::BlendState].end() )
-			throw Could_Not_Create_BlendState( "BlendState already exists", id, state );
+			throw Pipeline_Object_Exists( "BlendState", id );
 
 
 		D3D11_BLEND_DESC bd;
@@ -584,7 +595,7 @@ namespace Graphics
 	{
 		PROFILE;
 		if ( auto find = objects_ClientSide[PipelineObjects::DepthStencilState].find( id ); find != objects_ClientSide[PipelineObjects::DepthStencilState].end() )
-			throw Could_Not_Create_DepthStencilState( "DepthStencilState already exists", id, state );
+			throw Pipeline_Object_Exists( "DepthStencilState", id );
 
 		D3D11_DEPTH_STENCIL_DESC dsd;
 		dsd.DepthEnable = state.enableDepth;
@@ -634,7 +645,7 @@ namespace Graphics
 	{
 		PROFILE;
 		if ( auto find = objects_ClientSide[PipelineObjects::SamplerState].find( id ); find != objects_ClientSide[PipelineObjects::SamplerState].end() )
-			throw Could_Not_Create_SamplerState( "SamplerState already exists", id, state );
+			throw Pipeline_Object_Exists( "SamplerState", id );
 
 		D3D11_SAMPLER_DESC sd;
 		ZeroMemory( &sd, sizeof( D3D11_SAMPLER_DESC ) );
@@ -686,14 +697,14 @@ namespace Graphics
 	void PipelineHandler::AddTexture( Utilities::GUID id, ComPtr<ID3D11ShaderResourceView> srv )
 	{
 		if ( auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find( id ); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end() )
-			throw Could_Not_Add_Texture( "Texture already exists", id );
+			throw Pipeline_Object_Exists( "Texture", id );
 		objects_ClientSide[PipelineObjects::ShaderResourceView].emplace( id );
 		toAdd.push( { id, PipelineObjects::ShaderResourceView_{ srv} } );
 	}
 	void PipelineHandler::AddTexture( Utilities::GUID id, ComPtr<ID3D11RenderTargetView> rtv )
 	{
 		if ( auto find = objects_ClientSide[PipelineObjects::RenderTarget].find( id ); find != objects_ClientSide[PipelineObjects::RenderTarget].end() )
-			throw Could_Not_Add_Texture( "RenderTarget already exists", id );
+			throw Pipeline_Object_Exists( "RenderTarget", id );
 
 		objects_ClientSide[PipelineObjects::RenderTarget].emplace( id );
 		toAdd.push( { id, PipelineObjects::RenderTarget_{ rtv,{ 0.0f,0.0f,0.0f,0.0f } } } );
@@ -742,7 +753,7 @@ namespace Graphics
 		if ( flag_has( info.flags, Pipeline::TextureFlags::SHADER_RESOURCE ) )
 		{
 			if ( auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find( id ); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end() )
-				throw Could_Not_Create_Texture( "Texture already exists", id, info );
+				throw Pipeline_Object_Exists( "Texture", id );
 
 			ComPtr<ID3D11ShaderResourceView> srv;
 			D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -775,7 +786,7 @@ namespace Graphics
 		if ( flag_has( info.flags, Pipeline::TextureFlags::UNORDERED_ACCESS ) )
 		{
 			if ( auto find = objects_ClientSide[PipelineObjects::UnorderedAccessView].find( id ); find != objects_ClientSide[PipelineObjects::UnorderedAccessView].end() )
-				throw Could_Not_Create_Texture( "UnorderedAccessView already exists", id, info );
+				throw Pipeline_Object_Exists( "UnorderedAccessView", id );
 
 			D3D11_UNORDERED_ACCESS_VIEW_DESC description;
 			ZeroMemory( &description, sizeof( description ) );
@@ -807,7 +818,7 @@ namespace Graphics
 		if ( flag_has( info.flags, Pipeline::TextureFlags::RENDER_TARGET ) )
 		{
 			if ( auto find = objects_ClientSide[PipelineObjects::RenderTarget].find( id ); find != objects_ClientSide[PipelineObjects::RenderTarget].end() )
-				throw Could_Not_Create_Texture( "RenderTarget already exists", id, info );
+				throw Pipeline_Object_Exists( "RenderTarget", id );
 
 			D3D11_RENDER_TARGET_VIEW_DESC rtvd;
 			rtvd.Format = desc.Format;
@@ -856,7 +867,7 @@ namespace Graphics
 	void PipelineHandler::AddDepthStencilView( Utilities::GUID id, ComPtr<ID3D11DepthStencilView> dsv )
 	{
 		if ( auto find = objects_ClientSide[PipelineObjects::DepthStencilView].find( id ); find != objects_ClientSide[PipelineObjects::DepthStencilView].end() )
-			throw Could_Not_Add_DepthStencilView( "DepthStencilView already exists", id );
+			throw Pipeline_Object_Exists( "DepthStencilView", id );
 
 		objects_ClientSide[PipelineObjects::DepthStencilView].emplace( id );
 		toAdd.push( { id, PipelineObjects::DepthStencilView_{ dsv } } );
@@ -866,7 +877,7 @@ namespace Graphics
 		PROFILE;
 
 		if ( auto find = objects_ClientSide[PipelineObjects::DepthStencilView].find( id ); find != objects_ClientSide[PipelineObjects::DepthStencilView].end() )
-			throw Could_Not_Create_DepthStencilView( "DepthStencilView already exists", id, view );
+			throw Pipeline_Object_Exists( "DepthStencilView", id );
 
 		D3D11_TEXTURE2D_DESC desc;
 		desc.Width = UINT( view.width );
@@ -896,7 +907,7 @@ namespace Graphics
 		if ( flag_has( view.flags, Pipeline::DepthStencilViewFlags::SHADER_RESOURCE ) )
 		{
 			if ( auto find = objects_ClientSide[PipelineObjects::ShaderResourceView].find( id ); find != objects_ClientSide[PipelineObjects::ShaderResourceView].end() )
-				throw Could_Not_Create_DepthStencilView( "Texture already exists", id, view );
+				throw Pipeline_Object_Exists( "Texture", id );
 
 			D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
 			srvd.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
@@ -990,7 +1001,7 @@ namespace Graphics
 
 		if ( auto find = objects_ClientSide[PipelineObjects::Buffer].find( id ); find != objects_ClientSide[PipelineObjects::Buffer].end() )
 		{
-			throw Could_Not_Create_Buffer( "Buffer already exists", id, buffer );
+			throw Pipeline_Object_Exists( "Buffer", id );
 		}
 
 		D3D11_BUFFER_DESC bd;
