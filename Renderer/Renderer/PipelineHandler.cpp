@@ -194,7 +194,7 @@ namespace Graphics
 						}
 						catch ( Pipeline_Object_Exists & e )
 						{
-							auto pBuffer = std::get<PipelineObjects::Buffer_>( objects_RenderSide[PipelineObjects::Buffer][name] );
+							auto& pBuffer = std::get<PipelineObjects::Buffer_>( objects_RenderSide[PipelineObjects::Buffer][name] );
 							if ( pBuffer.info.elementStride != sbd.Size )
 								throw e;
 							cbuffers.push_back( { name,  pBuffer.obj, sibd.BindPoint } );
