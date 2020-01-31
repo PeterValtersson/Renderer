@@ -7,7 +7,7 @@
 #include "Graphics_Exception.h"
 #include <variant>
 
-namespace Graphics
+namespace Renderer
 {
 	struct Map_Not_Implemented : public Graphics_Exception {
 		Map_Not_Implemented() : Graphics_Exception( "Map has not been implemented" )
@@ -35,7 +35,7 @@ namespace Graphics
 		WRITE = 1 << 1
 	};
 
-	ENUM_FLAGS( Graphics::AccessFlag );
+	ENUM_FLAGS( Renderer::AccessFlag );
 
 	struct UpdateObjectRef {
 		typedef std::variant<Pipeline::Buffer> UpdateObjectInfoVariant;

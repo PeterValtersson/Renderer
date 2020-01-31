@@ -9,7 +9,7 @@
 #include <Utilities/CircularFIFO.h>
 #include "Job.h"
 
-namespace Graphics
+namespace Renderer
 {
 
 	class Renderer_DX11 : public Renderer_Interface{

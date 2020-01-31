@@ -39,7 +39,7 @@ float4 PS_main(float4 posH : SV_POSITION, float2 texC : TEXCOORD) : SV_TARGET \
 
 
 
-namespace Graphics
+namespace Renderer
 {
 	PipelineHandler::PipelineHandler( ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context ) : device( device ), context( context )
 	{
@@ -134,20 +134,20 @@ namespace Graphics
 		PROFILE;
 		switch ( type )
 		{
-		case Graphics::Pipeline::ShaderType::VERTEX:
+		case Renderer::Pipeline::ShaderType::VERTEX:
 			if ( auto find = objects_ClientSide[PipelineObjects::VertexShader].find( id ); find != objects_ClientSide[PipelineObjects::VertexShader].end() )
 				throw Pipeline_Object_Exists( "Vertex shader", id );
 			break;
-		case Graphics::Pipeline::ShaderType::GEOMETRY:
-		case Graphics::Pipeline::ShaderType::GEOMETRY_STREAM_OUT:
+		case Renderer::Pipeline::ShaderType::GEOMETRY:
+		case Renderer::Pipeline::ShaderType::GEOMETRY_STREAM_OUT:
 			if ( auto find = objects_ClientSide[PipelineObjects::GeometryShader].find( id ); find != objects_ClientSide[PipelineObjects::GeometryShader].end() )
 				throw Pipeline_Object_Exists( "Geometry shader", id );
 			break;
-		case Graphics::Pipeline::ShaderType::PIXEL:
+		case Renderer::Pipeline::ShaderType::PIXEL:
 			if ( auto find = objects_ClientSide[PipelineObjects::PixelShader].find( id ); find != objects_ClientSide[PipelineObjects::PixelShader].end() )
 				throw Pipeline_Object_Exists( "Pixel shader", id );
 			break;
-		case Graphics::Pipeline::ShaderType::COMPUTE:
+		case Renderer::Pipeline::ShaderType::COMPUTE:
 			if ( auto find = objects_ClientSide[PipelineObjects::ComputeShader].find( id ); find != objects_ClientSide[PipelineObjects::ComputeShader].end() )
 				throw Pipeline_Object_Exists( "Compute shader", id);
 			break;
@@ -214,7 +214,7 @@ namespace Graphics
 		}
 		switch ( type )
 		{
-		case Graphics::Pipeline::ShaderType::VERTEX:
+		case Renderer::Pipeline::ShaderType::VERTEX:
 		{
 			ComPtr<ID3D11InputLayout> inputLayout;
 			ComPtr<ID3D11VertexShader> vs;
@@ -294,7 +294,7 @@ namespace Graphics
 			objects_ClientSide[PipelineObjects::VertexShader].emplace( id );
 			break;
 		}
-		case Graphics::Pipeline::ShaderType::GEOMETRY:
+		case Renderer::Pipeline::ShaderType::GEOMETRY:
 		{
 
 			ComPtr<ID3D11GeometryShader> s;
@@ -305,7 +305,7 @@ namespace Graphics
 			objects_ClientSide[PipelineObjects::GeometryShader].emplace( id );
 			break;
 		}
-		case Graphics::Pipeline::ShaderType::GEOMETRY_STREAM_OUT:
+		case Renderer::Pipeline::ShaderType::GEOMETRY_STREAM_OUT:
 		{
 			std::vector<D3D11_SO_DECLARATION_ENTRY> SOEntries;
 			for ( UINT i = 0; i < shaderDesc.InputParameters; ++i )
@@ -342,7 +342,7 @@ namespace Graphics
 			objects_ClientSide[PipelineObjects::GeometryShader].emplace( id );
 			break;
 		}
-		case Graphics::Pipeline::ShaderType::PIXEL:
+		case Renderer::Pipeline::ShaderType::PIXEL:
 		{
 			ComPtr<ID3D11PixelShader> s;
 			if ( auto hr = device->CreatePixelShader( data, size, nullptr, &s ); FAILED( hr ) )
@@ -352,7 +352,7 @@ namespace Graphics
 			objects_ClientSide[PipelineObjects::PixelShader].emplace( id );
 			break;
 		}
-		case Graphics::Pipeline::ShaderType::COMPUTE:
+		case Renderer::Pipeline::ShaderType::COMPUTE:
 		{
 			ComPtr<ID3D11ComputeShader> s;
 			if ( auto hr = device->CreateComputeShader( data, size, nullptr, &s ); FAILED( hr ) )
@@ -966,22 +966,22 @@ namespace Graphics
 	{
 		switch ( type )
 		{
-		case Graphics::PipelineObjectType::Buffer:
+		case Renderer::PipelineObjectType::Buffer:
 			if ( auto find = objects_RenderSide[PipelineObjects::Buffer].find( id ); find != objects_RenderSide[PipelineObjects::Buffer].end() )
 			{
 				Buffer_UO obj( context, std::get<PipelineObjects::Buffer_>( find->second ).obj, std::get<PipelineObjects::Buffer_>( find->second ).info );
 				cb( obj );
 			}
 			break;
-		case Graphics::PipelineObjectType::RenderTarget:
+		case Renderer::PipelineObjectType::RenderTarget:
 			break;
-		case Graphics::PipelineObjectType::UnorderedAccessView:
+		case Renderer::PipelineObjectType::UnorderedAccessView:
 			break;
-		case Graphics::PipelineObjectType::Texture:
+		case Renderer::PipelineObjectType::Texture:
 			break;
-		case Graphics::PipelineObjectType::DepthStencilView:
+		case Renderer::PipelineObjectType::DepthStencilView:
 			break;
-		case Graphics::PipelineObjectType::Viewport:
+		case Renderer::PipelineObjectType::Viewport:
 			break;
 		default:
 			break;

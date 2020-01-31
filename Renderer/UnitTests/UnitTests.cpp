@@ -101,7 +101,7 @@ public:
 		HWND w;
 		Window::InitWindow( w );
 		{
-			auto r = Graphics::Renderer_Interface::Create_Renderer( Graphics::Renderer_Backend::DIRECTX11, { w } );
+			auto r = Renderer::Renderer_Interface::Create_Renderer( Renderer::Renderer_Backend::DIRECTX11, { w } );
 
 			r->Start();
 			std::this_thread::sleep_for( 1s );
@@ -115,23 +115,23 @@ public:
 		Window::InitWindow( w );
 		try
 		{
-			auto r = Graphics::Renderer_Interface::Create_Renderer( Graphics::Renderer_Backend::DIRECTX11, { w } );
+			auto r = Renderer::Renderer_Interface::Create_Renderer( Renderer::Renderer_Backend::DIRECTX11, { w } );
 
 			r->Start();
 			struct CBD{
 				int a = 1337;
 			};
-			r->UsePipelineHandler( []( Graphics::PipelineHandler_Interface& ph )
+			r->UsePipelineHandler( []( Renderer::PipelineHandler_Interface& ph )
 			{
 				CBD d;
-				Assert::ExpectException<Graphics::Could_Not_Create_Buffer>( [&]
+				Assert::ExpectException<Renderer::Could_Not_Create_Buffer>( [&]
 				{
-					ph.CreateBuffer( "Buffer", Graphics::Pipeline::Buffer::ConstantBuffer( d ) );
+					ph.CreateBuffer( "Buffer", Renderer::Pipeline::Buffer::ConstantBuffer( d ) );
 				} );
 			} );
 
 		}
-		catch ( Graphics::Graphics_Exception & e )
+		catch ( Renderer::Graphics_Exception & e )
 		{
 			DestroyWindow( w );
 			Assert::IsTrue( false, Utilities::String::utf8_2_utf16( e.what() ).c_str() );
@@ -145,33 +145,33 @@ public:
 		Window::InitWindow( w );
 		try
 		{
-			auto r = Graphics::Renderer_Interface::Create_Renderer( Graphics::Renderer_Backend::DIRECTX11, { w } );
+			auto r = Renderer::Renderer_Interface::Create_Renderer( Renderer::Renderer_Backend::DIRECTX11, { w } );
 
 			r->Start();
 			struct CBD{
 				int a = 1337;
 				int pad[3];
 			};
-			r->UsePipelineHandler( []( Graphics::PipelineHandler_Interface& ph )
+			r->UsePipelineHandler( []( Renderer::PipelineHandler_Interface& ph )
 			{
 				CBD d;
-				ph.CreateBuffer( "Buffer", Graphics::Pipeline::Buffer::ConstantBuffer( d ) );
+				ph.CreateBuffer( "Buffer", Renderer::Pipeline::Buffer::ConstantBuffer( d ) );
 
 			} );
 
 			int a = 1337;
-			r->AddUpdateJob( Graphics::UpdateJob::UpdateBuffer( "Buffer", Graphics::UpdateFrequency::EVERY_FRAME, [&]( Graphics::UpdateObjectRef& obj )
+			r->AddUpdateJob( Renderer::UpdateJob::UpdateBuffer( "Buffer", Renderer::UpdateFrequency::EVERY_FRAME, [&]( Renderer::UpdateObjectRef& obj )
 			{
 				obj.Map<CBD>( [&]( CBD& d )
 				{
 					d.a = a++;
-				}, Graphics::AccessFlag::WRITE );
+				}, Renderer::AccessFlag::WRITE );
 
-			} ), Graphics::RenderGroup::PRE_PASS_0 );
+			} ), Renderer::RenderGroup::PRE_PASS_0 );
 
 			while ( a < 1400 );
 		}
-		catch ( Graphics::Graphics_Exception & e )
+		catch ( Renderer::Graphics_Exception & e )
 		{
 			DestroyWindow( w );
 			Assert::IsTrue( false, Utilities::String::utf8_2_utf16( e.what() ).c_str() );
@@ -237,7 +237,7 @@ public:
 		HWND w;
 		Window::InitWindow( w );
 		{
-			auto r = Graphics::Renderer_Interface::Create_Renderer( Graphics::Renderer_Backend::DIRECTX11, { w } );
+			auto r = Renderer::Renderer_Interface::Create_Renderer( Renderer::Renderer_Backend::DIRECTX11, { w } );
 			struct Vertex{
 				float x, y, z;
 				float r, g, b;
@@ -247,34 +247,34 @@ public:
 				{0, 0.5f, 0, 1.0f, 0.0f, 0.0f},
 				{0.5f, -0.5f, 0, 1.0f, 0.0f, 0.0f}
 			};
-			r->UsePipelineHandler( [&]( Graphics::PipelineHandler_Interface& ph )
+			r->UsePipelineHandler( [&]( Renderer::PipelineHandler_Interface& ph )
 			{
-				ph.CreateBuffer( "Triangle", Graphics::Pipeline::Buffer::VertexBuffer( triangleData, sizeof( Vertex ), 3 ) );
-				ph.CreateShader( "VertexShader", Graphics::Pipeline::ShaderType::VERTEX, vs, strlen( vs ), "ColorVertexShader", "vs_5_0" );
-				ph.CreateShader( "PixelShader", Graphics::Pipeline::ShaderType::PIXEL, ps, strlen( ps ), "ColorPixelShader", "ps_5_0" );
-				Graphics::Pipeline::RasterizerState rs;
-				rs.cullMode = Graphics::Pipeline::CullMode::CULL_BACK;
-				rs.fillMode = Graphics::Pipeline::FillMode::FILL_SOLID;
-				rs.windingOrder = Graphics::Pipeline::WindingOrder::CLOCKWISE;
+				ph.CreateBuffer( "Triangle", Renderer::Pipeline::Buffer::VertexBuffer( triangleData, sizeof( Vertex ), 3 ) );
+				ph.CreateShader( "VertexShader", Renderer::Pipeline::ShaderType::VERTEX, vs, strlen( vs ), "ColorVertexShader", "vs_5_0" );
+				ph.CreateShader( "PixelShader", Renderer::Pipeline::ShaderType::PIXEL, ps, strlen( ps ), "ColorPixelShader", "ps_5_0" );
+				Renderer::Pipeline::RasterizerState rs;
+				rs.cullMode = Renderer::Pipeline::CullMode::CULL_BACK;
+				rs.fillMode = Renderer::Pipeline::FillMode::FILL_SOLID;
+				rs.windingOrder = Renderer::Pipeline::WindingOrder::CLOCKWISE;
 				ph.CreateRasterizerState( "Rasterizer", rs );
 			} );
 
-			Graphics::RenderJob job;
-			job.pipeline.Edit( []( Graphics::Pipeline::Pipeline_Mutable pl )
+			Renderer::RenderJob job;
+			job.pipeline.Edit( []( Renderer::Pipeline::Pipeline_Mutable pl )
 			{
 				pl.IAStage.vertexBuffer = "Triangle";
-				pl.IAStage.topology = Graphics::Pipeline::PrimitiveTopology::TRIANGLE_LIST;
+				pl.IAStage.topology = Renderer::Pipeline::PrimitiveTopology::TRIANGLE_LIST;
 				pl.VSStage.shader = "VertexShader";
-				pl.RStage.viewport = Graphics::Default_Viewport;
+				pl.RStage.viewport = Renderer::Default_Viewport;
 				pl.RStage.rasterizerState = "Rasterizer";
 				pl.PSStage.shader = "PixelShader";
 				pl.OMStage.clearTargets = true;
 				pl.OMStage.renderTargetCount = 1;
-				pl.OMStage.renderTargets[0] = Graphics::Default_RenderTarget;
+				pl.OMStage.renderTargets[0] = Renderer::Default_RenderTarget;
 			} );
 			job.vertexCount = 3;
 	
-			r->AddRenderJob( "HelloTriangle", job, Graphics::RenderGroup::RENDER_PASS_0 );
+			r->AddRenderJob( "HelloTriangle", job, Renderer::RenderGroup::RENDER_PASS_0 );
 
 			r->Start();
 			std::this_thread::sleep_for( 1s );
@@ -347,7 +347,7 @@ public:
 		HWND w;
 		Window::InitWindow( w );
 		{
-			auto r = Graphics::Renderer_Interface::Create_Renderer( Graphics::Renderer_Backend::DIRECTX11, { w } );
+			auto r = Renderer::Renderer_Interface::Create_Renderer( Renderer::Renderer_Backend::DIRECTX11, { w } );
 			struct Vertex {
 				float x, y, z;
 				float r, g, b;
@@ -357,40 +357,40 @@ public:
 				{0, 0.5f, 0, 1.0f, 0.0f, 0.0f},
 				{0.5f, -0.5f, 0, 1.0f, 0.0f, 0.0f}
 			};
-			r->UsePipelineHandler( [&]( Graphics::PipelineHandler_Interface& ph )
+			r->UsePipelineHandler( [&]( Renderer::PipelineHandler_Interface& ph )
 			{
-				ph.CreateBuffer( "Triangle", Graphics::Pipeline::Buffer::VertexBuffer( triangleData, sizeof( Vertex ), 3 ) );
-				ph.CreateShader( "VertexShader", Graphics::Pipeline::ShaderType::VERTEX, vs, strlen( vs ), "ColorVertexShader", "vs_5_0" );
-				ph.CreateShader( "PixelShader", Graphics::Pipeline::ShaderType::PIXEL, ps, strlen( ps ), "ColorPixelShader", "ps_5_0" );
-				Graphics::Pipeline::RasterizerState rs;
-				rs.cullMode = Graphics::Pipeline::CullMode::CULL_NONE;
-				rs.fillMode = Graphics::Pipeline::FillMode::FILL_SOLID;
-				rs.windingOrder = Graphics::Pipeline::WindingOrder::CLOCKWISE;
+				ph.CreateBuffer( "Triangle", Renderer::Pipeline::Buffer::VertexBuffer( triangleData, sizeof( Vertex ), 3 ) );
+				ph.CreateShader( "VertexShader", Renderer::Pipeline::ShaderType::VERTEX, vs, strlen( vs ), "ColorVertexShader", "vs_5_0" );
+				ph.CreateShader( "PixelShader", Renderer::Pipeline::ShaderType::PIXEL, ps, strlen( ps ), "ColorPixelShader", "ps_5_0" );
+				Renderer::Pipeline::RasterizerState rs;
+				rs.cullMode = Renderer::Pipeline::CullMode::CULL_NONE;
+				rs.fillMode = Renderer::Pipeline::FillMode::FILL_SOLID;
+				rs.windingOrder = Renderer::Pipeline::WindingOrder::CLOCKWISE;
 				ph.CreateRasterizerState( "Rasterizer", rs );
 			} );
 
-			Graphics::RenderJob job;
-			job.pipeline.Edit( []( Graphics::Pipeline::Pipeline_Mutable pl )
+			Renderer::RenderJob job;
+			job.pipeline.Edit( []( Renderer::Pipeline::Pipeline_Mutable pl )
 			{
 				pl.IAStage.vertexBuffer = "Triangle";
-				pl.IAStage.topology = Graphics::Pipeline::PrimitiveTopology::TRIANGLE_LIST;
+				pl.IAStage.topology = Renderer::Pipeline::PrimitiveTopology::TRIANGLE_LIST;
 				pl.VSStage.shader = "VertexShader";
-				pl.RStage.viewport = Graphics::Default_Viewport;
+				pl.RStage.viewport = Renderer::Default_Viewport;
 				pl.RStage.rasterizerState = "Rasterizer";
 				pl.PSStage.shader = "PixelShader";
 				pl.OMStage.clearTargets = true;
 				pl.OMStage.renderTargetCount = 1;
-				pl.OMStage.renderTargets[0] = Graphics::Default_RenderTarget;
+				pl.OMStage.renderTargets[0] = Renderer::Default_RenderTarget;
 			} );
 			job.vertexCount = 3;
 
-			r->AddRenderJob( "HelloTriangle", job, Graphics::RenderGroup::RENDER_PASS_0 );
+			r->AddRenderJob( "HelloTriangle", job, Renderer::RenderGroup::RENDER_PASS_0 );
 			float pos = 0.0f;
-			r->AddUpdateJob( Graphics::UpdateJob::UpdateBuffer( "ExtraPosBuffer", Graphics::UpdateFrequency::EVERY_FRAME, [&]( Graphics::UpdateObjectRef& obj ) 
+			r->AddUpdateJob( Renderer::UpdateJob::UpdateBuffer( "ExtraPosBuffer", Renderer::UpdateFrequency::EVERY_FRAME, [&]( Renderer::UpdateObjectRef& obj ) 
 			{
 				obj.WriteTo( &pos, sizeof( pos ) );
 				pos += 0.01f;
-			} ), Graphics::RenderGroup::PRE_PASS_0);
+			} ), Renderer::RenderGroup::PRE_PASS_0);
 			
 
 			r->Start();

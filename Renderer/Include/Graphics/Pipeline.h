@@ -7,7 +7,7 @@
 #include <Utilities/Flags.h>
 typedef unsigned int UINT;
 
-namespace Graphics
+namespace Renderer
 {
 	static const Utilities::GUID Default_RenderTarget( "Backbuffer" );
 	static const Utilities::GUID Default_Viewport( "FullscreenViewPort" );
@@ -86,7 +86,7 @@ namespace Graphics
 			SHADER_RESOURCE = 1 << 0,
 			CUBE = 1 << 1
 		};
-		ENUM_FLAGS( Graphics::Pipeline::DepthStencilViewFlags );
+		ENUM_FLAGS( Renderer::Pipeline::DepthStencilViewFlags );
 		struct DepthStencilView{
 			uint32_t width = -1;
 			uint32_t height = -1;
@@ -122,7 +122,7 @@ namespace Graphics
 			UNORDERED_ACCESS = 1 << 2,
 			CPU_ACCESS_READ = 1 << 3
 		};
-		ENUM_FLAGS( Graphics::Pipeline::TextureFlags );
+		ENUM_FLAGS( Renderer::Pipeline::TextureFlags );
 
 		enum class ViewDimension{
 			Texture_1D,
@@ -190,7 +190,7 @@ namespace Graphics
 			RAW = 1 << 11
 		};
 
-		ENUM_FLAGS( Graphics::Pipeline::BufferFlags );
+		ENUM_FLAGS( Renderer::Pipeline::BufferFlags );
 		struct Buffer{
 			void* data = nullptr;
 			uint32_t elementCount = 0;

@@ -5,7 +5,7 @@
 #include <Utilities/GUID.h>
 #include <Graphics/RenderJob.h>
 
-namespace Graphics
+namespace Renderer
 {
 	template<class JobType>
 	struct Job {

@@ -3,14 +3,14 @@
 #pragma once
 
 #include <Utilities/ErrorHandling.h>
-namespace Graphics
+namespace Renderer
 {
 	struct Graphics_Exception : public Utilities::Exception {
 		Graphics_Exception( const std::string& what, long error )
-			: Utilities::Exception( "Exception in Graphics", what ), error( error )
+			: Utilities::Exception( "Exception in Renderer", what ), error( error )
 		{}
 		Graphics_Exception( const std::string& what )
-			: Utilities::Exception( "Exception in Graphics", what ), error( ~0 )
+			: Utilities::Exception( "Exception in Renderer", what ), error( ~0 )
 		{}
 		long error; // ~0 if NA
 	};

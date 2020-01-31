@@ -1,7 +1,7 @@
 #include "PipelineAssigner.h"
 #include <Utilities/Profiler/Profiler.h>
 #include <Utilities/MonadicOptional.h>
-namespace Graphics
+namespace Renderer
 {
 	template<class T>
 	std::optional<std::reference_wrapper<const T>> find( const std::unordered_map<Utilities::GUID, PipelineObject, Utilities::GUID::Hasher>& m, Utilities::GUID ID )

@@ -4,7 +4,7 @@
 #pragma comment(lib, "d3d11.lib")
 
 using namespace DirectX;
-namespace Graphics
+namespace Renderer
 {
 	DeviceHandler::DeviceHandler( const RendererInitializationInfo& ii )
 	{

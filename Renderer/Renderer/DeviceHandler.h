@@ -10,7 +10,7 @@
 #include <Graphics/Renderer_Interface.h>
 using Microsoft::WRL::ComPtr;
 
-namespace Graphics {
+namespace Renderer {
 
 
 	class DeviceHandler {

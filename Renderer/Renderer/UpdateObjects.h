@@ -2,7 +2,7 @@
 #define _GRAPHICS_UPDATE_OBJECTS_H_
 #include "PipelineObjects.h"
 #include <Graphics\UpdateJob.h>
-namespace Graphics
+namespace Renderer
 {
 	struct Buffer_UO : public UpdateObjectRef
 	{

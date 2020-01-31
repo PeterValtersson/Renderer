@@ -10,7 +10,7 @@
 #include "PipelineObjects.h"
 #include <Utilities/ErrorHandling.h>
 
-namespace Graphics
+namespace Renderer
 {
 	class PipelineHandler : public PipelineHandler_Interface{
 	public:

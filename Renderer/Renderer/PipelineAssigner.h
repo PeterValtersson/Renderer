@@ -3,7 +3,7 @@
 #include "PipelineHandler.h"
 #include <Graphics/Pipeline.h>
 
-namespace Graphics
+namespace Renderer
 {
 	class PipelineAssigner : public PipelineHandler
 	{

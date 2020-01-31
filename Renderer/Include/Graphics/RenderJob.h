@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 
-namespace Graphics
+namespace Renderer
 {
 	enum class RenderGroup : uint8_t
 	{

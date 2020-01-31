@@ -7,7 +7,7 @@
 #include "UpdateJob.h"
 #include <Utilities/GUID.h>
 #include <Utilities/ErrorHandling.h>
-namespace Graphics
+namespace Renderer
 {
 
 	struct Could_Not_Create_Device : Graphics_Exception{
@@ -103,13 +103,13 @@ namespace Graphics
 	};
 }
 
-//DECLDIR_GRAPHICS_C Graphics::Renderer_Interface* CreateRenderer(Renderer_Backend backend, const Graphics::RendererInitializationInfo & ii);
-//DECLDIR_GRAPHICS_C Utilities::Error Renderer_Initialize_C(Graphics::Renderer_Interface* r);
-//DECLDIR_GRAPHICS_C void Renderer_Shutdown_C(Graphics::Renderer_Interface* r);
-//DECLDIR_GRAPHICS_C void Renderer_Pause_C(Graphics::Renderer_Interface* r);
-//DECLDIR_GRAPHICS_C Utilities::Error Renderer_Start_C(Graphics::Renderer_Interface* r);
+//DECLDIR_GRAPHICS_C Renderer::Renderer_Interface* CreateRenderer(Renderer_Backend backend, const Renderer::RendererInitializationInfo & ii);
+//DECLDIR_GRAPHICS_C Utilities::Error Renderer_Initialize_C(Renderer::Renderer_Interface* r);
+//DECLDIR_GRAPHICS_C void Renderer_Shutdown_C(Renderer::Renderer_Interface* r);
+//DECLDIR_GRAPHICS_C void Renderer_Pause_C(Renderer::Renderer_Interface* r);
+//DECLDIR_GRAPHICS_C Utilities::Error Renderer_Start_C(Renderer::Renderer_Interface* r);
 //
-//DECLDIR_GRAPHICS_C Utilities::Error Renderer_UpdateSettings_C(Graphics::Renderer_Interface* r, Graphics::RendererInitializationInfo ii);
-//DECLDIR_GRAPHICS_C Graphics::RendererInitializationInfo Renderer_GetSettings_C(Graphics::Renderer_Interface* r);
+//DECLDIR_GRAPHICS_C Utilities::Error Renderer_UpdateSettings_C(Renderer::Renderer_Interface* r, Renderer::RendererInitializationInfo ii);
+//DECLDIR_GRAPHICS_C Renderer::RendererInitializationInfo Renderer_GetSettings_C(Renderer::Renderer_Interface* r);
 
 #endif

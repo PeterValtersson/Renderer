@@ -5,7 +5,7 @@
 #include <functional>
 #include <Utilities/GUID.h>
 
-namespace Graphics
+namespace Renderer
 {
 	struct Pipeline_Object_Exists : Graphics_Exception {
 		Pipeline_Object_Exists( const std::string& type, Utilities::GUID ID ) : Graphics_Exception( type + " with ID: " + ID.to_string() + " already exists")

@@ -2,7 +2,7 @@
 #include <Utilities/Profiler/Profiler.h>
 #undef min
 #include <algorithm>
-namespace Graphics
+namespace Renderer
 {
 
 	Renderer_DX11::Renderer_DX11( const RendererInitializationInfo& ii ) : 

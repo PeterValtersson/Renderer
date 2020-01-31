@@ -62,7 +62,7 @@ if (t == PipelineObjects::##name)\
 				return _##name;\
 			}
 
-namespace Graphics
+namespace Renderer
 {
 	struct ShaderResourceToAndBindSlot{
 		Utilities::GUID id;
