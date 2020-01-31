@@ -131,7 +131,7 @@ namespace Renderer
 			Cube
 		};
 		struct Texture{
-			TextureFlags flags;
+			TextureFlags flags = TextureFlags::NONE;
 			UINT width = 0;
 			UINT height = 0;
 			UINT mipLevels = 1;
