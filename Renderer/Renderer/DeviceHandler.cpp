@@ -88,8 +88,8 @@ namespace Renderer
 			FAILED( hr ) )
 			throw Could_Not_Create_Device( "Device and Context", hr );
 
-		if ( auto hr = gDevice->CreateDeferredContext( 0, gSecDeviceContext.GetAddressOf() ); FAILED( hr ) )
-			throw Could_Not_Create_Device( "Deferred Context", hr );
+		/*if ( auto hr = gDevice->CreateDeferredContext( 0, gSecDeviceContext.GetAddressOf() ); FAILED( hr ) )
+			throw Could_Not_Create_Device( "Deferred Context", hr );*/
 
 	}
 
@@ -107,7 +107,7 @@ namespace Renderer
 		swChDesc.SampleDesc.Count = 1;
 		swChDesc.SampleDesc.Quality = 0;
 		swChDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-		swChDesc.OutputWindow = (HWND) ii.windowHandle;
+		swChDesc.OutputWindow = ( HWND )ii.windowHandle;
 
 		ComPtr<IDXGIDevice> dxgiDevice = 0;
 
@@ -128,20 +128,20 @@ namespace Renderer
 		{
 			ComPtr<IDXGIOutput> adapterOutput;
 			// Enumerate the primary adapter output (monitor).
-			if (auto hr = dxgiAdapter->EnumOutputs( 0, &adapterOutput ); FAILED(hr))
+			if ( auto hr = dxgiAdapter->EnumOutputs( 0, &adapterOutput ); FAILED( hr ) )
 				throw Could_Not_Create_SwapChain( "EnumOutputs failed when trying to configure vertical sync", hr );
 
 			UINT numModes;
 			// Get the number of modes that fit the DXGI_FORMAT_R8G8B8A8_UNORM display format for the adapter output (monitor).
-			if ( auto hr = adapterOutput->GetDisplayModeList( DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, NULL ); FAILED(hr))
+			if ( auto hr = adapterOutput->GetDisplayModeList( DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, NULL ); FAILED( hr ) )
 				throw Could_Not_Create_SwapChain( "GetDisplayModeList failed when trying to configure vertical sync", hr );
 
 
 			// Create a list to hold all the possible display modes for this monitor/video card combination.
-			std::vector<DXGI_MODE_DESC> modes(numModes);
+			std::vector<DXGI_MODE_DESC> modes( numModes );
 
 			// Now fill the display mode list structures.
-			if ( auto hr = adapterOutput->GetDisplayModeList( DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, modes.data() ); FAILED(hr))
+			if ( auto hr = adapterOutput->GetDisplayModeList( DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, modes.data() ); FAILED( hr ) )
 				throw Could_Not_Create_SwapChain( "GetDisplayModeList failed when trying to configure vertical sync", hr );
 
 
@@ -159,8 +159,6 @@ namespace Renderer
 				}
 			}
 		}
-
-
 
 
 		if ( auto hr = dxgiFactory->CreateSwapChain( gDevice.Get(), &swChDesc, &gSwapChain ); FAILED( hr ) )
@@ -287,18 +285,34 @@ namespace Renderer
 	void DeviceHandler::ResizeSwapChain( const RendererInitializationInfo& ii )
 	{
 		PROFILE;
+		ID3D11RenderTargetView* targets[4] = { nullptr };
+		ID3D11Buffer* buffers[4] = { nullptr };
+		UINT offsets[4] = { 0 };
+
+		gDeviceContext->OMSetRenderTargets( 4, targets, nullptr );
+		gDeviceContext->SOSetTargets( 4, buffers, offsets );
+	
+		pDSState.Reset();
 		gDepthStencilSRV.Reset();
 		gDepthStencilView.Reset();
-		pDSState.Reset();
+
 		gBackbufferRTV.Reset();
 		gBBSRV.Reset();
 		gBackBuffer.Reset();
-		gSwapChain.Reset();
+
+		//gSwapChain.Reset();
+
+		gDeviceContext->ClearState();
+		gDeviceContext->Flush();
+		
+		if ( auto hr = gSwapChain->ResizeBuffers( ii.bufferCount, ii.resolution.width, ii.resolution.height, DXGI_FORMAT_R8G8B8A8_UNORM, 0 ); FAILED( hr ) )
+			throw Could_Not_Create_SwapChain( "Resize failed", hr );
+
 
 		if ( !ii.windowHandle )
 			return;
 
-		CreateSwapChain( ii );
+		//CreateSwapChain( ii );
 		CreateBackBufferRTV();
 		CreateDepthStencil();
 		SetViewport();

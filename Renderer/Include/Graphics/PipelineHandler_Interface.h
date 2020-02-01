@@ -130,6 +130,7 @@ namespace Renderer
 		virtual void DestroyBuffer( Utilities::GUID id )noexcept = 0;
 
 		virtual void CreateViewport( Utilities::GUID id, const Pipeline::Viewport& viewport ) = 0;
+		virtual void DestroyViewport( Utilities::GUID id )noexcept = 0;
 
 		virtual void CreateShader( Utilities::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel ) = 0;
 		virtual void CreateShader( Utilities::GUID id, Pipeline::ShaderType type, const void* data, size_t size ) = 0;

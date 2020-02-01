@@ -5,8 +5,8 @@
 namespace Renderer
 {
 
-	Renderer_DX11::Renderer_DX11( const RendererInitializationInfo& ii ) : 
-		device_handler( ii ), 
+	Renderer_DX11::Renderer_DX11( const RendererInitializationInfo& ii ) :
+		device_handler( ii ),
 		pipeline( device_handler.GetDevice(), device_handler.GetDeviceContext() ),
 		settings( ii ), running( false )
 	{
@@ -68,15 +68,22 @@ namespace Renderer
 	void Renderer_DX11::UpdateSettings( const RendererInitializationInfo& ii )
 	{
 		PROFILE;
+		auto was_running = running;
+		if ( running )
+			Pause();
 		settings = ii;
 
 		if ( !settings.windowHandle )
 			return;
 
+		
+		pipeline.DestroyTexture( Default_RenderTarget );
+		pipeline.DestroyTexture( Default_DepthStencil );
+		pipeline.DestroyDepthStencilView( Default_DepthStencil );
+		pipeline.DestroyViewport( Default_Viewport );
+		pipeline.UpdatePipelineObjects();
 		device_handler.ResizeSwapChain( ii );
 
-		pipeline.DestroyTexture( Default_RenderTarget );
-		pipeline.DestroyDepthStencilState( Default_DepthStencil );
 
 		pipeline.AddTexture( Default_RenderTarget, device_handler.GetRTV() );
 		pipeline.AddTexture( Default_RenderTarget, device_handler.GetSRV() );
@@ -89,6 +96,9 @@ namespace Renderer
 		vp.maxDepth = 1.0f;
 
 		pipeline.CreateViewport( Default_Viewport, vp );
+
+		if ( was_running )
+			Start();
 	}
 	const RendererInitializationInfo& Renderer_DX11::GetSettings() const noexcept
 	{

@@ -22,12 +22,17 @@ struct ::std::default_delete<ID3D11Buffer>{
 static constexpr uint32_t name = __COUNTER__ - offset - 1;\
 struct name##_\
 {\
+void Reset()\
+{obj.Reset();}\
 ComPtr<objtype> obj;\
- __VA_ARGS__  }
+ __VA_ARGS__ \
+}
 #define MAKE_PIPELINE_OBJECT_TWO(name, objtype, objtype2, ...)\
 static constexpr uint32_t name = __COUNTER__ - offset - 1;\
 struct name##_\
 {\
+void Reset()\
+{obj.Reset();obj2.Reset();}\
 ComPtr<objtype> obj = nullptr;\
 ComPtr<objtype2> obj2 = nullptr;\
  __VA_ARGS__  }
@@ -45,22 +50,6 @@ if constexpr(std::is_same<T, PipelineObjects::##name##_>::value)\
 	_##name = std::move(a);\
 	type = PipelineObjects::##name;\
 }
-#define IF_CEXPR_R(t, name)\
-if (t == PipelineObjects::##name)\
-{\
-if(type != -1)\
-_##name.Release(); \
-	type = -1;\
-}
-#define IF_CEXPR_C(t, name)\
-if (t == PipelineObjects::##name)\
-{\
-	_##name = o._##name;\
-}
-#define PO_GET(name)	const PipelineObjects::##name##_& name ()const\
-			{\
-				return _##name;\
-			}
 
 namespace Renderer
 {

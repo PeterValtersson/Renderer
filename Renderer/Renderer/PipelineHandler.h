@@ -12,9 +12,9 @@
 
 namespace Renderer
 {
-	class PipelineHandler : public PipelineHandler_Interface{
+	class PipelineHandler : public PipelineHandler_Interface {
 	public:
-		PipelineHandler( ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context);
+		PipelineHandler( ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context );
 
 		virtual ~PipelineHandler()noexcept;
 
@@ -24,6 +24,7 @@ namespace Renderer
 		virtual void DestroyBuffer( Utilities::GUID id )noexcept override;
 
 		virtual void CreateViewport( Utilities::GUID id, const Pipeline::Viewport& viewport ) override;
+		virtual void DestroyViewport( Utilities::GUID id )noexcept override;
 
 		virtual void CreateShader( Utilities::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel ) override;
 		virtual void CreateShader( Utilities::GUID id, Pipeline::ShaderType type, const void* data, size_t size ) override;
@@ -65,18 +66,18 @@ namespace Renderer
 
 		std::array<std::unordered_map<Utilities::GUID, PipelineObject, Utilities::GUID::Hasher>, PipelineObjects::NUM_TYPES> objects_RenderSide;
 		std::array<std::set<Utilities::GUID, Utilities::GUID::Compare>, PipelineObjects::NUM_TYPES> objects_ClientSide;
-		struct ToAdd{
+		struct ToAdd {
 			Utilities::GUID id;
 			PipelineObject obj;
-			ToAdd& operator=( ToAdd&& other )noexcept
+			ToAdd& operator=( const ToAdd& other )noexcept
 			{
 				id = other.id;
-				obj = std::move( other.obj );
+				obj = other.obj;
 				return *this;
 			}
 		};
 		Utilities::CircularFiFo<ToAdd> toAdd;
-		struct ToRemove{
+		struct ToRemove {
 			Utilities::GUID id;
 			uint32_t type;
 		};

@@ -80,7 +80,6 @@ namespace Renderer
 	}
 
 
-#define RELEASE_PLO(type) if(o.second.index() == type) std::get<type##_>(o.second).Release();
 	PipelineHandler::~PipelineHandler()noexcept
 	{
 		objects_RenderSide[PipelineObjects::RenderTarget].erase( Default_RenderTarget );
@@ -118,6 +117,15 @@ namespace Renderer
 		objects_ClientSide[PipelineObjects::Viewport].emplace( id );
 
 		toAdd.push( { id , PipelineObjects::Viewport_{ viewport.topLeftX, viewport.topLeftY, viewport.width, viewport.height, viewport.minDepth, viewport.maxDepth } } );
+	}
+	void PipelineHandler::DestroyViewport( Utilities::GUID id ) noexcept
+	{
+		if ( auto find = objects_ClientSide[PipelineObjects::Viewport].find( id ); find != objects_ClientSide[PipelineObjects::Viewport].end() )
+			if ( auto find = objects_ClientSide[PipelineObjects::Viewport].find( id ); find != objects_ClientSide[PipelineObjects::Viewport].end() )
+			{
+				objects_ClientSide[PipelineObjects::Viewport].erase( id );
+				toRemove.push( { id,PipelineObjects::Viewport } );
+			}
 	}
 	void PipelineHandler::CreateShader( Utilities::GUID id, Pipeline::ShaderType type, const char* sourceCode, size_t size, const char* entryPoint, const char* shaderModel )
 	{
@@ -944,6 +952,7 @@ namespace Renderer
 		}
 	}
 
+#define RESET_COMPPTR(o, type) if(o.index() == type) std::get<type##_>(o).Reset();
 	void PipelineHandler::UpdatePipelineObjects()noexcept
 	{
 		PROFILE;
@@ -957,7 +966,20 @@ namespace Renderer
 		while ( !toAdd.isEmpty() )
 		{
 			auto& t = toAdd.top();
-			objects_RenderSide[t.obj.index()].emplace( t.id, std::move( t.obj ) );
+			objects_RenderSide[t.obj.index()].emplace( t.id, t.obj );
+			RESET_COMPPTR( t.obj, PipelineObjects::Buffer )
+			else RESET_COMPPTR( t.obj, PipelineObjects::VertexShader )
+			else RESET_COMPPTR( t.obj, PipelineObjects::GeometryShader )
+			else RESET_COMPPTR( t.obj, PipelineObjects::PixelShader )
+			else RESET_COMPPTR( t.obj, PipelineObjects::ComputeShader )
+			else RESET_COMPPTR( t.obj, PipelineObjects::RenderTarget )
+			else RESET_COMPPTR( t.obj, PipelineObjects::UnorderedAccessView )
+			else RESET_COMPPTR( t.obj, PipelineObjects::ShaderResourceView )
+			else RESET_COMPPTR( t.obj, PipelineObjects::DepthStencilView )
+			else RESET_COMPPTR( t.obj, PipelineObjects::SamplerState )
+			else RESET_COMPPTR( t.obj, PipelineObjects::BlendState )
+			else RESET_COMPPTR( t.obj, PipelineObjects::RasterizerState )
+			else RESET_COMPPTR( t.obj, PipelineObjects::DepthStencilState )
 
 			toAdd.pop();
 		}
