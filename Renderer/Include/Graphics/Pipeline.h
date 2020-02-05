@@ -227,6 +227,49 @@ namespace Renderer
 			{
 				return vertexBuffer + indexBuffer;// +inputLayout;
 			}
+
+			class iterator{
+			public:
+				using iterator_category = std::output_iterator_tag;
+				using value_type = Utilities::GUID;
+				using difference_type = void;
+				using pointer = Utilities::GUID*;
+				using reference = Utilities::GUID&;
+
+				explicit iterator( pointer v ) : v( v )
+				{}
+				iterator& operator++()
+				{
+					v++;
+					return *this;
+				}
+				iterator operator++( int )
+				{
+					iterator retval = *this; ++( *this ); return retval;
+				}
+				bool operator==( iterator other ) const
+				{
+					return v == other.v;
+				}
+				bool operator!=( iterator other ) const
+				{
+					return !( *this == other );
+				}
+				pointer operator*() const
+				{
+					return v;
+				}
+			private:
+				pointer v;
+			};
+			iterator begin()
+			{
+				return iterator( &vertexBuffer );
+			}
+			iterator end()
+			{
+				return iterator( &indexBuffer );
+			}
 		};
 
 		struct StreamOutStage{
@@ -386,6 +429,53 @@ namespace Renderer
 					GSStage_.GetID() + SOStage_.GetID() +
 					RStage_.GetID() + PSStage_.GetID() +
 					OMStage_.GetID() + CSStage_.GetID();
+			}
+
+			 // member typedefs provided through inheriting from std::iterator
+			class iterator {
+			public:
+				using iterator_category = std::output_iterator_tag;
+				using value_type = Utilities::GUID;
+				using difference_type = void;
+				using pointer = Utilities::GUID*;
+				using reference = Utilities::GUID&;
+
+				explicit iterator( pointer v ) : 
+					v( v ), 
+					IAStage_( IAStage_ )
+				{}
+				iterator& operator++()
+				{
+					v++;
+
+				}
+				iterator operator++( int )
+				{
+					iterator retval = *this; ++( *this ); return retval;
+				}
+				bool operator==( iterator other ) const
+				{
+					return num == other.num;
+				}
+				bool operator!=( iterator other ) const
+				{
+					return !( *this == other );
+				}
+				reference operator*() const
+				{
+					return num;
+				}
+			private:
+				pointer v;
+				InputAssemblerStage::iterator IAStage_;
+			};
+			iterator begin()
+			{
+				return iterator( *IAStage_.begin() );
+			}
+			iterator end()
+			{
+				return iterator( &id );
 			}
 		};
 	}
