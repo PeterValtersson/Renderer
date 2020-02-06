@@ -94,7 +94,6 @@ namespace UnitTests
 	}
 	TEST_CLASS( UnitTests ){
 public:
-
 	TEST_METHOD( Create )
 	{
 		using namespace std::chrono_literals;

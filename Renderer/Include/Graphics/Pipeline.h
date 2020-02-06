@@ -5,6 +5,9 @@
 #include <type_traits>
 #include <functional>
 #include <Utilities/Flags.h>
+#include <vector>
+#include <algorithm>
+
 typedef unsigned int UINT;
 
 namespace Renderer
@@ -228,47 +231,10 @@ namespace Renderer
 				return vertexBuffer + indexBuffer;// +inputLayout;
 			}
 
-			class iterator{
-			public:
-				using iterator_category = std::output_iterator_tag;
-				using value_type = Utilities::GUID;
-				using difference_type = void;
-				using pointer = Utilities::GUID*;
-				using reference = Utilities::GUID&;
-
-				explicit iterator( pointer v ) : v( v )
-				{}
-				iterator& operator++()
-				{
-					v++;
-					return *this;
-				}
-				iterator operator++( int )
-				{
-					iterator retval = *this; ++( *this ); return retval;
-				}
-				bool operator==( iterator other ) const
-				{
-					return v == other.v;
-				}
-				bool operator!=( iterator other ) const
-				{
-					return !( *this == other );
-				}
-				pointer operator*() const
-				{
-					return v;
-				}
-			private:
-				pointer v;
-			};
-			iterator begin()
+			void Get_GUIDs( std::vector<Utilities::GUID>& guids )const
 			{
-				return iterator( &vertexBuffer );
-			}
-			iterator end()
-			{
-				return iterator( &indexBuffer );
+				guids.push_back( vertexBuffer );
+				guids.push_back( indexBuffer );
 			}
 		};
 
@@ -277,6 +243,10 @@ namespace Renderer
 			Utilities::GUID GetID()const
 			{
 				return streamOutTarget;
+			}
+			void Get_GUIDs( std::vector<Utilities::GUID>& guids )const
+			{
+				guids.push_back( streamOutTarget );
 			}
 		};
 
@@ -311,6 +281,23 @@ namespace Renderer
 					+ textureBindings[0] + textureBindings[1] + textureBindings[2] + textureBindings[3]
 					+ samplers[0];
 			}
+			void Get_GUIDs( std::vector<Utilities::GUID>& guids )const
+			{
+				guids.push_back( shader );
+				for ( size_t i = 0; i < textureCount; i++ )
+				{
+					guids.push_back( textures[i] );
+					guids.push_back( textureBindings[i] );
+				}
+				for ( size_t i = 0; i < samplerCount; i++ )
+				{
+					guids.push_back( samplers[i] );
+				}
+				for ( size_t i = 0; i < uavCount; i++ )
+				{
+					guids.push_back( uavs[i] );
+				}
+			}
 		};
 
 		struct ComputeShaderStage{
@@ -320,6 +307,20 @@ namespace Renderer
 			Utilities::GUID textures[maxTextures];
 			Utilities::GUID uavs[maxUnorderedAccessViews];
 
+			uint8_t textureCount = 0;
+			uint8_t uavCount = 0;
+			void Get_GUIDs( std::vector<Utilities::GUID>& guids )const
+			{
+				guids.push_back( shader );
+				for ( size_t i = 0; i < textureCount; i++ )
+				{
+					guids.push_back( textures[i] );
+				}
+				for ( size_t i = 0; i < uavCount; i++ )
+				{
+					guids.push_back( uavs[i] );
+				}
+			}
 		};
 
 		struct OutputMergerStage{
@@ -334,6 +335,16 @@ namespace Renderer
 			Utilities::GUID GetID()const
 			{
 				return blendState + depthStencilState + depthStencilView + renderTargets[0] + renderTargets[1] + renderTargets[2] + renderTargets[3];
+			}
+			void Get_GUIDs( std::vector<Utilities::GUID>& guids )const
+			{
+				guids.push_back( blendState );
+				guids.push_back( depthStencilState );
+				for ( size_t i = 0; i < renderTargetCount; i++ )
+				{
+					guids.push_back( renderTargets[i] );
+				}
+				guids.push_back( depthStencilView );
 			}
 		};
 		struct Viewport{
@@ -352,6 +363,11 @@ namespace Renderer
 			Utilities::GUID GetID()const
 			{
 				return rasterizerState + viewport;
+			}
+			void Get_GUIDs( std::vector<Utilities::GUID>& guids )const
+			{
+				guids.push_back( rasterizerState );
+				guids.push_back( viewport );
 			}
 		};
 
@@ -432,51 +448,22 @@ namespace Renderer
 			}
 
 			 // member typedefs provided through inheriting from std::iterator
-			class iterator {
-			public:
-				using iterator_category = std::output_iterator_tag;
-				using value_type = Utilities::GUID;
-				using difference_type = void;
-				using pointer = Utilities::GUID*;
-				using reference = Utilities::GUID&;
-
-				explicit iterator( pointer v ) : 
-					v( v ), 
-					IAStage_( IAStage_ )
-				{}
-				iterator& operator++()
-				{
-					v++;
-
-				}
-				iterator operator++( int )
-				{
-					iterator retval = *this; ++( *this ); return retval;
-				}
-				bool operator==( iterator other ) const
-				{
-					return num == other.num;
-				}
-				bool operator!=( iterator other ) const
-				{
-					return !( *this == other );
-				}
-				reference operator*() const
-				{
-					return num;
-				}
-			private:
-				pointer v;
-				InputAssemblerStage::iterator IAStage_;
-			};
-			iterator begin()
+			
+			template<class T>
+			void for_each_guid(const T& f)const
 			{
-				return iterator( *IAStage_.begin() );
+				std::vector<Utilities::GUID> v;
+				IAStage_.Get_GUIDs( v );
+				VSStage_.Get_GUIDs( v );
+				GSStage_.Get_GUIDs( v );
+				SOStage_.Get_GUIDs( v );
+				RStage_.Get_GUIDs( v );
+				PSStage_.Get_GUIDs( v );
+				OMStage_.Get_GUIDs( v );
+				CSStage_.Get_GUIDs( v );
+				std::for_each( v.begin(), v.end(), f );
 			}
-			iterator end()
-			{
-				return iterator( &id );
-			}
+
 		};
 	}
 }
